@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuildOps — Construction Project Management</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #C05621; --orange-light: #FAEEDA; --orange-mid: #EF9F27;
+      --bg: #ffffff; --bg2: #f6f5f0; --bg3: #eeecea;
+      --text: #1a1a18; --text-muted: #6b6a65;
+      --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+      --success-bg: #eaf3de; --success-text: #3B6D11;
+      --warn-bg: #FAEEDA; --warn-text: #633806;
+      --danger-bg: #FCEBEB; --danger-text: #A32D2D;
+      --info-bg: #E6F1FB; --info-text: #185FA5;
+      --radius: 8px; --radius-lg: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+        --text: #f0efe8; --text-muted: #999891;
+        --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+        --success-bg: #173404; --success-text: #C0DD97;
+        --warn-bg: #412402; --warn-text: #FAC775;
+        --danger-bg: #501313; --danger-text: #F09595;
+        --info-bg: #042C53; --info-text: #85B7EB;
+      }
+    }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; color: var(--text); background: var(--bg2); min-height: 100vh; }
+    .app { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 0.5px solid var(--border2); background: var(--bg); position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: var(--text); text-decoration: none; }
+    .logo-icon { width: 30px; height: 30px; background: var(--orange); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; }
+    .nav { display: flex; gap: 2px; margin-left: 20px; }
+    .nav-btn { padding: 5px 11px; border-radius: var(--radius); border: none; background: none; cursor: pointer; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; transition: background .15s, color .15s; font-family: inherit; }
+    .nav-btn:hover { background: var(--bg2); color: var(--text); }
+    .nav-btn.active { background: var(--bg2); color: var(--text); font-weight: 600; }
+    .btn-primary { background: var(--orange); color: #fff; border: none; padding: 7px 15px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; font-family: inherit; }
+    .btn-primary:hover { opacity: .85; }
+    .btn-sm { padding: 5px 11px; font-size: 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; transition: background .15s; font-family: inherit; }
+    .btn-sm:hover { background: var(--bg2); color: var(--text); }
+    .body { display: grid; grid-template-columns: 220px 1fr; }
+    .sidebar { background: var(--bg); border-right: 0.5px solid var(--border); padding: 14px 0; overflow-y: auto; height: calc(100vh - 55px); position: sticky; top: 55px; }
+    .sidebar-section { padding: 10px 14px 4px; font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: .08em; text-transform: uppercase; }
+    .proj-item { display: flex; align-items: center; gap: 9px; padding: 8px 14px; cursor: pointer; border-left: 2px solid transparent; transition: background .12s; }
+    .proj-item:hover { background: var(--bg2); }
+    .proj-item.active { background: var(--bg2); border-left-color: var(--orange); }
+    .proj-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .proj-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .proj-sub { font-size: 11px; color: var(--text-muted); }
+    .main { padding: 24px; overflow-y: auto; }
+    .page { display: none; } .page.active { display: block; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+    .page-title { font-size: 20px; font-weight: 700; }
+    .page-sub { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+    .metric { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .metric-label { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+    .metric-value { font-size: 24px; font-weight: 700; }
+    .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 18px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .badge-success { background: var(--success-bg); color: var(--success-text); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn-text); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger-text); }
+    .badge-info { background: var(--info-bg); color: var(--info-text); }
+    .badge-gray { background: var(--bg3); color: var(--text-muted); }
+    .proj-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .proj-table th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 700; color: var(--text-muted); border-bottom: 0.5px solid var(--border); text-transform: uppercase; letter-spacing: .05em; }
+    .proj-table td { padding: 11px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+    .proj-table tr:last-child td { border-bottom: none; }
+    .proj-table tbody tr:hover td { background: var(--bg2); cursor: pointer; }
+    .progress-bar { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; min-width: 80px; }
+    .progress-fill { height: 100%; border-radius: 3px; }
+    .task-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+    .task-row:last-child { border-bottom: none; }
+    .task-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--border2); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+    .task-check.done { background: var(--orange); border-color: var(--orange); color: #fff; }
+    .task-name { flex: 1; font-size: 13px; }
+    .task-name.done { text-decoration: line-through; color: var(--text-muted); }
+    .task-meta { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+    .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .timeline-row { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; margin-bottom: 12px; }
+    .tl-label { font-size: 12px; color: var(--text-muted); text-align: right; }
+    .tl-bar-wrap { position: relative; height: 24px; }
+    .tl-bar { position: absolute; height: 20px; top: 2px; border-radius: 5px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; }
+    .issue-row { display: flex; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid var(--border); align-items: flex-start; }
+    .issue-row:last-child { border-bottom: none; }
+    .issue-icon { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .budget-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+    .budget-row:last-child { border-bottom: none; }
+    .budget-amount { font-weight: 700; font-size: 14px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+    .overlay.open { display: flex; }
+    .form-box { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border2); padding: 24px; width: 400px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+    .form-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+    .form-group { margin-bottom: 13px; }
+    .form-label { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; display: block; font-weight: 500; }
+    .form-input { width: 100%; padding: 8px 11px; border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 13px; background: var(--bg); color: var(--text); font-family: inherit; }
+    .form-input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 2px rgba(192,86,33,0.15); }
+    select.form-input { cursor: pointer; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+    @media (max-width: 768px) {
+      .body { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .metrics { grid-template-columns: repeat(2,1fr); }
+      .two-col { grid-template-columns: 1fr; }
+      .team-grid { grid-template-columns: 1fr; }
+      .nav-btn span { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a class="logo" href="#">
+        <div class="logo-icon"><i class="ti ti-building-skyscraper"></i></div>
+        BuildOps
+      </a>
+      <nav class="nav">
+        <button class="nav-btn active" onclick="setPage('overview')" id="nav-overview"><i class="ti ti-layout-dashboard"></i> <span>Overview</span></button>
+        <button class="nav-btn" onclick="setPage('projects')" id="nav-projects"><i class="ti ti-folder"></i> <span>Projects</span></button>
+        <button class="nav-btn" onclick="setPage('tasks')" id="nav-tasks"><i class="ti ti-checklist"></i> <span>Tasks</span></button>
+        <button class="nav-btn" onclick="setPage('budget')" id="nav-budget"><i class="ti ti-coins"></i> <span>Budget</span></button>
+        <button class="nav-btn" onclick="setPage('team')" id="nav-team"><i class="ti ti-users"></i> <span>Team</span></button>
+      </nav>
+    </div>
+    <button class="btn-primary" onclick="openModal('modal-proj')"><i class="ti ti-plus"></i> New Project</button>
+  </div>
+
+  <div class="body">
+    <aside class="sidebar">
+      <div class="sidebar-section">Active Projects</div>
+      <div id="sidebar-projects"></div>
+      <div class="sidebar-section" style="margin-top:14px">Quick Stats</div>
+      <div style="padding:8px 14px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:var(--text-muted)"><span>On schedule</span><span style="font-weight:700;color:var(--success-text)" id="qs-on">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:var(--text-muted)"><span>At risk</span><span style="font-weight:700;color:var(--warn-text)" id="qs-risk">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:var(--text-muted)"><span>Open issues</span><span style="font-weight:700;color:var(--danger-text)" id="qs-issues">—</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div class="page-header">
+          <div><div class="page-title">Dashboard Overview</div><div class="page-sub">All active construction projects</div></div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-label">Total Projects</div><div class="metric-value" id="m-total">0</div><div class="metric-sub">Active</div></div>
+          <div class="metric"><div class="metric-label">Total Budget</div><div class="metric-value" id="m-budget">₱0</div><div class="metric-sub">Across all projects</div></div>
+          <div class="metric"><div class="metric-label">Tasks Done</div><div class="metric-value" id="m-tasks">0%</div><div class="metric-sub">Completion rate</div></div>
+          <div class="metric"><div class="metric-label">Open Issues</div><div class="metric-value" id="m-issues">0</div><div class="metric-sub">Need attention</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="ti ti-folder"></i> Project Status</div></div>
+            <div id="ov-projects"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="ti ti-alert-triangle"></i> Active Issues</div></div>
+            <div id="ov-issues"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="ti ti-timeline"></i> Project Timeline</div></div>
+          <div id="ov-timeline"></div>
+        </div>
+      </div>
+
+      <!-- PROJECTS -->
+      <div class="page" id="page-projects">
+        <div class="page-header">
+          <div><div class="page-title">All Projects</div><div class="page-sub">Manage and track each job site</div></div>
+          <button class="btn-primary" onclick="openModal('modal-proj')"><i class="ti ti-plus"></i> New Project</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="proj-table"><thead><tr>
+            <th>Project</th><th>Client</th><th>Location</th><th>Budget</th><th>Spent</th><th>Progress</th><th>Status</th><th>End Date</th>
+          </tr></thead><tbody id="proj-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- TASKS -->
+      <div class="page" id="page-tasks">
+        <div class="page-header">
+          <div><div class="page-title">Tasks</div><div class="page-sub">All tasks across projects</div></div>
+          <button class="btn-sm" onclick="openModal('modal-task')"><i class="ti ti-plus"></i> Add Task</button>
+        </div>
+        <div class="card"><div id="task-list"></div></div>
+      </div>
+
+      <!-- BUDGET -->
+      <div class="page" id="page-budget">
+        <div class="page-header">
+          <div><div class="page-title">Budget Tracker</div><div class="page-sub">Financial overview per project</div></div>
+        </div>
+        <div id="budget-content"></div>
+      </div>
+
+      <!-- TEAM -->
+      <div class="page" id="page-team">
+        <div class="page-header">
+          <div><div class="page-title">Team</div><div class="page-sub">Personnel and assigned workload</div></div>
+          <button class="btn-sm" onclick="openModal('modal-member')"><i class="ti ti-plus"></i> Add Member</button>
+        </div>
+        <div class="team-grid" id="team-content"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- New Project Modal -->
+<div class="overlay" id="modal-proj" onclick="handleOverlayClick(event,'modal-proj')">
+  <div class="form-box">
+    <div class="form-title">New Project</div>
+    <div class="form-group"><label class="form-label">Project Name *</label><input class="form-input" id="f-name" placeholder="e.g. SM Mall Extension"></div>
+    <div class="form-group"><label class="form-label">Client</label><input class="form-input" id="f-client" placeholder="Client or company name"></div>
+    <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="f-loc" placeholder="City or site address"></div>
+    <div class="form-group"><label class="form-label">Total Budget (₱)</label><input class="form-input" id="f-budget" type="number" placeholder="e.g. 5000000"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" id="f-start" type="date"></div>
+      <div class="form-group"><label class="form-label">End Date</label><input class="form-input" id="f-end" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Status</label>
+      <select class="form-input" id="f-status">
+        <option value="on-track">On Track</option>
+        <option value="at-risk">At Risk</option>
+        <option value="delayed">Delayed</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-sm" onclick="closeModal('modal-proj')">Cancel</button>
+      <button class="btn-primary" onclick="addProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Task Modal -->
+<div class="overlay" id="modal-task" onclick="handleOverlayClick(event,'modal-task')">
+  <div class="form-box">
+    <div class="form-title">Add Task</div>
+    <div class="form-group"><label class="form-label">Task Name *</label><input class="form-input" id="t-name" placeholder="Describe the task"></div>
+    <div class="form-group"><label class="form-label">Project</label><select class="form-input" id="t-project"></select></div>
+    <div class="form-group"><label class="form-label">Assigned To</label><select class="form-input" id="t-assign"></select></div>
+    <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" id="t-due" type="date"></div>
+    <div class="form-group"><label class="form-label">Priority</label>
+      <select class="form-input" id="t-priority">
+        <option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-sm" onclick="closeModal('modal-task')">Cancel</button>
+      <button class="btn-primary" onclick="addTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Team Member Modal -->
+<div class="overlay" id="modal-member" onclick="handleOverlayClick(event,'modal-member')">
+  <div class="form-box">
+    <div class="form-title">Add Team Member</div>
+    <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="m-name" placeholder="e.g. Juan dela Cruz"></div>
+    <div class="form-group"><label class="form-label">Role</label><input class="form-input" id="m-role" placeholder="e.g. Site Engineer"></div>
+    <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="m-phone" placeholder="+63 9XX XXX XXXX"></div>
+    <div class="form-actions">
+      <button class="btn-sm" onclick="closeModal('modal-member')">Cancel</button>
+      <button class="btn-primary" onclick="addMember()">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#C05621','#185FA5','#0F6E56','#993C1D','#534AB7','#854F0B','#3B6D11'];
+const AVATARCOLORS = [
+  {bg:'#FAEEDA',color:'#633806'},{bg:'#E6F1FB',color:'#0C447C'},
+  {bg:'#E1F5EE',color:'#085041'},{bg:'#FAECE7',color:'#712B13'},
+  {bg:'#EEEDFE',color:'#3C3489'},{bg:'#EAF3DE',color:'#27500A'},
+];
+
+const STORAGE_KEY = 'buildops_data';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects, tasks, issues, team }));
+}
+
+let defaultData = {
+  projects: [
+    {id:1,name:'Ortigas Office Tower',client:'DMCI Homes',location:'Pasig',budget:48000000,spent:29000000,start:'2025-01-10',end:'2026-06-30',status:'on-track',progress:62,color:COLORS[0]},
+    {id:2,name:'BF Homes Renovation',client:'SM Prime',location:'Parañaque',budget:8500000,spent:7800000,start:'2024-11-01',end:'2025-08-31',status:'at-risk',progress:78,color:COLORS[1]},
+    {id:3,name:'C5 Road Widening',client:'DPWH',location:'Taguig',budget:22000000,spent:9500000,start:'2025-03-01',end:'2026-12-31',status:'on-track',progress:35,color:COLORS[2]},
+    {id:4,name:'Eastwood Condo Phase 2',client:'Megaworld',location:'Libis QC',budget:95000000,spent:18000000,start:'2025-06-01',end:'2027-06-30',status:'on-track',progress:15,color:COLORS[3]},
+  ],
+  tasks: [
+    {id:1,name:'Submit soil test report',project:'C5 Road Widening',assignee:'Carlos Reyes',due:'2025-06-15',priority:'high',done:false},
+    {id:2,name:'Complete electrical rough-in floors 3–5',project:'Ortigas Office Tower',assignee:'Ben Torres',due:'2025-06-20',priority:'high',done:false},
+    {id:3,name:'Finalize interior finish specs',project:'BF Homes Renovation',assignee:'Maria Santos',due:'2025-06-10',priority:'medium',done:true},
+    {id:4,name:'Procure rebar for foundation',project:'Eastwood Condo Phase 2',assignee:'Luz Cruz',due:'2025-07-01',priority:'medium',done:false},
+    {id:5,name:'Inspect drainage system',project:'C5 Road Widening',assignee:'Carlos Reyes',due:'2025-06-25',priority:'low',done:false},
+  ],
+  issues: [
+    {proj:'BF Homes Renovation',text:'Permit extension pending — risk of work stoppage',severity:'danger'},
+    {proj:'Ortigas Office Tower',text:'Steel delivery delayed by 2 weeks, may impact schedule',severity:'warn'},
+    {proj:'C5 Road Widening',text:'Monsoon preparations needed before July',severity:'warn'},
+  ],
+  team: [
+    {name:'Carlos Reyes',role:'Site Engineer',phone:'+63 912 345 6789',avatar:'CR'},
+    {name:'Maria Santos',role:'Project Manager',phone:'+63 917 234 5678',avatar:'MS'},
+    {name:'Ben Torres',role:'Electrical Supervisor',phone:'+63 920 345 6780',avatar:'BT'},
+    {name:'Luz Cruz',role:'Procurement Officer',phone:'+63 915 456 7891',avatar:'LC'},
+    {name:'Dino Lim',role:'Safety Officer',phone:'+63 918 567 8902',avatar:'DL'},
+    {name:'Ana Bautista',role:'Civil Engineer',phone:'+63 916 678 9013',avatar:'AB'},
+  ]
+};
+
+const saved = loadData();
+let { projects, tasks, issues, team } = saved || defaultData;
+
+function fmt(n) { return '₱' + Math.round(n).toLocaleString('en-PH'); }
+function pct(a,b) { return Math.round(a/b*100); }
+function initials(name) { return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+function statusBadge(s) {
+  const map = { 'on-track':'badge-success','at-risk':'badge-warn','delayed':'badge-danger','completed':'badge-gray' };
+  const labels = { 'on-track':'On Track','at-risk':'At Risk','delayed':'Delayed','completed':'Completed' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${labels[s]||s}</span>`;
+}
+function priBadge(p) {
+  if(p==='high') return '<span class="badge badge-danger">High</span>';
+  if(p==='medium') return '<span class="badge badge-warn">Medium</span>';
+  return '<span class="badge badge-gray">Low</span>';
+}
+
+function render() {
+  renderSidebar(); renderMetrics(); renderOverview();
+  renderProjectsTable(); renderTasks(); renderBudget(); renderTeam();
+  saveData();
+}
+
+function renderSidebar() {
+  document.getElementById('sidebar-projects').innerHTML = projects.map((p,i) =>
+    `<div class="proj-item" onclick="setPage('projects')" style="border-left-color:${i===0?p.color:'transparent'}">
+      <div class="proj-dot" style="background:${p.color}"></div>
+      <div><div class="proj-name">${p.name}</div><div class="proj-sub">${p.progress}% complete</div></div>
+    </div>`).join('');
+  document.getElementById('qs-on').textContent = projects.filter(p=>p.status==='on-track').length;
+  document.getElementById('qs-risk').textContent = projects.filter(p=>p.status==='at-risk'||p.status==='delayed').length;
+  document.getElementById('qs-issues').textContent = issues.length;
+}
+
+function renderMetrics() {
+  document.getElementById('m-total').textContent = projects.length;
+  document.getElementById('m-budget').textContent = fmt(projects.reduce((s,p)=>s+p.budget,0));
+  const done = tasks.filter(t=>t.done).length;
+  document.getElementById('m-tasks').textContent = tasks.length ? Math.round(done/tasks.length*100)+'%' : '0%';
+  document.getElementById('m-issues').textContent = issues.length;
+}
+
+function renderOverview() {
+  document.getElementById('ov-projects').innerHTML = projects.map(p =>
+    `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border)">
+      <div style="width:9px;height:9px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div class="progress-bar" style="margin-top:5px"><div class="progress-fill" style="width:${p.progress}%;background:${p.color}"></div></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);flex-shrink:0">${p.progress}%</div>
+      ${statusBadge(p.status)}
+    </div>`).join('');
+
+  document.getElementById('ov-issues').innerHTML = issues.length
+    ? issues.map(i => {
+        const iconColor = i.severity==='danger' ? 'var(--danger-bg)' : 'var(--warn-bg)';
+        const textColor = i.severity==='danger' ? 'var(--danger-text)' : 'var(--warn-text)';
+        const icon = i.severity==='danger' ? 'ti-alert-circle' : 'ti-alert-triangle';
+        return `<div class="issue-row">
+          <div class="issue-icon" style="background:${iconColor}"><i class="ti ${icon}" style="color:${textColor};font-size:15px"></i></div>
+          <div><div style="font-size:12px;font-weight:600">${i.proj}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${i.text}</div></div>
+        </div>`;}).join('')
+    : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">No active issues.</div>';
+
+  if (projects.length < 2) {
+    document.getElementById('ov-timeline').innerHTML = '<div style="color:var(--text-muted);font-size:13px">Add more projects to see the timeline.</div>';
+    return;
+  }
+  const minDate = new Date(Math.min(...projects.map(p=>new Date(p.start))));
+  const maxDate = new Date(Math.max(...projects.map(p=>new Date(p.end))));
+  const totalMs = maxDate - minDate || 1;
+  document.getElementById('ov-timeline').innerHTML = projects.map(p => {
+    const left = Math.round((new Date(p.start)-minDate)/totalMs*100);
+    const width = Math.max(6, Math.round((new Date(p.end)-new Date(p.start))/totalMs*100));
+    return `<div class="timeline-row">
+      <div class="tl-label">${p.name.length>20?p.name.slice(0,19)+'…':p.name}</div>
+      <div class="tl-bar-wrap"><div class="tl-bar" style="left:${left}%;width:${width}%;background:${p.color}22;border:1.5px solid ${p.color};color:${p.color}">${p.progress}%</div></div>
+    </div>`;}).join('');
+}
+
+function renderProjectsTable() {
+  document.getElementById('proj-tbody').innerHTML = projects.map(p =>
+    `<tr onclick="setPage('budget')">
+      <td><div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:50%;background:${p.color}"></div><span style="font-weight:600">${p.name}</span></div></td>
+      <td style="color:var(--text-muted)">${p.client}</td>
+      <td style="color:var(--text-muted)">${p.location}</td>
+      <td>${fmt(p.budget)}</td>
+      <td>${fmt(p.spent)}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${p.progress}%;background:${p.color}"></div></div><span style="font-size:12px;color:var(--text-muted)">${p.progress}%</span></div></td>
+      <td>${statusBadge(p.status)}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${p.end}</td>
+    </tr>`).join('');
+}
+
+function renderTasks() {
+  document.getElementById('task-list').innerHTML = tasks.length
+    ? tasks.map((t,i) =>
+        `<div class="task-row">
+          <div class="task-check${t.done?' done':''}" onclick="toggleTask(${i})" title="${t.done?'Mark incomplete':'Mark complete'}">
+            ${t.done?'<i class="ti ti-check" style="font-size:12px"></i>':''}
+          </div>
+          <div style="flex:1">
+            <div class="task-name${t.done?' done':''}">${t.name}</div>
+            <div class="task-meta"><span>${t.project}</span><span>·</span><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span></div>
+          </div>
+          ${priBadge(t.priority)}
+          <button class="btn-sm" onclick="removeTask(${i})" style="padding:3px 7px;color:var(--danger-text);border-color:var(--danger-bg)" title="Remove"><i class="ti ti-trash" style="font-size:13px"></i></button>
+        </div>`).join('')
+    : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">No tasks yet. Add your first task!</div>';
+}
+
+function toggleTask(i) { tasks[i].done = !tasks[i].done; render(); }
+function removeTask(i) { tasks.splice(i,1); render(); }
+
+function renderBudget() {
+  document.getElementById('budget-content').innerHTML = projects.map(p => {
+    const used = pct(p.spent, p.budget);
+    const barColor = used > 90 ? 'var(--danger-text)' : used > 70 ? 'var(--warn-text)' : 'var(--success-text)';
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-title"><div style="width:9px;height:9px;border-radius:50%;background:${p.color}"></div>${p.name}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${p.client} · ${p.location}</div>
+      </div>
+      <div class="progress-bar" style="height:8px;margin-bottom:14px"><div class="progress-fill" style="width:${used}%;background:${barColor}"></div></div>
+      <div class="budget-row"><span style="color:var(--text-muted)">Total Budget</span><span class="budget-amount">${fmt(p.budget)}</span></div>
+      <div class="budget-row"><span style="color:var(--text-muted)">Spent to Date</span><span class="budget-amount" style="color:${barColor}">${fmt(p.spent)} (${used}%)</span></div>
+      <div class="budget-row"><span style="color:var(--text-muted)">Remaining</span><span class="budget-amount" style="color:var(--success-text)">${fmt(p.budget - p.spent)}</span></div>
+    </div>`;}).join('');
+}
+
+function renderTeam() {
+  document.getElementById('team-content').innerHTML = team.map((m,i) => {
+    const c = AVATARCOLORS[i % AVATARCOLORS.length];
+    const assigned = tasks.filter(t => t.assignee === m.name);
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div class="avatar" style="background:${c.bg};color:${c.color}">${initials(m.name)}</div>
+        <div><div style="font-weight:600;font-size:14px">${m.name}</div><div style="font-size:12px;color:var(--text-muted)">${m.role}</div></div>
+      </div>
+      ${m.phone?`<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px"><i class="ti ti-phone" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>${m.phone}</div>`:''}
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${assigned.length} task${assigned.length!==1?'s':''} assigned</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">${assigned.slice(0,3).map(t=>`<span class="badge badge-gray">${t.name.slice(0,22)}${t.name.length>22?'…':''}</span>`).join('')}</div>
+    </div>`;}).join('');
+}
+
+function setPage(name) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-'+name).classList.add('active');
+}
+
+function openModal(id) {
+  if (id === 'modal-task') {
+    document.getElementById('t-project').innerHTML = projects.map(p=>`<option>${p.name}</option>`).join('');
+    document.getElementById('t-assign').innerHTML = team.map(m=>`<option>${m.name}</option>`).join('');
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function handleOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
+
+function addProject() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('Please enter a project name.'); return; }
+  const budget = parseInt(document.getElementById('f-budget').value) || 1000000;
+  projects.push({
+    id: Date.now(), name,
+    client: document.getElementById('f-client').value || 'Client',
+    location: document.getElementById('f-loc').value || 'TBD',
+    budget, spent: 0,
+    start: document.getElementById('f-start').value || new Date().toISOString().slice(0,10),
+    end: document.getElementById('f-end').value || '2026-12-31',
+    status: document.getElementById('f-status').value,
+    progress: 0, color: COLORS[projects.length % COLORS.length]
+  });
+  ['f-name','f-client','f-loc','f-budget','f-start','f-end'].forEach(id => document.getElementById(id).value = '');
+  closeModal('modal-proj');
+  render();
+}
+
+function addTask() {
+  const name = document.getElementById('t-name').value.trim();
+  if (!name) { alert('Please enter a task name.'); return; }
+  tasks.push({
+    id: Date.now(), name,
+    project: document.getElementById('t-project').value,
+    assignee: document.getElementById('t-assign').value,
+    due: document.getElementById('t-due').value || '2025-12-31',
+    priority: document.getElementById('t-priority').value,
+    done: false
+  });
+  document.getElementById('t-name').value = '';
+  closeModal('modal-task');
+  render();
+}
+
+function addMember() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { alert('Please enter a name.'); return; }
+  team.push({
+    name, role: document.getElementById('m-role').value || 'Team Member',
+    phone: document.getElementById('m-phone').value || '',
+    avatar: initials(name)
+  });
+  ['m-name','m-role','m-phone'].forEach(id => document.getElementById(id).value = '');
+  closeModal('modal-member');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
