@@ -22,27 +22,19 @@
   --er-bg:#501313;--er-tx:#F09595;--in-bg:#042C53;--in-tx:#85B7EB
 }}
 body{font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:var(--tx);background:var(--bg2);min-height:100vh}
-
-/* AUTH */
 .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.auth-box{background:var(--bg);border:0.5px solid var(--bd2);border-radius:var(--rl);padding:30px;width:400px;max-width:100%}
-.auth-logo{display:flex;align-items:center;gap:9px;margin-bottom:22px}
+.auth-box{background:var(--bg);border:0.5px solid var(--bd2);border-radius:var(--rl);padding:30px;width:420px;max-width:100%}
 .auth-ic{width:36px;height:36px;background:var(--or);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
 .auth-users{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 .au{border:0.5px solid var(--bd2);border-radius:var(--r);padding:10px;cursor:pointer;transition:all .15s}
-.au:hover{background:var(--bg2)}
-.au.sel{border-color:var(--or);border-width:1.5px;background:var(--or2)}
-
-/* SHELL */
-.app{display:none;flex-direction:column;min-height:100vh}
-.app.on{display:flex}
+.au:hover{background:var(--bg2)}.au.sel{border-color:var(--or);border-width:1.5px;background:var(--or2)}
+.app{display:none;flex-direction:column;min-height:100vh}.app.on{display:flex}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--bg);border-bottom:0.5px solid var(--bd2);position:sticky;top:0;z-index:60;flex-shrink:0}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;cursor:pointer}
 .logo-ic{width:28px;height:28px;background:var(--or);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
 .nav-tabs{display:flex;gap:0;padding:0 18px;background:var(--bg);border-bottom:0.5px solid var(--bd);overflow-x:auto;flex-shrink:0}
 .ntab{padding:8px 12px;border:none;background:none;cursor:pointer;font-size:12px;color:var(--tx2);border-bottom:2px solid transparent;display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:inherit;transition:color .15s}
-.ntab:hover{color:var(--tx)}.ntab.on{color:var(--or);border-bottom-color:var(--or);font-weight:600}
-.ntab.hidden{display:none!important}
+.ntab:hover{color:var(--tx)}.ntab.on{color:var(--or);border-bottom-color:var(--or);font-weight:600}.ntab.hidden{display:none!important}
 .body-wrap{display:flex;flex:1;overflow:hidden}
 .side{background:var(--bg);border-right:0.5px solid var(--bd);width:200px;flex-shrink:0;overflow-y:auto;padding:10px 0}
 .sl{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;padding:8px 12px 3px}
@@ -52,119 +44,87 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:var(--t
 .pg{display:none}.pg.on{display:block}
 .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
 .pt{font-size:18px;font-weight:700}.ps{font-size:12px;color:var(--tx2);margin-top:2px}
-
-/* CARDS / COMMON */
 .card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rl);padding:16px;margin-bottom:14px}
 .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .ct{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
 .mc{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r);padding:12px}
-.ml{font-size:11px;color:var(--tx2);margin-bottom:3px}.mv{font-size:22px;font-weight:700}.ms{font-size:10px;color:var(--tx2);margin-top:2px}
+.ml{font-size:11px;color:var(--tx2);margin-bottom:3px}.mv{font-size:20px;font-weight:700}.ms{font-size:10px;color:var(--tx2);margin-top:2px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;gap:3px}
 .bk{background:var(--ok-bg);color:var(--ok-tx)}.bw{background:var(--wn-bg);color:var(--wn-tx)}
 .be{background:var(--er-bg);color:var(--er-tx)}.bi{background:var(--in-bg);color:var(--in-tx)}.bg_{background:var(--bg2);color:var(--tx2)}
 .pb{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .pf{height:100%;border-radius:3px;transition:width .5s}
-
-/* BUTTONS */
 .btn{padding:5px 11px;border-radius:var(--r);border:0.5px solid var(--bd2);background:var(--bg);cursor:pointer;font-size:11px;color:var(--tx2);display:inline-flex;align-items:center;gap:4px;font-family:inherit;transition:background .12s;white-space:nowrap}
 .btn:hover{background:var(--bg2);color:var(--tx)}
 .btnp{background:var(--or);color:#fff;border-color:var(--or);font-weight:600}.btnp:hover{opacity:.85;color:#fff}
 .btns{padding:4px 8px;font-size:11px}
-.btnd{background:var(--er-bg);color:var(--er-tx);border-color:var(--er-bg)}.btnd:hover{background:var(--er-bg);color:var(--er-tx)}
+.btnd{background:var(--er-bg);color:var(--er-tx);border-color:var(--er-bg)}
 .btn-back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--tx2);background:none;border:none;cursor:pointer;padding:0;margin-bottom:14px;font-family:inherit}
 .btn-back:hover{color:var(--tx)}
-
-/* TABLE */
 .tbl{width:100%;border-collapse:collapse;font-size:12px}
 .tbl th{text-align:left;padding:7px 10px;font-size:10px;font-weight:600;color:var(--tx2);border-bottom:0.5px solid var(--bd);text-transform:uppercase;letter-spacing:.05em}
-.tbl td{padding:9px 10px;border-bottom:0.5px solid var(--bd);vertical-align:middle}
+.tbl td{padding:8px 10px;border-bottom:0.5px solid var(--bd);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}.tbl tbody tr:hover td{background:var(--bg2)}
-
-/* INPUTS */
 .inp{width:100%;padding:7px 10px;border:0.5px solid var(--bd2);border-radius:var(--r);font-size:12px;background:var(--bg);color:var(--tx);font-family:inherit}
 .inp:focus{outline:none;border-color:var(--or);box-shadow:0 0 0 2px rgba(192,86,33,.12)}
-select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
-
-/* MODAL */
-.fm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
+.fm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
 .fm.op{display:flex}
-.fb{background:var(--bg);border-radius:var(--rl);border:0.5px solid var(--bd2);padding:22px;width:480px;max-width:100%;margin-bottom:40px}
+.fb{background:var(--bg);border-radius:var(--rl);border:0.5px solid var(--bd2);padding:22px;width:520px;max-width:100%;margin-bottom:40px}
 .ft{font-size:14px;font-weight:700;margin-bottom:16px}
-.fg{margin-bottom:11px}.fl{font-size:11px;color:var(--tx2);margin-bottom:4px;display:block;font-weight:500}
+.fg{margin-bottom:10px}.fl{font-size:11px;color:var(--tx2);margin-bottom:4px;display:block;font-weight:500}
 .fa{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-/* GANTT */
-.gantt-wrap{overflow-x:auto}
-.gantt-row{display:grid;gap:0;align-items:center;border-bottom:0.5px solid var(--bd);min-height:36px}
-.gantt-label{padding:6px 10px;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:0.5px solid var(--bd)}
-.gantt-bar-wrap{position:relative;height:36px;background:var(--bg2)}
-.gantt-bar{position:absolute;top:8px;height:20px;border-radius:4px;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer;transition:opacity .15s}
-.gantt-bar:hover{opacity:.85}
-.gantt-today{position:absolute;top:0;bottom:0;width:1.5px;background:var(--or);z-index:2}
-.gantt-header{display:grid;background:var(--bg3);border-bottom:0.5px solid var(--bd2)}
-.gantt-month{font-size:10px;font-weight:600;color:var(--tx2);padding:5px 8px;border-right:0.5px solid var(--bd);text-transform:uppercase}
-
-/* PROJECT DETAIL */
-.proj-detail{display:none}.proj-detail.on{display:block}
-.detail-header{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rl);padding:20px;margin-bottom:16px}
-.detail-tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--bd);margin-bottom:16px}
-.dtab{padding:7px 12px;border:none;background:none;cursor:pointer;font-size:12px;color:var(--tx2);border-bottom:2px solid transparent;font-family:inherit}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.detail-tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--bd);margin-bottom:16px;flex-wrap:wrap}
+.dtab{padding:7px 12px;border:none;background:none;cursor:pointer;font-size:12px;color:var(--tx2);border-bottom:2px solid transparent;font-family:inherit;white-space:nowrap}
 .dtab.on{color:var(--or);border-bottom-color:var(--or);font-weight:600}
 .dpg{display:none}.dpg.on{display:block}
-
-/* DOCS */
-.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
-.doc-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r);padding:10px;cursor:pointer;transition:border-color .15s;text-align:center}
-.doc-card:hover{border-color:var(--bd2)}
-.doc-icon{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px}
-.doc-name{font-size:11px;font-weight:500;word-break:break-word}
-.doc-meta{font-size:10px;color:var(--tx2);margin-top:2px}
-.upload-zone{border:1.5px dashed var(--bd2);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;background:var(--bg2);transition:border-color .15s}
+.gantt-wrap{overflow-x:auto}
+.gantt-row{display:grid;gap:0;align-items:center;border-bottom:0.5px solid var(--bd)}
+.gantt-label{padding:5px 8px;font-size:11px;border-right:0.5px solid var(--bd);overflow:hidden}
+.gantt-bar-wrap{position:relative;height:34px;background:var(--bg2)}
+.gantt-bar{position:absolute;top:7px;height:20px;border-radius:4px;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;cursor:pointer}
+.gantt-bar:hover{opacity:.85}
+.gantt-today{position:absolute;top:0;bottom:0;width:2px;background:var(--or);z-index:3;opacity:.7}
+.gantt-month{font-size:9px;font-weight:600;color:var(--tx2);padding:4px 6px;border-right:0.5px solid var(--bd);text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.upload-zone{border:1.5px dashed var(--bd2);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;background:var(--bg2)}
 .upload-zone:hover{border-color:var(--or)}
 .upload-zone input{display:none}
-.media-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.media-thumb{width:64px;height:64px;border-radius:6px;object-fit:cover;border:0.5px solid var(--bd)}
-.media-vid{width:64px;height:64px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;border:0.5px solid var(--bd);font-size:10px;color:var(--tx2);flex-direction:column;gap:2px}
-
-/* ATTENDANCE */
-.att-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r);margin-bottom:6px;flex-wrap:wrap}
-.att-btn{padding:4px 10px;border-radius:var(--r);border:0.5px solid var(--bd2);background:var(--bg2);cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;transition:all .15s}
+.media-prev{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.media-thumb{width:56px;height:56px;border-radius:6px;object-fit:cover;border:0.5px solid var(--bd)}
+.media-vid{width:56px;height:56px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;border:0.5px solid var(--bd);font-size:9px;color:var(--tx2);flex-direction:column;gap:2px}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.doc-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r);padding:10px;cursor:pointer;text-align:center}
+.doc-card:hover{border-color:var(--bd2)}
+.att-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r);margin-bottom:6px;flex-wrap:wrap}
+.att-btn{padding:3px 9px;border-radius:var(--r);border:0.5px solid var(--bd2);background:var(--bg2);cursor:pointer;font-size:11px;font-weight:600;font-family:inherit}
 .att-btn.in-a{background:var(--ok-bg);color:var(--ok-tx);border-color:var(--ok-tx)}
-.att-btn.out-a{background:var(--er-bg);color:var(--er-tx);border-color:var(--er-tx)}
 .att-btn.lv-a{background:var(--wn-bg);color:var(--wn-tx);border-color:var(--wn-tx)}
-.att-btn.abs-a{background:var(--bg3);color:var(--tx2);border-color:var(--bd2)}
-
-/* LOG */
-.log-row{display:flex;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--bd);align-items:flex-start}
+.att-btn.ab-a{background:var(--bg3);color:var(--tx2)}
+.log-row{display:flex;gap:10px;padding:6px 0;border-bottom:0.5px solid var(--bd);align-items:flex-start}
 .log-row:last-child{border-bottom:none}
 .log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.log-time{font-size:10px;color:var(--tx2);white-space:nowrap;flex-shrink:0;margin-top:1px}
-
-/* TASK ROW */
-.tr_{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bd)}
+.log-time{font-size:10px;color:var(--tx2);white-space:nowrap;flex-shrink:0}
+.tr_{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bd)}
 .tr_:last-child{border-bottom:none}
-.ck{width:16px;height:16px;border-radius:4px;border:1px solid var(--bd2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .12s}
+.ck{width:16px;height:16px;border-radius:4px;border:1px solid var(--bd2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px}
 .ck.dn{background:var(--or);border-color:var(--or);color:#fff}
-
-/* ROLE BADGES */
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.sub-task{display:flex;align-items:center;gap:8px;padding:4px 0 4px 24px;border-bottom:0.5px solid var(--bd)}
+.sub-task:last-child{border-bottom:none}
+.sub-ck{width:13px;height:13px;border-radius:3px;border:1px solid var(--bd2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sub-ck.dn{background:var(--ok-tx);border-color:var(--ok-tx);color:#fff}
+.expense-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--bd);font-size:12px}
+.expense-row:last-child{border-bottom:none}
+.inv-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r);padding:12px}
 .r-admin{background:#FAEEDA;color:#633806}.r-pm{background:#E6F1FB;color:#0C447C}
 .r-eng{background:#E1F5EE;color:#085041}.r-worker{background:#F1EFE8;color:#444441}
-
-/* AV */
-.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
-
-/* DAILY CARD */
 .daily-card{border:0.5px solid var(--bd);border-radius:var(--rl);padding:14px;margin-bottom:12px;background:var(--bg)}
-
-@media(max-width:700px){
-  .side{display:none}.body-wrap{flex-direction:column}
-  .metrics{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}
-  .three{grid-template-columns:1fr 1fr}
-}
+.equip-bar{position:absolute;top:7px;height:20px;border-radius:4px;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:600;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.15) 3px,rgba(255,255,255,.15) 6px);border:1.5px solid;cursor:pointer;white-space:nowrap;overflow:hidden}
+@media(max-width:700px){.side{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -172,7 +132,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
 <!-- AUTH -->
 <div class="auth-wrap" id="auth-screen">
   <div class="auth-box">
-    <div class="auth-logo">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:22px">
       <div class="auth-ic"><i class="ti ti-building-skyscraper"></i></div>
       <div><div style="font-size:18px;font-weight:700">BuildOps</div><div style="font-size:11px;color:var(--tx2)">Construction Management</div></div>
     </div>
@@ -182,8 +142,11 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
     <div class="fg"><label class="fl">PIN</label><input class="inp" id="auth-pin" type="password" maxlength="6" placeholder="Enter PIN" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div id="auth-err" style="color:var(--er-tx);font-size:11px;margin-bottom:8px;display:none">Incorrect PIN.</div>
     <button class="btn btnp" style="width:100%;justify-content:center;padding:9px" onclick="doLogin()"><i class="ti ti-login"></i> Sign In</button>
-    <div style="margin-top:14px;padding:10px;background:var(--bg2);border-radius:var(--r);font-size:11px;color:var(--tx2)">
-      🔴 <strong>Admin</strong> — Full access &nbsp;|&nbsp; 🟡 <strong>PM</strong> — Manage projects &nbsp;|&nbsp; 🟢 <strong>Engineer</strong> — Tasks & logs &nbsp;|&nbsp; ⚪ <strong>Worker</strong> — Attendance & daily log
+    <div style="margin-top:12px;padding:10px;background:var(--bg2);border-radius:var(--r);font-size:11px;color:var(--tx2)">
+      🔴 <strong>Admin</strong> — Full access to all projects<br>
+      🟡 <strong>PM</strong> — Assigned projects only, manage all<br>
+      🟢 <strong>Engineer</strong> — View assigned project, log tasks<br>
+      ⚪ <strong>Worker</strong> — Attendance & daily log only
     </div>
   </div>
 </div>
@@ -195,7 +158,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:var(--tx2)" id="top-date"></div>
       <div style="display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--bg2);cursor:pointer" onclick="doLogout()">
-        <div class="av" id="top-av" style="background:#FAEEDA;color:#633806"></div>
+        <div class="av" id="top-av"></div>
         <div><div style="font-weight:600;font-size:12px" id="top-name">—</div><div style="font-size:10px;color:var(--tx2)" id="top-role">—</div></div>
         <i class="ti ti-logout" style="font-size:13px;color:var(--tx2)"></i>
       </div>
@@ -208,14 +171,15 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
     <button class="ntab" onclick="setTab('inventory')" id="t-inventory"><i class="ti ti-package"></i> Inventory</button>
     <button class="ntab" onclick="setTab('attendance')" id="t-attendance"><i class="ti ti-clock"></i> Attendance</button>
     <button class="ntab" onclick="setTab('daily')" id="t-daily"><i class="ti ti-notebook"></i> Daily Log</button>
+    <button class="ntab" onclick="setTab('expenses')" id="t-expenses"><i class="ti ti-receipt"></i> Expenses</button>
     <button class="ntab" onclick="setTab('users')" id="t-users"><i class="ti ti-users"></i> Users</button>
     <button class="ntab" onclick="setTab('activity')" id="t-activity"><i class="ti ti-activity"></i> Activity</button>
   </div>
   <div class="body-wrap">
     <aside class="side">
-      <div class="sl">Projects</div>
+      <div class="sl">My Projects</div>
       <div id="sidebar"></div>
-      <div class="sl" style="margin-top:10px">Quick Stats</div>
+      <div class="sl" style="margin-top:10px">Stats</div>
       <div style="padding:4px 12px">
         <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;color:var(--tx2)"><span>On track</span><span style="color:var(--ok-tx);font-weight:600" id="qs1">—</span></div>
         <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;color:var(--tx2)"><span>At risk</span><span style="color:var(--wn-tx);font-weight:600" id="qs2">—</span></div>
@@ -227,12 +191,12 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
 
       <!-- OVERVIEW -->
       <div class="pg on" id="pg-overview">
-        <div class="ph"><div><div class="pt">Dashboard</div><div class="ps">Live overview of all operations</div></div></div>
+        <div class="ph"><div><div class="pt">Dashboard</div><div class="ps">Live overview of your projects</div></div></div>
         <div class="metrics">
-          <div class="mc"><div class="ml">Projects</div><div class="mv" id="m1">0</div><div class="ms">Active</div></div>
-          <div class="mc"><div class="ml">Total Budget</div><div class="mv" id="m2">₱0</div><div class="ms">All projects</div></div>
+          <div class="mc"><div class="ml">Projects</div><div class="mv" id="m1">0</div><div class="ms">Assigned to me</div></div>
+          <div class="mc"><div class="ml">Contract Value</div><div class="mv" id="m2">₱0</div><div class="ms">Total</div></div>
           <div class="mc"><div class="ml">Tasks Done</div><div class="mv" id="m3">0%</div><div class="ms">Completion</div></div>
-          <div class="mc"><div class="ml">Avg Progress</div><div class="mv" id="m4">0%</div><div class="ms">Across projects</div></div>
+          <div class="mc"><div class="ml">Avg Progress</div><div class="mv" id="m4">0%</div><div class="ms">Gantt-based</div></div>
         </div>
         <div class="two">
           <div class="card"><div class="ch"><div class="ct"><i class="ti ti-folder"></i> Projects</div></div><div id="ov-proj"></div></div>
@@ -241,89 +205,114 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
         <div class="card"><div class="ch"><div class="ct"><i class="ti ti-activity"></i> Recent Activity</div></div><div id="ov-log"></div></div>
       </div>
 
-      <!-- PROJECTS LIST -->
+      <!-- PROJECTS -->
       <div class="pg" id="pg-projects">
         <div id="proj-list-view">
           <div class="ph">
-            <div><div class="pt">Projects</div><div class="ps">Click a project for full details</div></div>
-            <button class="btn btnp" id="btn-new-proj" onclick="openFm('fm-proj')"><i class="ti ti-plus"></i> New Project</button>
+            <div><div class="pt">Projects</div><div class="ps">Click a project to open full details</div></div>
+            <button class="btn btnp" id="btn-new-proj" onclick="openFm('fm-proj')" style="display:none"><i class="ti ti-plus"></i> New Project</button>
           </div>
           <div id="proj-cards"></div>
         </div>
-        <!-- PROJECT DETAIL VIEW -->
         <div id="proj-detail-view" style="display:none">
           <button class="btn-back" onclick="closeDetail()"><i class="ti ti-arrow-left"></i> All Projects</button>
-          <div class="detail-header" id="detail-header"></div>
+          <div class="card" id="detail-header"></div>
           <div class="detail-tabs">
-            <button class="dtab on" onclick="setDTab('overview')" id="dt-overview">Overview</button>
-            <button class="dtab" onclick="setDTab('gantt')" id="dt-gantt">Gantt / Schedule</button>
-            <button class="dtab" onclick="setDTab('tasks')" id="dt-tasks">Tasks</button>
-            <button class="dtab" onclick="setDTab('docs')" id="dt-docs">Documents</button>
-            <button class="dtab" onclick="setDTab('attendance')" id="dt-attendance">Site Attendance</button>
-            <button class="dtab" onclick="setDTab('daily')" id="dt-daily">Daily Logs</button>
+            <button class="dtab on" onclick="setDTab('overview')" id="dt-overview"><i class="ti ti-layout-dashboard"></i> Overview</button>
+            <button class="dtab" onclick="setDTab('gantt')" id="dt-gantt"><i class="ti ti-timeline"></i> Gantt / Schedule</button>
+            <button class="dtab" onclick="setDTab('tasks')" id="dt-tasks"><i class="ti ti-checklist"></i> Tasks</button>
+            <button class="dtab" onclick="setDTab('budget')" id="dt-budget"><i class="ti ti-coins"></i> Budget & Expenses</button>
+            <button class="dtab" onclick="setDTab('inventory')" id="dt-inventory"><i class="ti ti-package"></i> Inventory</button>
+            <button class="dtab" onclick="setDTab('docs')" id="dt-docs"><i class="ti ti-files"></i> Documents</button>
+            <button class="dtab" onclick="setDTab('attendance')" id="dt-attendance"><i class="ti ti-clock"></i> Attendance</button>
+            <button class="dtab" onclick="setDTab('daily')" id="dt-daily"><i class="ti ti-notebook"></i> Daily Logs</button>
           </div>
           <div class="dpg on" id="dpg-overview"><div id="d-overview-content"></div></div>
           <div class="dpg" id="dpg-gantt"><div id="d-gantt-content"></div></div>
           <div class="dpg" id="dpg-tasks"><div id="d-tasks-content"></div></div>
+          <div class="dpg" id="dpg-budget"><div id="d-budget-content"></div></div>
+          <div class="dpg" id="dpg-inventory"><div id="d-inventory-content"></div></div>
           <div class="dpg" id="dpg-docs"><div id="d-docs-content"></div></div>
           <div class="dpg" id="dpg-attendance"><div id="d-attendance-content"></div></div>
           <div class="dpg" id="dpg-daily"><div id="d-daily-content"></div></div>
         </div>
       </div>
 
-      <!-- TASKS (global) -->
+      <!-- GLOBAL TASKS -->
       <div class="pg" id="pg-tasks">
         <div class="ph">
-          <div><div class="pt">Tasks</div><div class="ps">Filter by project or status</div></div>
-          <button class="btn btnp" id="btn-new-task" onclick="openFm('fm-task')"><i class="ti ti-plus"></i> Add Task</button>
+          <div><div class="pt">Tasks</div><div class="ps">Filter by project and status</div></div>
+          <button class="btn btnp" id="btn-new-task" onclick="openFm('fm-task')" style="display:none"><i class="ti ti-plus"></i> Add Task</button>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="task-filter-bar"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="task-filter-bar"></div>
         <div class="card"><div id="task-list"></div></div>
       </div>
 
-      <!-- INVENTORY -->
+      <!-- GLOBAL INVENTORY -->
       <div class="pg" id="pg-inventory">
         <div class="ph">
-          <div><div class="pt">Inventory</div><div class="ps">Real-time material stock</div></div>
-          <button class="btn btnp" id="btn-new-mat" onclick="openFm('fm-inv-add')"><i class="ti ti-plus"></i> Add Material</button>
-        </div>
-        <div class="three" id="inv-grid"></div>
-        <div class="card"><div class="ch"><div class="ct"><i class="ti ti-arrow-up-down"></i> Transactions</div></div><div id="inv-log"></div></div>
-      </div>
-
-      <!-- ATTENDANCE (global) -->
-      <div class="pg" id="pg-attendance">
-        <div class="ph"><div><div class="pt">Site Attendance</div><div class="ps">Track manpower per project</div></div>
-          <button class="btn btnp" onclick="openFm('fm-worker')"><i class="ti ti-plus"></i> Add Worker</button>
+          <div><div class="pt">Inventory</div><div class="ps">Materials stock — filter by project</div></div>
+          <button class="btn btnp" id="btn-new-mat" onclick="openFm('fm-inv-add')" style="display:none"><i class="ti ti-plus"></i> Add Material</button>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-          <select class="inp" id="att-proj-filter" style="width:200px" onchange="renderGlobalAttendance()"></select>
-          <input class="inp" id="att-date-filter" type="date" style="width:160px" onchange="renderGlobalAttendance()">
+          <select class="inp" id="inv-proj-filter" style="width:220px" onchange="renderGlobalInventory()">
+            <option value="">All Projects</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px" id="inv-grid-global"></div>
+        <div class="card"><div class="ch"><div class="ct"><i class="ti ti-arrow-up-down"></i> Transactions</div></div><div id="inv-log-global"></div></div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="pg" id="pg-attendance">
+        <div class="ph">
+          <div><div class="pt">Site Attendance</div><div class="ps">Manpower tracking per project</div></div>
+          <button class="btn btnp" onclick="openFm('fm-worker')"><i class="ti ti-plus"></i> Add Worker</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <select class="inp" id="att-proj-filter" style="width:220px" onchange="renderGlobalAtt()"></select>
+          <input class="inp" id="att-date-filter" type="date" style="width:160px" onchange="renderGlobalAtt()">
         </div>
         <div class="card"><div id="global-att-content"></div></div>
       </div>
 
-      <!-- DAILY LOG (global) -->
+      <!-- DAILY LOG -->
       <div class="pg" id="pg-daily">
         <div class="ph">
           <div><div class="pt">Daily Activity Log</div><div class="ps">Site reports across all projects</div></div>
-          <button class="btn btnp" onclick="openDailyModal()"><i class="ti ti-plus"></i> New Report</button>
+          <button class="btn btnp" onclick="openDailyModal('')"><i class="ti ti-plus"></i> New Report</button>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-          <select class="inp" id="daily-proj-filter" style="width:180px" onchange="renderGlobalDaily()">
-            <option value="">All Projects</option>
-          </select>
+          <select class="inp" id="daily-proj-filter" style="width:200px" onchange="renderGlobalDaily()"><option value="">All Projects</option></select>
         </div>
         <div id="global-daily-list"></div>
       </div>
 
+      <!-- EXPENSES -->
+      <div class="pg" id="pg-expenses">
+        <div class="ph">
+          <div><div class="pt">Expenses</div><div class="ps">All project expenditures</div></div>
+          <button class="btn btnp" onclick="openFm('fm-expense')"><i class="ti ti-plus"></i> Add Expense</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <select class="inp" id="exp-proj-filter" style="width:220px" onchange="renderGlobalExpenses()"><option value="">All Projects</option></select>
+          <select class="inp" id="exp-cat-filter" style="width:160px" onchange="renderGlobalExpenses()">
+            <option value="">All Categories</option>
+            <option>Materials</option><option>Manpower / Salary</option><option>Equipment Rental</option>
+            <option>Fuel / Gasoline</option><option>Food / Allowance</option><option>Subcontractor</option><option>Permits / Fees</option><option>Other</option>
+          </select>
+        </div>
+        <div class="card"><div id="global-exp-content"></div></div>
+      </div>
+
       <!-- USERS -->
       <div class="pg" id="pg-users">
-        <div class="ph"><div><div class="pt">User Management</div><div class="ps">Accounts & permissions</div></div>
+        <div class="ph">
+          <div><div class="pt">User Management</div><div class="ps">Accounts, roles & project visibility</div></div>
           <button class="btn btnp" onclick="openFm('fm-user')"><i class="ti ti-plus"></i> Add User</button>
         </div>
         <div class="card" style="padding:0;overflow:hidden">
-          <table class="tbl"><thead><tr><th>Name</th><th>Role</th><th>Project</th><th>Status</th><th>Actions</th></tr></thead>
+          <table class="tbl"><thead><tr><th>Name</th><th>Role</th><th>Assigned Projects</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="users-tbody"></tbody></table>
         </div>
       </div>
@@ -333,7 +322,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
         <div class="ph"><div><div class="pt">Activity Log</div><div class="ps">Full audit trail</div></div></div>
         <div class="card"><div id="act-log"></div></div>
       </div>
-
     </main>
   </div>
 </div>
@@ -344,116 +332,133 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
 <div class="fm" id="fm-proj"><div class="fb">
   <div class="ft">New Project</div>
   <div class="fg"><label class="fl">Project Name *</label><input class="inp" id="fp-name" placeholder="e.g. SM Tower Phase 3"></div>
-  <div class="fg"><label class="fl">Client</label><input class="inp" id="fp-client" placeholder="Client or company"></div>
-  <div class="fg"><label class="fl">Location</label><input class="inp" id="fp-loc" placeholder="City or address"></div>
-  <div class="fg"><label class="fl">Total Budget (₱)</label><input class="inp" id="fp-budget" type="number" placeholder="5000000"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Client *</label><input class="inp" id="fp-client" placeholder="Client or company"></div>
+    <div class="fg"><label class="fl">Location</label><input class="inp" id="fp-loc" placeholder="City or address"></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Contract Price (₱) *</label><input class="inp" id="fp-contract" type="number" placeholder="e.g. 50000000"></div>
+    <div class="fg"><label class="fl">Contingency Budget (₱)</label><input class="inp" id="fp-contingency" type="number" placeholder="e.g. 2000000"></div>
+  </div>
   <div class="fr2">
     <div class="fg"><label class="fl">Start Date</label><input class="inp" id="fp-start" type="date"></div>
     <div class="fg"><label class="fl">End Date</label><input class="inp" id="fp-end" type="date"></div>
   </div>
-  <div class="fg"><label class="fl">Description</label><textarea class="inp" id="fp-desc" placeholder="Scope, details..."></textarea></div>
-  <div class="fa"><button class="btn" onclick="closeFm('fm-proj')">Cancel</button><button class="btn btnp" onclick="addProject()">Create</button></div>
+  <div class="fg"><label class="fl">Description / Scope</label><textarea class="inp" id="fp-desc" placeholder="Project scope and details..."></textarea></div>
+  <div class="fg"><label class="fl">Assign Users (Admin assigns who can see this project)</label><div id="fp-assign-users" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div></div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-proj')">Cancel</button><button class="btn btnp" onclick="addProject()">Create Project</button></div>
 </div></div>
 
 <!-- Edit Project -->
 <div class="fm" id="fm-edit"><div class="fb">
   <div class="ft">Edit Project</div>
   <div class="fg"><label class="fl">Project Name</label><input class="inp" id="fe-name"></div>
-  <div class="fg"><label class="fl">Client</label><input class="inp" id="fe-client"></div>
-  <div class="fg"><label class="fl">Status</label>
-    <select class="inp" id="fe-status">
-      <option value="on-track">On Track</option><option value="at-risk">At Risk</option>
-      <option value="delayed">Delayed</option><option value="completed">Completed</option>
-    </select>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Client</label><input class="inp" id="fe-client"></div>
+    <div class="fg"><label class="fl">Status</label>
+      <select class="inp" id="fe-status">
+        <option value="on-track">On Track</option><option value="at-risk">At Risk</option>
+        <option value="delayed">Delayed</option><option value="completed">Completed</option>
+      </select>
+    </div>
   </div>
-  <div class="fg"><label class="fl">Budget Spent (₱)</label><input class="inp" id="fe-spent" type="number"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Contract Price (₱)</label><input class="inp" id="fe-contract" type="number"></div>
+    <div class="fg"><label class="fl">Contingency Budget (₱)</label><input class="inp" id="fe-contingency" type="number"></div>
+  </div>
   <div class="fg"><label class="fl">Notes</label><textarea class="inp" id="fe-notes"></textarea></div>
   <input type="hidden" id="fe-id">
-  <div class="fa"><button class="btn" onclick="closeFm('fm-edit')">Cancel</button><button class="btn btnp" onclick="saveEdit()">Save</button></div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-edit')">Cancel</button><button class="btn btnp" onclick="saveEdit()">Save Changes</button></div>
 </div></div>
 
 <!-- Add Gantt Activity -->
-<div class="fm" id="fm-gantt"><div class="fb">
+<div class="fm" id="fm-gantt"><div class="fb" style="width:560px">
   <div class="ft">Add Schedule Activity</div>
   <div class="fg"><label class="fl">Activity Name *</label><input class="inp" id="fg-name" placeholder="e.g. Foundation Works"></div>
-  <div class="fg"><label class="fl">Phase / Category</label><input class="inp" id="fg-phase" placeholder="e.g. Civil, Structural, MEP"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Phase / Category</label>
+      <select class="inp" id="fg-phase">
+        <option>Civil</option><option>Structural</option><option>Architectural</option>
+        <option>MEP</option><option>Electrical</option><option>Plumbing</option><option>Closeout</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Weight % (of total project)</label><input class="inp" id="fg-weight" type="number" min="1" max="100" placeholder="e.g. 15"></div>
+  </div>
   <div class="fr2">
     <div class="fg"><label class="fl">Start Date</label><input class="inp" id="fg-start" type="date"></div>
     <div class="fg"><label class="fl">End Date</label><input class="inp" id="fg-end" type="date"></div>
   </div>
-  <div class="fg"><label class="fl">Weight (% of total project)</label><input class="inp" id="fg-weight" type="number" min="1" max="100" placeholder="e.g. 20"></div>
-  <div class="fg"><label class="fl">Actual Completion %</label>
+  <div class="fg"><label class="fl">Completion % (actual)</label>
     <div style="display:flex;align-items:center;gap:10px">
       <input type="range" min="0" max="100" step="1" id="fg-done" style="flex:1;accent-color:var(--or)" oninput="document.getElementById('fg-done-val').textContent=this.value+'%'">
-      <span id="fg-done-val" style="font-size:12px;font-weight:600;min-width:32px">0%</span>
+      <span id="fg-done-val" style="font-size:13px;font-weight:700;min-width:36px">0%</span>
     </div>
   </div>
   <div class="fg"><label class="fl">Assigned To</label><select class="inp" id="fg-assign"></select></div>
+  <div class="fg">
+    <label class="fl">Equipment / Heavy Equipment needed</label>
+    <input class="inp" id="fg-equip" placeholder="e.g. Excavator, Tower Crane, Concrete Pump (comma-separated)">
+  </div>
+  <div class="fg">
+    <label class="fl">Sub-tasks / Detailed Works (one per line)</label>
+    <textarea class="inp" id="fg-subtasks" placeholder="Deployment&#10;Mobilization&#10;Site office setup&#10;Barracks installation&#10;Perimeter fence"></textarea>
+  </div>
   <input type="hidden" id="fg-proj-id">
   <div class="fa"><button class="btn" onclick="closeFm('fm-gantt')">Cancel</button><button class="btn btnp" onclick="addGanttActivity()">Add Activity</button></div>
 </div></div>
 
-<!-- Upload Document -->
-<div class="fm" id="fm-doc"><div class="fb">
-  <div class="ft">Upload Document / Drawing</div>
-  <div class="fg"><label class="fl">Title *</label><input class="inp" id="fd-title" placeholder="e.g. Architectural Floor Plan Rev3"></div>
-  <div class="fg"><label class="fl">Category</label>
-    <select class="inp" id="fd-cat">
-      <option>Architectural Drawing</option><option>Structural Drawing</option>
-      <option>MEP Drawing</option><option>As-Built Drawing</option>
-      <option>Permit / Legal</option><option>Contract</option>
-      <option>Photo</option><option>Video</option><option>Report</option><option>Other</option>
-    </select>
-  </div>
-  <div class="fg"><label class="fl">Access Level</label>
-    <select class="inp" id="fd-access">
-      <option value="all">All Team Members</option>
-      <option value="management">Management Only (Admin + PM)</option>
-      <option value="admin">Admin Only</option>
-    </select>
-  </div>
-  <div class="fg"><label class="fl">Notes</label><input class="inp" id="fd-notes" placeholder="Revision notes, version, etc."></div>
-  <div class="fg">
-    <label class="fl">Files</label>
-    <div class="upload-zone" onclick="document.getElementById('fd-files').click()">
-      <input type="file" id="fd-files" multiple accept="image/*,video/*,.pdf,.dwg,.dxf,.xlsx,.docx" onchange="previewDocFiles(this)">
-      <i class="ti ti-upload" style="font-size:22px;color:var(--tx2);display:block;margin-bottom:6px"></i>
-      <div style="font-size:12px;color:var(--tx2)">Click to upload files</div>
-      <div style="font-size:10px;color:var(--tx3);margin-top:3px">Images, Videos, PDF, DWG, DXF, Excel, Word</div>
+<!-- Edit Gantt Activity -->
+<div class="fm" id="fm-gantt-edit"><div class="fb">
+  <div class="ft">Update Activity</div>
+  <div class="fg"><label class="fl">Activity: <strong id="fge-name-label"></strong></label></div>
+  <div class="fg"><label class="fl">Completion %</label>
+    <div style="display:flex;align-items:center;gap:10px">
+      <input type="range" min="0" max="100" step="1" id="fge-done" style="flex:1;accent-color:var(--or)" oninput="document.getElementById('fge-done-val').textContent=this.value+'%'">
+      <span id="fge-done-val" style="font-size:13px;font-weight:700;min-width:36px">0%</span>
     </div>
-    <div class="media-preview" id="doc-preview"></div>
   </div>
-  <input type="hidden" id="fd-proj-id">
-  <div class="fa"><button class="btn" onclick="closeFm('fm-doc')">Cancel</button><button class="btn btnp" onclick="uploadDoc()">Upload</button></div>
+  <div class="fg"><label class="fl">Equipment / Heavy Equipment</label><input class="inp" id="fge-equip" placeholder="e.g. Excavator, Crane"></div>
+  <input type="hidden" id="fge-act-id"><input type="hidden" id="fge-proj-id">
+  <div class="fa"><button class="btn" onclick="closeFm('fm-gantt-edit')">Cancel</button><button class="btn btnp" onclick="saveGanttEdit()">Update</button></div>
 </div></div>
 
-<!-- Add Task -->
-<div class="fm" id="fm-task"><div class="fb">
-  <div class="ft">Add Task</div>
-  <div class="fg"><label class="fl">Task Name *</label><input class="inp" id="fta-name" placeholder="Describe the task"></div>
-  <div class="fg"><label class="fl">Project</label><select class="inp" id="fta-proj"></select></div>
-  <div class="fg"><label class="fl">Assigned To</label><select class="inp" id="fta-assign"></select></div>
+<!-- Add Expense -->
+<div class="fm" id="fm-expense"><div class="fb">
+  <div class="ft"><i class="ti ti-receipt"></i> Add Expense</div>
   <div class="fr2">
-    <div class="fg"><label class="fl">Due Date</label><input class="inp" id="fta-due" type="date"></div>
-    <div class="fg"><label class="fl">Priority</label>
-      <select class="inp" id="fta-pri"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
-    </div>
+    <div class="fg"><label class="fl">Project</label><select class="inp" id="fex-proj"></select></div>
+    <div class="fg"><label class="fl">Date</label><input class="inp" id="fex-date" type="date"></div>
   </div>
-  <div class="fg"><label class="fl">Link to Gantt Activity (optional)</label><select class="inp" id="fta-gantt"><option value="">None</option></select></div>
-  <div class="fa"><button class="btn" onclick="closeFm('fm-task')">Cancel</button><button class="btn btnp" onclick="addTask()">Add Task</button></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Category *</label>
+      <select class="inp" id="fex-cat">
+        <option>Materials</option><option>Manpower / Salary</option><option>Equipment Rental</option>
+        <option>Fuel / Gasoline</option><option>Food / Allowance</option><option>Subcontractor</option><option>Permits / Fees</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Amount (₱) *</label><input class="inp" id="fex-amount" type="number" min="0" placeholder="0.00"></div>
+  </div>
+  <div class="fg"><label class="fl">Description *</label><input class="inp" id="fex-desc" placeholder="What was this expense for?"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Payee / Vendor</label><input class="inp" id="fex-payee" placeholder="Supplier or person paid"></div>
+    <div class="fg"><label class="fl">Receipt / Ref No.</label><input class="inp" id="fex-ref" placeholder="OR No., PO No., etc."></div>
+  </div>
+  <div class="fg"><label class="fl">Logged By</label><input class="inp" id="fex-by" readonly></div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-expense')">Cancel</button><button class="btn btnp" onclick="addExpense()">Save Expense</button></div>
 </div></div>
 
-<!-- Add Inventory -->
+<!-- Add Material -->
 <div class="fm" id="fm-inv-add"><div class="fb">
-  <div class="ft">Add Material</div>
+  <div class="ft">Add Material to Inventory</div>
   <div class="fg"><label class="fl">Material Name *</label><input class="inp" id="fi-name" placeholder="e.g. Portland Cement"></div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Quantity</label><input class="inp" id="fi-qty" type="number" min="0"></div>
+  <div class="fr3">
+    <div class="fg"><label class="fl">Quantity</label><input class="inp" id="fi-qty" type="number" min="0" placeholder="0"></div>
     <div class="fg"><label class="fl">Unit</label><input class="inp" id="fi-unit" placeholder="bags, pcs, m³"></div>
+    <div class="fg"><label class="fl">Min Stock</label><input class="inp" id="fi-min" type="number" min="0" placeholder="0"></div>
   </div>
   <div class="fr2">
-    <div class="fg"><label class="fl">Min Stock Level</label><input class="inp" id="fi-min" type="number" min="0"></div>
-    <div class="fg"><label class="fl">Project</label><select class="inp" id="fi-proj"></select></div>
+    <div class="fg"><label class="fl">Project *</label><select class="inp" id="fi-proj"></select></div>
+    <div class="fg"><label class="fl">Unit Cost (₱)</label><input class="inp" id="fi-cost" type="number" min="0" placeholder="0"></div>
   </div>
   <div class="fa"><button class="btn" onclick="closeFm('fm-inv-add')">Cancel</button><button class="btn btnp" onclick="addMaterial()">Add</button></div>
 </div></div>
@@ -463,199 +468,298 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:70px}
   <div class="ft" id="txn-title">Withdraw Material</div>
   <div style="font-size:12px;color:var(--tx2);margin-bottom:12px">Material: <strong id="txn-mat"></strong> — Stock: <strong id="txn-cur"></strong></div>
   <div class="fg"><label class="fl">Quantity *</label><input class="inp" id="txn-qty" type="number" min="1"></div>
-  <div class="fg"><label class="fl">Note</label><input class="inp" id="txn-note" placeholder="e.g. Used for floor 5 pour"></div>
+  <div class="fg"><label class="fl">Purpose / Note</label><input class="inp" id="txn-note" placeholder="e.g. Floor 5 slab pour"></div>
   <input type="hidden" id="txn-id"><input type="hidden" id="txn-type">
   <div class="fa"><button class="btn" onclick="closeFm('fm-txn')">Cancel</button><button class="btn btnp" onclick="doTxn()">Confirm</button></div>
 </div></div>
 
-<!-- Add Worker to Project -->
+<!-- Add Task -->
+<div class="fm" id="fm-task"><div class="fb">
+  <div class="ft">Add Task</div>
+  <div class="fg"><label class="fl">Task Name *</label><input class="inp" id="fta-name" placeholder="Task description"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Project</label><select class="inp" id="fta-proj" onchange="updateGanttSelect()"></select></div>
+    <div class="fg"><label class="fl">Assigned To</label><select class="inp" id="fta-assign"></select></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Due Date</label><input class="inp" id="fta-due" type="date"></div>
+    <div class="fg"><label class="fl">Priority</label>
+      <select class="inp" id="fta-pri"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Link to Gantt Activity (auto-create sub-task)</label><select class="inp" id="fta-gantt"><option value="">— None —</option></select></div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-task')">Cancel</button><button class="btn btnp" onclick="addTask()">Add Task</button></div>
+</div></div>
+
+<!-- Add Worker -->
 <div class="fm" id="fm-worker"><div class="fb">
   <div class="ft">Add Site Worker</div>
-  <div class="fg"><label class="fl">Full Name *</label><input class="inp" id="fw-name" placeholder="Worker full name"></div>
-  <div class="fg"><label class="fl">Trade / Position</label><input class="inp" id="fw-trade" placeholder="e.g. Carpenter, Mason, Electrician"></div>
-  <div class="fg"><label class="fl">Assigned Project</label><select class="inp" id="fw-proj"></select></div>
-  <div class="fg"><label class="fl">Contractor / Agency</label><input class="inp" id="fw-agency" placeholder="e.g. ABC Builders, Direct Hire"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Full Name *</label><input class="inp" id="fw-name" placeholder="Worker name"></div>
+    <div class="fg"><label class="fl">Trade / Position</label><input class="inp" id="fw-trade" placeholder="Mason, Carpenter, Welder..."></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Assigned Project</label><select class="inp" id="fw-proj"></select></div>
+    <div class="fg"><label class="fl">Contractor / Agency</label><input class="inp" id="fw-agency" placeholder="ABC Builders / Direct Hire"></div>
+  </div>
+  <div class="fg"><label class="fl">Daily Rate (₱)</label><input class="inp" id="fw-rate" type="number" min="0" placeholder="0"></div>
   <div class="fa"><button class="btn" onclick="closeFm('fm-worker')">Cancel</button><button class="btn btnp" onclick="addWorker()">Add Worker</button></div>
 </div></div>
 
-<!-- Daily Log Modal -->
-<div class="fm" id="fm-daily"><div class="fb" style="width:520px">
+<!-- Daily Log -->
+<div class="fm" id="fm-daily"><div class="fb" style="width:540px">
   <div class="ft"><i class="ti ti-notebook"></i> Daily Activity Report</div>
   <div class="fr2">
     <div class="fg"><label class="fl">Date</label><input class="inp" id="fdl-date" type="date"></div>
     <div class="fg"><label class="fl">Project</label><select class="inp" id="fdl-proj"></select></div>
   </div>
   <div class="fg"><label class="fl">Work Done Today *</label><textarea class="inp" id="fdl-work" placeholder="Describe completed work..."></textarea></div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Workers on Site</label><input class="inp" id="fdl-workers" type="number" min="0"></div>
+  <div class="fr3">
+    <div class="fg"><label class="fl">Workers on Site</label><input class="inp" id="fdl-workers" type="number" min="0" placeholder="0"></div>
     <div class="fg"><label class="fl">Weather</label>
       <select class="inp" id="fdl-weather"><option>Sunny</option><option>Cloudy</option><option>Rainy</option><option>Stormy</option><option>Hot</option></select>
     </div>
+    <div class="fg"><label class="fl">Working Hours</label><input class="inp" id="fdl-hours" type="number" min="0" max="24" placeholder="8"></div>
   </div>
   <div class="fg"><label class="fl">Equipment Used</label><input class="inp" id="fdl-equip" placeholder="e.g. Excavator, Concrete Mixer"></div>
+  <div class="fg"><label class="fl">Materials Used</label><input class="inp" id="fdl-materials" placeholder="e.g. 50 bags cement, 20 rebar"></div>
   <div class="fg"><label class="fl">Issues / Delays</label><textarea class="inp" id="fdl-issues" placeholder="Safety concerns, delays, problems..."></textarea></div>
-  <div class="fg"><label class="fl">Material Used</label><input class="inp" id="fdl-materials" placeholder="e.g. 50 bags cement, 20 pcs rebar"></div>
   <div class="fg">
     <label class="fl">Photos / Videos</label>
     <div class="upload-zone" onclick="document.getElementById('fdl-files').click()">
-      <input type="file" id="fdl-files" multiple accept="image/*,video/*" onchange="previewDailyMedia(this)">
-      <i class="ti ti-camera" style="font-size:22px;color:var(--tx2);display:block;margin-bottom:6px"></i>
+      <input type="file" id="fdl-files" multiple accept="image/*,video/*" onchange="prevMedia(this,'daily-prev')">
+      <i class="ti ti-camera" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>
       <div style="font-size:12px;color:var(--tx2)">Upload site photos or videos</div>
     </div>
-    <div class="media-preview" id="daily-preview"></div>
+    <div class="media-prev" id="daily-prev"></div>
   </div>
   <div class="fa"><button class="btn" onclick="closeFm('fm-daily')">Cancel</button><button class="btn btnp" onclick="submitDaily()">Submit Report</button></div>
+</div></div>
+
+<!-- Upload Document -->
+<div class="fm" id="fm-doc"><div class="fb">
+  <div class="ft">Upload Document / Drawing</div>
+  <div class="fg"><label class="fl">Title *</label><input class="inp" id="fd-title" placeholder="e.g. Arch Floor Plan Rev3"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Category</label>
+      <select class="inp" id="fd-cat">
+        <option>Architectural Drawing</option><option>Structural Drawing</option><option>MEP Drawing</option>
+        <option>As-Built Drawing</option><option>Permit / Legal</option><option>Contract</option>
+        <option>Photo</option><option>Video</option><option>Report</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Access Level</label>
+      <select class="inp" id="fd-access">
+        <option value="all">All Team Members</option>
+        <option value="management">Management Only</option>
+        <option value="admin">Admin Only</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Notes / Revision</label><input class="inp" id="fd-notes" placeholder="Rev notes, version, etc."></div>
+  <div class="fg">
+    <label class="fl">Files</label>
+    <div class="upload-zone" onclick="document.getElementById('fd-files').click()">
+      <input type="file" id="fd-files" multiple accept="image/*,video/*,.pdf,.dwg,.dxf,.xlsx,.docx" onchange="prevMedia(this,'doc-prev')">
+      <i class="ti ti-upload" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Images, Videos, PDF, DWG, DXF, Excel, Word</div>
+    </div>
+    <div class="media-prev" id="doc-prev"></div>
+  </div>
+  <input type="hidden" id="fd-proj-id">
+  <div class="fa"><button class="btn" onclick="closeFm('fm-doc')">Cancel</button><button class="btn btnp" onclick="uploadDoc()">Upload</button></div>
 </div></div>
 
 <!-- Add User -->
 <div class="fm" id="fm-user"><div class="fb">
   <div class="ft">Add User</div>
-  <div class="fg"><label class="fl">Full Name *</label><input class="inp" id="fu-name" placeholder="Full name"></div>
-  <div class="fg"><label class="fl">Role</label>
-    <select class="inp" id="fu-role">
-      <option value="admin">Admin</option><option value="pm">Project Manager</option>
-      <option value="engineer" selected>Engineer</option><option value="worker">Worker</option>
-    </select>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Full Name *</label><input class="inp" id="fu-name" placeholder="Full name"></div>
+    <div class="fg"><label class="fl">Role</label>
+      <select class="inp" id="fu-role" onchange="updateUserProjSelector()">
+        <option value="admin">Admin (all projects)</option><option value="pm">Project Manager</option>
+        <option value="engineer" selected>Engineer</option><option value="worker">Worker</option>
+      </select>
+    </div>
   </div>
-  <div class="fg"><label class="fl">Assigned Project</label><select class="inp" id="fu-proj"></select></div>
+  <div class="fg" id="fu-proj-wrap">
+    <label class="fl">Assigned Projects</label>
+    <div id="fu-proj-checkboxes" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
+  </div>
   <div class="fg"><label class="fl">PIN (4–6 digits)</label><input class="inp" id="fu-pin" type="password" maxlength="6" placeholder="1234"></div>
   <div class="fa"><button class="btn" onclick="closeFm('fm-user')">Cancel</button><button class="btn btnp" onclick="addUser()">Add User</button></div>
 </div></div>
 
 <script>
 // ── CONSTANTS ──
-const COLS=['#C05621','#185FA5','#0F6E56','#993C1D','#534AB7','#854F0B','#0F5F6E'];
-const AVC=[
-  {bg:'#FAEEDA',c:'#633806'},{bg:'#E6F1FB',c:'#0C447C'},{bg:'#E1F5EE',c:'#085041'},
-  {bg:'#FAECE7',c:'#712B13'},{bg:'#EEEDFE',c:'#3C3489'},{bg:'#EAF3DE',c:'#27500A'}
-];
+const COLS=['#C05621','#185FA5','#0F6E56','#993C1D','#534AB7','#854F0B','#0F5F6E','#7B2D8B'];
+const AVC=[{bg:'#FAEEDA',c:'#633806'},{bg:'#E6F1FB',c:'#0C447C'},{bg:'#E1F5EE',c:'#085041'},{bg:'#FAECE7',c:'#712B13'},{bg:'#EEEDFE',c:'#3C3489'},{bg:'#EAF3DE',c:'#27500A'}];
 const ROLE_LABELS={admin:'Admin',pm:'Project Manager',engineer:'Engineer',worker:'Worker'};
 const ROLE_BADGE={admin:'r-admin',pm:'r-pm',engineer:'r-eng',worker:'r-worker'};
 const PERMS={
-  admin:  {newProject:true,editProject:true,newTask:true,inventory:true,users:true,docs:true,viewAll:true},
-  pm:     {newProject:true,editProject:true,newTask:true,inventory:true,users:false,docs:true,viewAll:true},
-  engineer:{newProject:false,editProject:false,newTask:true,inventory:false,users:false,docs:false,viewAll:true},
-  worker: {newProject:false,editProject:false,newTask:false,inventory:false,users:false,docs:false,viewAll:false},
+  admin:  {newProject:true,editProject:true,newTask:true,inventory:true,users:true,docs:true,expenses:true,viewAll:true},
+  pm:     {newProject:false,editProject:true,newTask:true,inventory:true,users:false,docs:true,expenses:true,viewAll:false},
+  engineer:{newProject:false,editProject:false,newTask:true,inventory:false,users:false,docs:false,expenses:false,viewAll:false},
+  worker: {newProject:false,editProject:false,newTask:false,inventory:false,users:false,docs:false,expenses:false,viewAll:false},
 };
+const EXP_CATS=['Materials','Manpower / Salary','Equipment Rental','Fuel / Gasoline','Food / Allowance','Subcontractor','Permits / Fees','Other'];
+const TODAY=new Date().toISOString().slice(0,10);
 
 // ── DATA ──
 let users=[
-  {id:1,name:'Maria Santos',role:'admin',project:'All',pin:'1234',active:true},
-  {id:2,name:'Carlos Reyes',role:'pm',project:'Ortigas Office Tower',pin:'1234',active:true},
-  {id:3,name:'Ben Torres',role:'engineer',project:'BF Homes Renovation',pin:'1234',active:true},
-  {id:4,name:'Luz Cruz',role:'engineer',project:'C5 Road Widening',pin:'1234',active:true},
-  {id:5,name:'Dino Lim',role:'worker',project:'Eastwood Condo Phase 2',pin:'1234',active:true},
+  {id:1,name:'Maria Santos',role:'admin',projects:['ALL'],pin:'1234',active:true},
+  {id:2,name:'Carlos Reyes',role:'pm',projects:['Ortigas Office Tower','BF Homes Renovation'],pin:'1234',active:true},
+  {id:3,name:'Ben Torres',role:'engineer',projects:['Ortigas Office Tower'],pin:'1234',active:true},
+  {id:4,name:'Luz Cruz',role:'engineer',projects:['C5 Road Widening'],pin:'1234',active:true},
+  {id:5,name:'Dino Lim',role:'worker',projects:['Eastwood Condo Phase 2'],pin:'1234',active:true},
 ];
-const TODAY=new Date().toISOString().slice(0,10);
 let projects=[
-  {id:1,name:'Ortigas Office Tower',client:'DMCI Homes',location:'Pasig City',budget:48000000,spent:29000000,start:'2025-01-10',end:'2026-06-30',status:'on-track',color:COLS[0],desc:'25-storey commercial office tower with 2-level basement parking.',notes:''},
-  {id:2,name:'BF Homes Renovation',client:'SM Prime',location:'Parañaque',budget:8500000,spent:7800000,start:'2024-11-01',end:'2025-08-31',status:'at-risk',color:COLS[1],desc:'Full interior renovation of 3 residential units.',notes:''},
-  {id:3,name:'C5 Road Widening',client:'DPWH',location:'Taguig',budget:22000000,spent:9500000,start:'2025-03-01',end:'2026-12-31',status:'on-track',color:COLS[2],desc:'Road widening and drainage improvement along C5.',notes:''},
-  {id:4,name:'Eastwood Condo Phase 2',client:'Megaworld',location:'Libis QC',budget:95000000,spent:18000000,start:'2025-06-01',end:'2027-06-30',status:'on-track',color:COLS[3],desc:'32-storey residential condominium tower.',notes:''},
+  {id:1,name:'Ortigas Office Tower',client:'DMCI Homes',location:'Pasig City',contractPrice:48000000,contingency:2400000,start:'2025-01-10',end:'2026-06-30',status:'on-track',color:COLS[0],desc:'25-storey commercial office tower with 2-level basement parking.',notes:''},
+  {id:2,name:'BF Homes Renovation',client:'SM Prime',location:'Parañaque',contractPrice:8500000,contingency:425000,start:'2024-11-01',end:'2025-08-31',status:'at-risk',color:COLS[1],desc:'Full interior renovation of 3 residential units.',notes:''},
+  {id:3,name:'C5 Road Widening',client:'DPWH',location:'Taguig',contractPrice:22000000,contingency:1100000,start:'2025-03-01',end:'2026-12-31',status:'on-track',color:COLS[2],desc:'Road widening and drainage improvement along C5.',notes:''},
+  {id:4,name:'Eastwood Condo Phase 2',client:'Megaworld',location:'Libis QC',contractPrice:95000000,contingency:4750000,start:'2025-06-01',end:'2027-06-30',status:'on-track',color:COLS[3],desc:'32-storey residential condominium tower.',notes:''},
 ];
+// ganttActivities: actId -> {id,name,phase,start,end,weight,done,assign,equip:[],subTasks:[{id,name,done}]}
 let ganttActivities={
   1:[
-    {id:101,name:'Site Preparation',phase:'Civil',start:'2025-01-10',end:'2025-02-15',weight:5,done:100,assign:'Carlos Reyes'},
-    {id:102,name:'Foundation Works',phase:'Structural',start:'2025-02-01',end:'2025-04-30',weight:15,done:100,assign:'Carlos Reyes'},
-    {id:103,name:'Ground Floor Slab',phase:'Structural',start:'2025-04-15',end:'2025-05-31',weight:8,done:90,assign:'Ben Torres'},
-    {id:104,name:'Floors 2–10 Structure',phase:'Structural',start:'2025-05-01',end:'2025-09-30',weight:20,done:60,assign:'Ben Torres'},
-    {id:105,name:'Floors 11–25 Structure',phase:'Structural',start:'2025-09-01',end:'2026-02-28',weight:20,done:10,assign:'Ben Torres'},
-    {id:106,name:'MEP Rough-in',phase:'MEP',start:'2025-07-01',end:'2026-03-31',weight:15,done:20,assign:'Luz Cruz'},
-    {id:107,name:'Interior Finishes',phase:'Architectural',start:'2025-11-01',end:'2026-05-31',weight:12,done:0,assign:'Maria Santos'},
-    {id:108,name:'Commissioning & Turnover',phase:'Closeout',start:'2026-04-01',end:'2026-06-30',weight:5,done:0,assign:'Maria Santos'},
+    {id:101,name:'Site Preparation',phase:'Civil',start:'2025-01-10',end:'2025-02-15',weight:5,done:100,assign:'Carlos Reyes',equip:['Backhoe','Dump Truck'],
+     subTasks:[{id:1011,name:'Mobilization of equipment',done:true},{id:1012,name:'Site office & barracks setup',done:true},{id:1013,name:'Perimeter fence installation',done:true},{id:1014,name:'Temporary utilities',done:true}]},
+    {id:102,name:'Foundation Works',phase:'Structural',start:'2025-02-01',end:'2025-04-30',weight:15,done:100,assign:'Ben Torres',equip:['Drilling Rig','Concrete Pump','Vibrator'],
+     subTasks:[{id:1021,name:'Pile driving',done:true},{id:1022,name:'Pile cap excavation',done:true},{id:1023,name:'Rebar installation',done:true},{id:1024,name:'Concrete pouring',done:true}]},
+    {id:103,name:'Ground Floor Slab',phase:'Structural',start:'2025-04-15',end:'2025-05-31',weight:8,done:90,assign:'Ben Torres',equip:['Concrete Pump','Scaffolding'],
+     subTasks:[{id:1031,name:'Formwork installation',done:true},{id:1032,name:'Rebar placement',done:true},{id:1033,name:'Concrete pour',done:true},{id:1034,name:'Curing',done:false}]},
+    {id:104,name:'Floors 2–10 Structure',phase:'Structural',start:'2025-05-01',end:'2025-09-30',weight:20,done:60,assign:'Ben Torres',equip:['Tower Crane','Concrete Pump','Man Lift'],
+     subTasks:[{id:1041,name:'Formwork per floor',done:true},{id:1042,name:'Rebar per floor',done:true},{id:1043,name:'Concrete pour per floor',done:false},{id:1044,name:'Column works',done:false}]},
+    {id:105,name:'Floors 11–25 Structure',phase:'Structural',start:'2025-09-01',end:'2026-02-28',weight:20,done:10,assign:'Ben Torres',equip:['Tower Crane','Concrete Pump'],
+     subTasks:[{id:1051,name:'Formwork upper floors',done:false},{id:1052,name:'Rebar upper floors',done:false},{id:1053,name:'Concrete pours',done:false}]},
+    {id:106,name:'MEP Rough-in',phase:'MEP',start:'2025-07-01',end:'2026-03-31',weight:15,done:20,assign:'Luz Cruz',equip:['Man Lift','Pipe Bender'],
+     subTasks:[{id:1061,name:'Electrical conduit rough-in',done:true},{id:1062,name:'Plumbing rough-in',done:false},{id:1063,name:'HVAC ductwork',done:false},{id:1064,name:'Fire protection piping',done:false}]},
+    {id:107,name:'Interior Finishes',phase:'Architectural',start:'2025-11-01',end:'2026-05-31',weight:12,done:0,assign:'Carlos Reyes',equip:['Scaffolding','Boom Lift'],
+     subTasks:[{id:1071,name:'Drywall partitions',done:false},{id:1072,name:'Ceiling works',done:false},{id:1073,name:'Floor tiles',done:false},{id:1074,name:'Paint works',done:false}]},
+    {id:108,name:'Commissioning',phase:'Closeout',start:'2026-04-01',end:'2026-06-30',weight:5,done:0,assign:'Carlos Reyes',equip:[],
+     subTasks:[{id:1081,name:'Systems testing',done:false},{id:1082,name:'Punch list',done:false},{id:1083,name:'Turnover',done:false}]},
   ],
   2:[
-    {id:201,name:'Demolition',phase:'Civil',start:'2024-11-01',end:'2024-11-30',weight:10,done:100,assign:'Ben Torres'},
-    {id:202,name:'Structural Repair',phase:'Structural',start:'2024-12-01',end:'2025-01-31',weight:20,done:100,assign:'Ben Torres'},
-    {id:203,name:'MEP Upgrade',phase:'MEP',start:'2025-01-15',end:'2025-04-30',weight:25,done:85,assign:'Luz Cruz'},
-    {id:204,name:'Interior Finishing',phase:'Architectural',start:'2025-03-01',end:'2025-07-31',weight:35,done:50,assign:'Carlos Reyes'},
-    {id:205,name:'Punch List & Turnover',phase:'Closeout',start:'2025-07-01',end:'2025-08-31',weight:10,done:0,assign:'Maria Santos'},
+    {id:201,name:'Demolition',phase:'Civil',start:'2024-11-01',end:'2024-11-30',weight:10,done:100,assign:'Ben Torres',equip:['Jackhammer','Dump Truck'],
+     subTasks:[{id:2011,name:'Partition removal',done:true},{id:2012,name:'Debris hauling',done:true}]},
+    {id:202,name:'Structural Repair',phase:'Structural',start:'2024-12-01',end:'2025-01-31',weight:20,done:100,assign:'Ben Torres',equip:['Scaffolding'],
+     subTasks:[{id:2021,name:'Crack injection',done:true},{id:2022,name:'Column jacketing',done:true},{id:2023,name:'Beam strengthening',done:true}]},
+    {id:203,name:'MEP Upgrade',phase:'MEP',start:'2025-01-15',end:'2025-04-30',weight:25,done:85,assign:'Luz Cruz',equip:['Pipe Bender','Cable Puller'],
+     subTasks:[{id:2031,name:'Panel board replacement',done:true},{id:2032,name:'Wiring upgrade',done:true},{id:2033,name:'Plumbing rerouting',done:false}]},
+    {id:204,name:'Interior Finishing',phase:'Architectural',start:'2025-03-01',end:'2025-07-31',weight:35,done:50,assign:'Carlos Reyes',equip:['Scaffolding'],
+     subTasks:[{id:2041,name:'Tiling',done:true},{id:2042,name:'Painting',done:true},{id:2043,name:'Cabinetry',done:false},{id:2044,name:'Fixtures installation',done:false}]},
+    {id:205,name:'Punch List & Turnover',phase:'Closeout',start:'2025-07-01',end:'2025-08-31',weight:10,done:0,assign:'Carlos Reyes',equip:[],
+     subTasks:[{id:2051,name:'Defect rectification',done:false},{id:2052,name:'Final cleaning',done:false},{id:2053,name:'Turnover docs',done:false}]},
   ],
   3:[
-    {id:301,name:'Survey & Design',phase:'Civil',start:'2025-03-01',end:'2025-04-30',weight:5,done:100,assign:'Luz Cruz'},
-    {id:302,name:'Clearing & Grubbing',phase:'Civil',start:'2025-04-01',end:'2025-05-31',weight:10,done:100,assign:'Luz Cruz'},
-    {id:303,name:'Earthworks & Subbase',phase:'Civil',start:'2025-05-01',end:'2025-09-30',weight:30,done:45,assign:'Carlos Reyes'},
-    {id:304,name:'Drainage Works',phase:'Civil',start:'2025-06-01',end:'2025-11-30',weight:25,done:20,assign:'Carlos Reyes'},
-    {id:305,name:'Pavement Works',phase:'Civil',start:'2025-10-01',end:'2026-08-31',weight:25,done:0,assign:'Ben Torres'},
-    {id:306,name:'Road Markings & Signage',phase:'Civil',start:'2026-07-01',end:'2026-12-31',weight:5,done:0,assign:'Luz Cruz'},
+    {id:301,name:'Survey & Design',phase:'Civil',start:'2025-03-01',end:'2025-04-30',weight:5,done:100,assign:'Luz Cruz',equip:['Total Station','GPS'],
+     subTasks:[{id:3011,name:'Topographic survey',done:true},{id:3012,name:'Design approval',done:true}]},
+    {id:302,name:'Clearing & Grubbing',phase:'Civil',start:'2025-04-01',end:'2025-05-31',weight:10,done:100,assign:'Luz Cruz',equip:['Bulldozer','Chainsaw','Dump Truck'],
+     subTasks:[{id:3021,name:'Tree removal',done:true},{id:3022,name:'Topsoil stripping',done:true}]},
+    {id:303,name:'Earthworks & Subbase',phase:'Civil',start:'2025-05-01',end:'2025-09-30',weight:30,done:45,assign:'Carlos Reyes',equip:['Motor Grader','Compactor','Dump Truck'],
+     subTasks:[{id:3031,name:'Subgrade preparation',done:true},{id:3032,name:'Subbase compaction',done:false},{id:3033,name:'Base course laying',done:false}]},
+    {id:304,name:'Drainage Works',phase:'Civil',start:'2025-06-01',end:'2025-11-30',weight:25,done:20,assign:'Carlos Reyes',equip:['Excavator','Concrete Mixer'],
+     subTasks:[{id:3041,name:'Catch basin construction',done:true},{id:3042,name:'Culvert installation',done:false},{id:3043,name:'Canal lining',done:false}]},
+    {id:305,name:'Pavement Works',phase:'Civil',start:'2025-10-01',end:'2026-08-31',weight:25,done:0,assign:'Ben Torres',equip:['Asphalt Paver','Road Roller','Compactor'],
+     subTasks:[{id:3051,name:'Prime coat application',done:false},{id:3052,name:'Asphalt laying',done:false},{id:3053,name:'Line marking',done:false}]},
+    {id:306,name:'Road Markings & Signage',phase:'Civil',start:'2026-07-01',end:'2026-12-31',weight:5,done:0,assign:'Luz Cruz',equip:['Line Marking Machine'],
+     subTasks:[{id:3061,name:'Road markings',done:false},{id:3062,name:'Sign installation',done:false}]},
   ],
   4:[
-    {id:401,name:'Excavation & Shoring',phase:'Civil',start:'2025-06-01',end:'2025-08-31',weight:8,done:30,assign:'Carlos Reyes'},
-    {id:402,name:'Foundation & Basement',phase:'Structural',start:'2025-08-01',end:'2025-12-31',weight:15,done:5,assign:'Ben Torres'},
-    {id:403,name:'Tower Structure',phase:'Structural',start:'2025-11-01',end:'2026-12-31',weight:30,done:0,assign:'Ben Torres'},
-    {id:404,name:'MEP Systems',phase:'MEP',start:'2026-06-01',end:'2027-03-31',weight:20,done:0,assign:'Luz Cruz'},
-    {id:405,name:'Interior & Finishes',phase:'Architectural',start:'2026-09-01',end:'2027-05-31',weight:20,done:0,assign:'Maria Santos'},
-    {id:406,name:'Commissioning',phase:'Closeout',start:'2027-04-01',end:'2027-06-30',weight:7,done:0,assign:'Maria Santos'},
+    {id:401,name:'Excavation & Shoring',phase:'Civil',start:'2025-06-01',end:'2025-08-31',weight:8,done:30,assign:'Carlos Reyes',equip:['Excavator','Sheet Pile Driver','Dump Truck'],
+     subTasks:[{id:4011,name:'Mobilization',done:true},{id:4012,name:'Sheet pile installation',done:true},{id:4013,name:'Excavation to basement level',done:false}]},
+    {id:402,name:'Foundation & Basement',phase:'Structural',start:'2025-08-01',end:'2025-12-31',weight:15,done:5,assign:'Ben Torres',equip:['Drilling Rig','Concrete Pump','Vibrator'],
+     subTasks:[{id:4021,name:'Pile works',done:false},{id:4022,name:'Pile cap',done:false},{id:4023,name:'Mat foundation',done:false},{id:4024,name:'Basement walls',done:false}]},
+    {id:403,name:'Tower Structure',phase:'Structural',start:'2025-11-01',end:'2026-12-31',weight:30,done:0,assign:'Ben Torres',equip:['Tower Crane','Concrete Pump','Man Lift'],
+     subTasks:[{id:4031,name:'Core wall construction',done:false},{id:4032,name:'Floor plates',done:false},{id:4033,name:'Column works',done:false}]},
+    {id:404,name:'MEP Systems',phase:'MEP',start:'2026-06-01',end:'2027-03-31',weight:20,done:0,assign:'Luz Cruz',equip:['Man Lift','Pipe Bender'],
+     subTasks:[{id:4041,name:'Electrical systems',done:false},{id:4042,name:'Plumbing systems',done:false},{id:4043,name:'HVAC systems',done:false}]},
+    {id:405,name:'Interior & Finishes',phase:'Architectural',start:'2026-09-01',end:'2027-05-31',weight:20,done:0,assign:'Carlos Reyes',equip:['Scaffolding','Boom Lift'],
+     subTasks:[{id:4051,name:'Facade works',done:false},{id:4052,name:'Interior partitions',done:false},{id:4053,name:'Floor & wall finishes',done:false}]},
+    {id:406,name:'Commissioning',phase:'Closeout',start:'2027-04-01',end:'2027-06-30',weight:7,done:0,assign:'Carlos Reyes',equip:[],
+     subTasks:[{id:4061,name:'Systems testing',done:false},{id:4062,name:'Punch list',done:false},{id:4063,name:'Turnover',done:false}]},
   ]
 };
 let tasks=[
-  {id:1,name:'Submit soil test report',project:'C5 Road Widening',assignee:'Luz Cruz',due:'2025-06-15',priority:'high',done:false,ganttId:303},
-  {id:2,name:'Electrical rough-in floors 3–5',project:'Ortigas Office Tower',assignee:'Ben Torres',due:'2025-06-20',priority:'high',done:false,ganttId:106},
-  {id:3,name:'Finalize interior finish specs',project:'BF Homes Renovation',assignee:'Carlos Reyes',due:'2025-06-10',priority:'medium',done:true,ganttId:204},
-  {id:4,name:'Procure rebar for foundation',project:'Eastwood Condo Phase 2',assignee:'Luz Cruz',due:'2025-07-01',priority:'medium',done:false,ganttId:null},
-  {id:5,name:'Inspect drainage culverts',project:'C5 Road Widening',assignee:'Carlos Reyes',due:'2025-06-25',priority:'low',done:false,ganttId:304},
+  {id:1,name:'Mobilization of equipment',project:'Ortigas Office Tower',assignee:'Carlos Reyes',due:'2025-01-15',priority:'high',done:true,ganttId:101,subTaskId:1011},
+  {id:2,name:'Electrical rough-in floors 3–5',project:'Ortigas Office Tower',assignee:'Ben Torres',due:'2025-07-20',priority:'high',done:false,ganttId:106,subTaskId:1061},
+  {id:3,name:'Interior tiling',project:'BF Homes Renovation',assignee:'Carlos Reyes',due:'2025-06-10',priority:'medium',done:true,ganttId:204,subTaskId:2041},
+  {id:4,name:'Sheet pile installation',project:'Eastwood Condo Phase 2',assignee:'Ben Torres',due:'2025-07-01',priority:'medium',done:true,ganttId:401,subTaskId:4012},
+  {id:5,name:'Culvert installation',project:'C5 Road Widening',assignee:'Carlos Reyes',due:'2025-08-01',priority:'low',done:false,ganttId:304,subTaskId:3042},
 ];
 let inventory=[
-  {id:1,name:'Portland Cement',qty:420,unit:'bags',min:100,project:'Ortigas Office Tower'},
-  {id:2,name:'Deformed Rebar 12mm',qty:85,unit:'pcs',min:200,project:'Eastwood Condo Phase 2'},
-  {id:3,name:'Hollow Blocks',qty:1240,unit:'pcs',min:500,project:'BF Homes Renovation'},
-  {id:4,name:'Ready Mix Concrete',qty:18,unit:'m³',min:20,project:'C5 Road Widening'},
-  {id:5,name:'G.I. Pipes 2"',qty:310,unit:'pcs',min:50,project:'Ortigas Office Tower'},
-  {id:6,name:'Plywood 3/4"',qty:30,unit:'sheets',min:40,project:'BF Homes Renovation'},
+  {id:1,name:'Portland Cement',qty:420,unit:'bags',min:100,project:'Ortigas Office Tower',unitCost:280},
+  {id:2,name:'Deformed Rebar 12mm',qty:85,unit:'pcs',min:200,project:'Eastwood Condo Phase 2',unitCost:180},
+  {id:3,name:'Hollow Blocks',qty:1240,unit:'pcs',min:500,project:'BF Homes Renovation',unitCost:18},
+  {id:4,name:'Ready Mix Concrete',qty:18,unit:'m³',min:20,project:'C5 Road Widening',unitCost:4500},
+  {id:5,name:'G.I. Pipes 2"',qty:310,unit:'pcs',min:50,project:'Ortigas Office Tower',unitCost:420},
+  {id:6,name:'Plywood 3/4"',qty:30,unit:'sheets',min:40,project:'BF Homes Renovation',unitCost:650},
 ];
 let invLog=[];
+let expenses=[
+  {id:1,proj:'Ortigas Office Tower',date:'2025-06-01',cat:'Materials',amount:145600,desc:'Portland Cement delivery — 520 bags',payee:'Eagle Cement Corp',ref:'DR-20250601',by:'Carlos Reyes'},
+  {id:2,proj:'Ortigas Office Tower',date:'2025-06-05',cat:'Manpower / Salary',amount:280000,desc:'Labor payroll — May 2025',payee:'Direct workers',ref:'PR-052025',by:'Maria Santos'},
+  {id:3,proj:'BF Homes Renovation',date:'2025-06-03',cat:'Equipment Rental',amount:35000,desc:'Scaffolding rental — 30 days',payee:'XYZ Scaffold',ref:'OR-45231',by:'Carlos Reyes'},
+  {id:4,proj:'C5 Road Widening',date:'2025-06-07',cat:'Fuel / Gasoline',amount:18500,desc:'Diesel for equipment — 2 weeks',payee:'Flying V',ref:'OR-9911',by:'Luz Cruz'},
+  {id:5,proj:'Eastwood Condo Phase 2',date:'2025-06-10',cat:'Manpower / Salary',amount:95000,desc:'Labor week 1–2 June',payee:'Direct workers',ref:'PR-062025',by:'Maria Santos'},
+];
 let documents={1:[
-  {id:1,title:'Architectural Plans Rev2',cat:'Architectural Drawing',access:'all',notes:'Latest approved set',files:['arch_rev2.pdf'],uploader:'Maria Santos',date:TODAY,icon:'ti-file-type-pdf',color:'#A32D2D'},
-  {id:2,title:'Structural General Notes',cat:'Structural Drawing',access:'management',notes:'Confidential',files:['struct_gn.dwg'],uploader:'Carlos Reyes',date:TODAY,icon:'ti-file-vector',color:'#185FA5'},
+  {id:1,title:'Architectural Plans Rev2',cat:'Architectural Drawing',access:'all',notes:'Latest approved',files:['arch_rev2.pdf'],uploader:'Maria Santos',date:TODAY},
 ],2:[],3:[],4:[]};
 let siteWorkers=[
-  {id:1,name:'Jun Dela Cruz',trade:'Mason',project:'Ortigas Office Tower',agency:'ABC Builders'},
-  {id:2,name:'Rico Santos',trade:'Carpenter',project:'Ortigas Office Tower',agency:'ABC Builders'},
-  {id:3,name:'Manny Torres',trade:'Electrician',project:'BF Homes Renovation',agency:'Direct Hire'},
-  {id:4,name:'Leo Cruz',trade:'Welder',project:'C5 Road Widening',agency:'XYZ Construction'},
-  {id:5,name:'Ben Reyes',trade:'Driver',project:'Eastwood Condo Phase 2',agency:'Direct Hire'},
+  {id:1,name:'Jun Dela Cruz',trade:'Mason',project:'Ortigas Office Tower',agency:'ABC Builders',rate:700},
+  {id:2,name:'Rico Santos',trade:'Carpenter',project:'Ortigas Office Tower',agency:'ABC Builders',rate:750},
+  {id:3,name:'Manny Torres',trade:'Electrician',project:'BF Homes Renovation',agency:'Direct Hire',rate:850},
+  {id:4,name:'Leo Cruz',trade:'Welder',project:'C5 Road Widening',agency:'XYZ Construction',rate:800},
+  {id:5,name:'Ben Reyes',trade:'Driver',project:'Eastwood Condo Phase 2',agency:'Direct Hire',rate:650},
 ];
-let siteAttendance={};// {date:{workerId:{status}}}
+let siteAttendance={};
 let dailyLogs=[];
 let actLog=[
-  {time:'Today 08:12',text:'Task completed: Finalize interior finish specs',color:'#0F6E56'},
-  {time:'Today 07:55',text:'Inventory: +50 Portland Cement replenished',color:'#185FA5'},
-  {time:'Yesterday',text:'BF Homes → At Risk status updated',color:'#C05621'},
+  {time:'Today 08:12',text:'Task completed: Interior tiling (BF Homes)',color:'#0F6E56'},
+  {time:'Today 07:55',text:'Expense added: ₱145,600 Portland Cement — Ortigas',color:'#C05621'},
+  {time:'Yesterday',text:'BF Homes Renovation → At Risk status updated',color:'#C05621'},
 ];
 
 // ── SESSION ──
-let CU=null; // current user
+let CU=null;
 let selectedAuthUser=null;
 let activeProjectId=null;
-let taskFilter='all';
-let taskProjFilter='all';
+let taskProjFilter='All';
+let taskStatusFilter='All';
 
 // ── HELPERS ──
 function fmt(n){return'₱'+Math.round(n).toLocaleString('en-PH')}
+function fmtN(n){return Math.round(n).toLocaleString('en-PH')}
 function nowStr(){const d=new Date();return d.toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}
 function initials(n){return(n||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
-function avC(n){return AVC[(n||'').charCodeAt(0)%AVC.length]}
-function avEl(n,size=26){const c=avC(n);return`<div class="av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;background:${c.bg};color:${c.c}">${initials(n)}</div>`}
-function sbadge(s){const m={'on-track':['bk','On Track'],'at-risk':['bw','At Risk'],'delayed':['be','Delayed'],'completed':['bg_','Completed']};const v=m[s]||['bg_',s];return`<span class="badge ${v[0]}">${v[1]}</span>`}
+function avC(n){return AVC[(n||'X').charCodeAt(0)%AVC.length]}
+function avEl(n,sz=26){const c=avC(n);return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.38)}px;background:${c.bg};color:${c.c}">${initials(n)}</div>`}
+function sbadge(s){const m={'on-track':['bk','On Track'],'at-risk':['bw','At Risk'],'delayed':['be','Delayed'],'completed':['bg_','Completed']};const[cls,lbl]=m[s]||['bg_',s];return`<span class="badge ${cls}">${lbl}</span>`}
 function pribadge(p){return p==='high'?'<span class="badge be">High</span>':p==='medium'?'<span class="badge bw">Medium</span>':'<span class="badge bg_">Low</span>'}
-function stockOk(i){return i.qty>i.min}
 function stockBadge(i){const r=i.qty/i.min;return r<=0.5?'<span class="badge be">Critical</span>':r<=1?'<span class="badge bw">Low</span>':'<span class="badge bk">OK</span>'}
 function stockStyle(i){const r=i.qty/i.min;return r<=0.5?'color:var(--er-tx)':r<=1?'color:var(--wn-tx)':'color:var(--ok-tx)'}
-function canDo(action){return CU&&PERMS[CU.role][action]}
-function docAccessOk(doc){
-  if(!CU)return false;
-  if(doc.access==='admin')return CU.role==='admin';
-  if(doc.access==='management')return CU.role==='admin'||CU.role==='pm';
-  return true;
+function canDo(a){return CU&&PERMS[CU.role][a]}
+function docOk(d){if(!CU)return false;if(d.access==='admin')return CU.role==='admin';if(d.access==='management')return CU.role==='admin'||CU.role==='pm';return true;}
+
+// ── VISIBLE PROJECTS (security) ──
+function myProjects(){
+  if(!CU)return[];
+  if(CU.role==='admin'||CU.projects.includes('ALL'))return projects;
+  return projects.filter(p=>CU.projects.includes(p.name));
 }
 
-// ── PROGRESS CALC (Gantt-based) ──
-function calcProgress(projId){
-  const acts=ganttActivities[projId]||[];
+// ── PROGRESS (Gantt-based) ──
+function calcProgress(pid){
+  const acts=ganttActivities[pid]||[];
   if(!acts.length)return 0;
-  const totalW=acts.reduce((s,a)=>s+a.weight,0);
-  const earned=acts.reduce((s,a)=>s+(a.weight*a.done/100),0);
-  return Math.round(totalW?earned/totalW*100:0);
+  const tw=acts.reduce((s,a)=>s+a.weight,0);
+  return Math.round(tw?acts.reduce((s,a)=>s+a.weight*a.done/100,0)/tw*100:0);
+}
+
+// ── SPENT (auto from expenses) ──
+function calcSpent(projName){
+  return expenses.filter(e=>e.proj===projName).reduce((s,e)=>s+e.amount,0);
 }
 
 // ── AUTH ──
@@ -663,7 +767,7 @@ function initAuth(){
   document.getElementById('user-list').innerHTML=users.filter(u=>u.active).map(u=>{
     const c=avC(u.name);
     return`<div class="au" id="au-${u.id}" onclick="selUser(${u.id})">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:7px">
         <div class="av" style="background:${c.bg};color:${c.c}">${initials(u.name)}</div>
         <div><div style="font-size:12px;font-weight:600">${u.name}</div><span class="badge ${ROLE_BADGE[u.role]}">${ROLE_LABELS[u.role]}</span></div>
       </div>
@@ -672,7 +776,7 @@ function initAuth(){
 function selUser(id){
   selectedAuthUser=users.find(u=>u.id===id);
   document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));
-  document.getElementById('au-'+id).classList.add('sel');
+  const el=document.getElementById('au-'+id);if(el)el.classList.add('sel');
   document.getElementById('auth-pin').focus();
 }
 function doLogin(){
@@ -687,163 +791,206 @@ function doLogin(){
   setupApp();render();
 }
 function doLogout(){
-  CU=null;selectedAuthUser=null;
+  CU=null;selectedAuthUser=null;activeProjectId=null;
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('app').classList.remove('on');
   document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));
   initAuth();
 }
-function goHome(){setTab('overview')}
+function goHome(){closeDetail();setTab('overview');}
 
 function setupApp(){
   const p=PERMS[CU.role];
   const c=avC(CU.name);
   document.getElementById('top-av').textContent=initials(CU.name);
-  document.getElementById('top-av').style.background=c.bg;
-  document.getElementById('top-av').style.color=c.c;
+  Object.assign(document.getElementById('top-av').style,{background:c.bg,color:c.c});
   document.getElementById('top-name').textContent=CU.name;
   document.getElementById('top-role').textContent=ROLE_LABELS[CU.role];
   document.getElementById('top-date').textContent=new Date().toLocaleDateString('en-PH',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
 
-  // Tab restrictions
-  const hidden=['t-users','t-inventory'];
-  document.getElementById('t-users').classList.toggle('hidden',!p.users);
+  // Worker: only attendance + daily
   if(CU.role==='worker'){
-    ['overview','projects','tasks','inventory','users','activity'].forEach(t=>document.getElementById('t-'+t).classList.add('hidden'));
+    ['overview','projects','tasks','inventory','expenses','users','activity'].forEach(t=>document.getElementById('t-'+t).classList.add('hidden'));
+    ['attendance','daily'].forEach(t=>document.getElementById('t-'+t).classList.remove('hidden'));
     setTab('attendance');
   } else {
-    ['overview','projects','tasks','inventory','activity'].forEach(t=>document.getElementById('t-'+t).classList.remove('hidden'));
-    if(!p.users)document.getElementById('t-users').classList.add('hidden');
-    if(!p.inventory)document.getElementById('t-inventory').classList.add('hidden');
+    ['overview','projects','tasks','attendance','daily','activity'].forEach(t=>document.getElementById('t-'+t).classList.remove('hidden'));
+    document.getElementById('t-inventory').classList.toggle('hidden',!p.inventory);
+    document.getElementById('t-expenses').classList.toggle('hidden',!p.expenses);
+    document.getElementById('t-users').classList.toggle('hidden',!p.users);
     setTab('overview');
   }
   // Button guards
-  ['btn-new-proj','btn-new-task','btn-new-mat'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.style.display='none';
-  });
-  if(p.newProject){const e=document.getElementById('btn-new-proj');if(e)e.style.display='';}
-  if(p.newTask){const e=document.getElementById('btn-new-task');if(e)e.style.display='';}
-  if(p.inventory){const e=document.getElementById('btn-new-mat');if(e)e.style.display='';}
-
-  // Populate attendance date
+  if(document.getElementById('btn-new-proj'))document.getElementById('btn-new-proj').style.display=p.newProject?'':'none';
+  if(document.getElementById('btn-new-task'))document.getElementById('btn-new-task').style.display=p.newTask?'':'none';
+  if(document.getElementById('btn-new-mat'))document.getElementById('btn-new-mat').style.display=p.inventory?'':'none';
   document.getElementById('att-date-filter').value=TODAY;
 }
 
-// ── TAB NAVIGATION ──
+// ── TAB NAV ──
 function setTab(t){
   document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
   const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);
   if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');
-  if(t==='tasks')buildTaskFilterBar();
-  if(t==='attendance')renderGlobalAttendance();
+  if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal();}
+  if(t==='inventory')renderGlobalInventory();
+  if(t==='attendance')renderGlobalAtt();
   if(t==='daily')renderGlobalDaily();
+  if(t==='expenses')renderGlobalExpenses();
+}
+function setDTab(t){
+  document.querySelectorAll('.dpg').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('on'));
+  const el=document.getElementById('dpg-'+t);const tb=document.getElementById('dt-'+t);
+  if(el)el.classList.add('on');if(tb)tb.classList.add('on');
 }
 
 // ── MODALS ──
 function openFm(id){
   if(id==='fm-task'){
-    document.getElementById('fta-proj').innerHTML=projects.map(p=>`<option>${p.name}</option>`).join('');
+    const mp=myProjects();
+    document.getElementById('fta-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');
     document.getElementById('fta-assign').innerHTML=users.filter(u=>u.active).map(u=>`<option>${u.name}</option>`).join('');
-    const allActs=[].concat(...Object.values(ganttActivities));
-    document.getElementById('fta-gantt').innerHTML='<option value="">None</option>'+allActs.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+    updateGanttSelect();
   }
-  if(id==='fm-inv-add')document.getElementById('fi-proj').innerHTML=projects.map(p=>`<option>${p.name}</option>`).join('');
-  if(id==='fm-worker')document.getElementById('fw-proj').innerHTML=projects.map(p=>`<option>${p.name}</option>`).join('');
-  if(id==='fm-user'){document.getElementById('fu-proj').innerHTML=['All',...projects.map(p=>p.name)].map(n=>`<option>${n}</option>`).join('');}
+  if(id==='fm-inv-add'){document.getElementById('fi-proj').innerHTML=myProjects().map(p=>`<option>${p.name}</option>`).join('');}
+  if(id==='fm-worker'){document.getElementById('fw-proj').innerHTML=myProjects().map(p=>`<option>${p.name}</option>`).join('');}
+  if(id==='fm-expense'){
+    document.getElementById('fex-proj').innerHTML=myProjects().map(p=>`<option>${p.name}</option>`).join('');
+    document.getElementById('fex-date').value=TODAY;
+    document.getElementById('fex-by').value=CU.name;
+  }
+  if(id==='fm-user'){buildUserProjCheckboxes();}
+  if(id==='fm-daily'){
+    const mp=myProjects();
+    document.getElementById('fdl-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');
+    document.getElementById('fdl-date').value=TODAY;
+  }
   document.getElementById(id).classList.add('op');
 }
 function closeFm(id){document.getElementById(id).classList.remove('op');}
 document.querySelectorAll('.fm').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('op');}));
 
+function updateGanttSelect(){
+  const projName=document.getElementById('fta-proj')?.value;
+  const p=projects.find(x=>x.name===projName);
+  const acts=p?ganttActivities[p.id]||[]:[];
+  document.getElementById('fta-gantt').innerHTML='<option value="">— None —</option>'+acts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+}
+
+function buildUserProjCheckboxes(){
+  const role=document.getElementById('fu-role').value;
+  const wrap=document.getElementById('fu-proj-wrap');
+  wrap.style.display=role==='admin'?'none':'block';
+  document.getElementById('fu-proj-checkboxes').innerHTML=projects.map(p=>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:3px 8px;border:0.5px solid var(--bd2);border-radius:var(--r)">
+      <input type="checkbox" value="${p.name}" style="accent-color:var(--or)"> ${p.name}
+    </label>`).join('');
+}
+function updateUserProjSelector(){buildUserProjCheckboxes();}
+
 // ── RENDER MAIN ──
 function render(){
   renderSidebar();renderMetrics();renderOverview();
-  renderProjects();renderTasksGlobal();renderInventory();
-  renderGlobalAttendance();renderGlobalDaily();renderUsers();renderActivity();
+  renderProjects();renderTasksGlobal();renderGlobalInventory();
+  renderGlobalAtt();renderGlobalDaily();renderGlobalExpenses();renderUsers();renderActivity();
 }
 
 function renderSidebar(){
-  document.getElementById('sidebar').innerHTML=projects.map(p=>{
+  const mp=myProjects();
+  document.getElementById('sidebar').innerHTML=mp.map(p=>{
     const prog=calcProgress(p.id);
     return`<div class="si" onclick="openProjectDetail(${p.id})">
       <div style="width:7px;height:7px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
       <div style="min-width:0">
         <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${p.name}</div>
-        <div style="font-size:10px;color:var(--tx2)">${prog}% complete</div>
+        <div style="font-size:10px;color:var(--tx2)">${prog}%</div>
       </div>
     </div>`;}).join('');
-  document.getElementById('qs1').textContent=projects.filter(p=>p.status==='on-track').length;
-  document.getElementById('qs2').textContent=projects.filter(p=>p.status==='at-risk'||p.status==='delayed').length;
-  document.getElementById('qs3').textContent=inventory.filter(i=>i.qty<=i.min).length;
-  document.getElementById('qs4').textContent=tasks.filter(t=>!t.done).length;
+  document.getElementById('qs1').textContent=mp.filter(p=>p.status==='on-track').length;
+  document.getElementById('qs2').textContent=mp.filter(p=>p.status==='at-risk'||p.status==='delayed').length;
+  const myInv=inventory.filter(i=>mp.some(p=>p.name===i.project));
+  document.getElementById('qs3').textContent=myInv.filter(i=>i.qty<=i.min).length;
+  const myTasks=tasks.filter(t=>mp.some(p=>p.name===t.project));
+  document.getElementById('qs4').textContent=myTasks.filter(t=>!t.done).length;
 }
 
 function renderMetrics(){
-  document.getElementById('m1').textContent=projects.length;
-  document.getElementById('m2').textContent=fmt(projects.reduce((s,p)=>s+p.budget,0));
-  const dn=tasks.filter(t=>t.done).length;
-  document.getElementById('m3').textContent=tasks.length?Math.round(dn/tasks.length*100)+'%':'0%';
-  const avgProg=projects.length?Math.round(projects.reduce((s,p)=>s+calcProgress(p.id),0)/projects.length):0;
-  document.getElementById('m4').textContent=avgProg+'%';
+  const mp=myProjects();
+  document.getElementById('m1').textContent=mp.length;
+  document.getElementById('m2').textContent=fmt(mp.reduce((s,p)=>s+p.contractPrice,0));
+  const myT=tasks.filter(t=>mp.some(p=>p.name===t.project));
+  document.getElementById('m3').textContent=myT.length?Math.round(myT.filter(t=>t.done).length/myT.length*100)+'%':'0%';
+  const avg=mp.length?Math.round(mp.reduce((s,p)=>s+calcProgress(p.id),0)/mp.length):0;
+  document.getElementById('m4').textContent=avg+'%';
 }
 
 function renderOverview(){
-  document.getElementById('ov-proj').innerHTML=projects.map(p=>{
-    const prog=calcProgress(p.id);
+  const mp=myProjects();
+  document.getElementById('ov-proj').innerHTML=mp.map(p=>{
+    const prog=calcProgress(p.id);const spent=calcSpent(p.name);
     return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--bd);cursor:pointer" onclick="openProjectDetail(${p.id})">
       <div style="width:7px;height:7px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
         <div class="pb" style="margin-top:4px"><div class="pf" style="width:${prog}%;background:${p.color}"></div></div>
       </div>
-      <span style="font-size:11px;color:var(--tx2)">${prog}%</span>${sbadge(p.status)}
+      <span style="font-size:10px;color:var(--tx2)">${prog}%</span>${sbadge(p.status)}
     </div>`;}).join('');
-  const low=inventory.filter(i=>i.qty<=i.min);
+  const myInv=inventory.filter(i=>mp.some(p=>p.name===i.project));
+  const low=myInv.filter(i=>i.qty<=i.min);
   document.getElementById('ov-inv').innerHTML=low.length
-    ?low.map(i=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bd)">
+    ?low.map(i=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--bd)">
       <div><div style="font-size:12px;font-weight:500">${i.name}</div><div style="font-size:10px;color:var(--tx2)">${i.project}</div></div>
-      <div style="text-align:right"><div style="font-weight:600;${stockStyle(i)}">${i.qty} ${i.unit}</div>${stockBadge(i)}</div>
+      <div style="text-align:right"><div style="${stockStyle(i)};font-weight:600">${i.qty} ${i.unit}</div>${stockBadge(i)}</div>
     </div>`).join('')
-    :'<div style="font-size:12px;color:var(--tx2);padding:8px 0"><i class="ti ti-circle-check" style="color:var(--ok-tx)"></i> All materials stocked.</div>';
-  document.getElementById('ov-log').innerHTML=actLog.slice(0,5).map(l=>
+    :'<div style="font-size:12px;color:var(--tx2);padding:8px 0"><i class="ti ti-circle-check" style="color:var(--ok-tx)"></i> All materials stocked OK.</div>';
+  document.getElementById('ov-log').innerHTML=actLog.slice(0,6).map(l=>
     `<div class="log-row"><div class="log-dot" style="background:${l.color}"></div><div style="flex:1;font-size:12px">${l.text}</div><div class="log-time">${l.time}</div></div>`).join('');
 }
 
 // ── PROJECT LIST ──
 function renderProjects(){
-  document.getElementById('proj-cards').innerHTML=projects.map(p=>{
+  const mp=myProjects();
+  document.getElementById('proj-cards').innerHTML=mp.map(p=>{
     const prog=calcProgress(p.id);
-    const projTasks=tasks.filter(t=>t.project===p.name);
-    const doneTasks=projTasks.filter(t=>t.done).length;
-    return`<div class="card" style="cursor:pointer;transition:box-shadow .15s" onclick="openProjectDetail(${p.id})" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+    const spent=calcSpent(p.name);
+    const budgetPct=Math.min(100,Math.round(spent/p.contractPrice*100));
+    const budgetColor=budgetPct>90?'var(--er-tx)':budgetPct>70?'var(--wn-tx)':'var(--ok-tx)';
+    return`<div class="card" style="cursor:pointer" onclick="openProjectDetail(${p.id})" onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:10px;height:10px;border-radius:50%;background:${p.color};flex-shrink:0;margin-top:3px"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:${p.color};flex-shrink:0;margin-top:3px"></div>
           <div><div style="font-size:15px;font-weight:700">${p.name}</div><div style="font-size:11px;color:var(--tx2)">${p.client} · ${p.location}</div></div>
         </div>
         ${sbadge(p.status)}
       </div>
       <div style="font-size:12px;color:var(--tx2);margin-bottom:12px">${p.desc||'No description.'}</div>
-      <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">
-        <div><div style="font-size:10px;color:var(--tx3)">Budget</div><div style="font-size:13px;font-weight:600">${fmt(p.budget)}</div></div>
-        <div><div style="font-size:10px;color:var(--tx3)">Spent</div><div style="font-size:13px;font-weight:600">${fmt(p.spent)}</div></div>
-        <div><div style="font-size:10px;color:var(--tx3)">Tasks</div><div style="font-size:13px;font-weight:600">${doneTasks}/${projTasks.length}</div></div>
-        <div><div style="font-size:10px;color:var(--tx3)">End Date</div><div style="font-size:13px;font-weight:600">${p.end}</div></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+        <div><div style="font-size:10px;color:var(--tx3)">Contract Price</div><div style="font-size:13px;font-weight:700">${fmt(p.contractPrice)}</div></div>
+        <div><div style="font-size:10px;color:var(--tx3)">Spent</div><div style="font-size:13px;font-weight:700;${budgetColor}">${fmt(spent)}</div></div>
+        <div><div style="font-size:10px;color:var(--tx3)">Remaining</div><div style="font-size:13px;font-weight:700">${fmt(p.contractPrice-spent)}</div></div>
+        <div><div style="font-size:10px;color:var(--tx3)">End Date</div><div style="font-size:13px;font-weight:700">${p.end}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--tx2)">Progress:</span>
+        <div class="pb" style="flex:1"><div class="pf" style="width:${prog}%;background:${p.color}"></div></div>
+        <span style="font-size:13px;font-weight:700;color:${p.color}">${prog}%</span>
+        <span style="font-size:10px;color:var(--tx3)">Gantt-based</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <div class="pb" style="flex:1"><div class="pf" style="width:${prog}%;background:${p.color}"></div></div>
-        <span style="font-size:12px;font-weight:700;color:${p.color}">${prog}%</span>
-        <span style="font-size:10px;color:var(--tx2)">Gantt-based</span>
+        <span style="font-size:11px;color:var(--tx2)">Budget used:</span>
+        <div class="pb" style="flex:1;background:var(--bg3)"><div class="pf" style="width:${budgetPct}%;background:${budgetColor}"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${budgetColor}">${budgetPct}%</span>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--in-tx);display:flex;align-items:center;gap:4px"><i class="ti ti-arrow-right"></i> Click to view full project details</div>
     </div>`;}).join('');
 }
 
 // ── PROJECT DETAIL ──
 function openProjectDetail(id){
-  activeProjectId=id;
-  setTab('projects');
+  if(!myProjects().find(p=>p.id===id)){alert('Access denied.');return;}
+  activeProjectId=id;setTab('projects');
   document.getElementById('proj-list-view').style.display='none';
   document.getElementById('proj-detail-view').style.display='block';
   setDTab('overview');
@@ -854,78 +1001,82 @@ function closeDetail(){
   document.getElementById('proj-detail-view').style.display='none';
   activeProjectId=null;
 }
-function setDTab(t){
-  document.querySelectorAll('.dpg').forEach(e=>e.classList.remove('on'));
-  document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('on'));
-  const el=document.getElementById('dpg-'+t);const tb=document.getElementById('dt-'+t);
-  if(el)el.classList.add('on');if(tb)tb.classList.add('on');
-}
 function renderDetailAll(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
-  const prog=calcProgress(id);
-  // Header
+  const prog=calcProgress(id);const spent=calcSpent(p.name);
+  const budPct=Math.min(100,Math.round(spent/p.contractPrice*100));
+  const budColor=budPct>90?'var(--er-tx)':budPct>70?'var(--wn-tx)':'var(--ok-tx)';
   document.getElementById('detail-header').innerHTML=`
     <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:14px;height:50px;border-radius:4px;background:${p.color}"></div>
+        <div style="width:5px;height:60px;border-radius:4px;background:${p.color}"></div>
         <div>
           <div style="font-size:20px;font-weight:700">${p.name}</div>
           <div style="font-size:12px;color:var(--tx2);margin-top:2px">${p.client} · ${p.location}</div>
-          <div style="font-size:12px;color:var(--tx2);margin-top:4px">${p.desc||''}</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:2px">${p.desc||''}</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         ${sbadge(p.status)}
         ${canDo('editProject')?`<button class="btn btns" onclick="openEdit(${p.id})"><i class="ti ti-edit"></i> Edit</button>`:''}
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:16px;flex-wrap:wrap">
-      <div><div style="font-size:10px;color:var(--tx3)">Budget</div><div style="font-weight:700">${fmt(p.budget)}</div></div>
-      <div><div style="font-size:10px;color:var(--tx3)">Spent</div><div style="font-weight:700">${fmt(p.spent)}</div></div>
-      <div><div style="font-size:10px;color:var(--tx3)">Remaining</div><div style="font-weight:700;color:var(--ok-tx)">${fmt(p.budget-p.spent)}</div></div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:16px">
+      <div><div style="font-size:10px;color:var(--tx3)">Contract Price</div><div style="font-weight:700;font-size:14px">${fmt(p.contractPrice)}</div></div>
+      <div><div style="font-size:10px;color:var(--tx3)">Contingency</div><div style="font-weight:700;font-size:14px">${fmt(p.contingency||0)}</div></div>
+      <div><div style="font-size:10px;color:var(--tx3)">Spent (auto)</div><div style="font-weight:700;font-size:14px;color:${budColor}">${fmt(spent)}</div></div>
+      <div><div style="font-size:10px;color:var(--tx3)">Remaining</div><div style="font-weight:700;font-size:14px;color:var(--ok-tx)">${fmt(p.contractPrice-spent)}</div></div>
       <div><div style="font-size:10px;color:var(--tx3)">Start</div><div style="font-weight:700">${p.start}</div></div>
       <div><div style="font-size:10px;color:var(--tx3)">End</div><div style="font-weight:700">${p.end}</div></div>
     </div>
-    <div style="margin-top:14px;display:flex;align-items:center;gap:10px">
-      <div class="pb" style="flex:1;height:8px"><div class="pf" style="width:${prog}%;background:${p.color};height:8px"></div></div>
-      <span style="font-size:14px;font-weight:700;color:${p.color}">${prog}%</span>
-      <span style="font-size:11px;color:var(--tx2)">overall progress (Gantt-based)</span>
+    <div style="margin-top:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--tx2);width:80px">Progress</span>
+        <div class="pb" style="flex:1;height:8px"><div class="pf" style="width:${prog}%;background:${p.color};height:8px"></div></div>
+        <span style="font-weight:700;color:${p.color};min-width:36px">${prog}%</span>
+        <span style="font-size:10px;color:var(--tx3)">Gantt-based</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--tx2);width:80px">Budget</span>
+        <div class="pb" style="flex:1;height:8px"><div class="pf" style="width:${budPct}%;background:${budColor};height:8px"></div></div>
+        <span style="font-weight:700;color:${budColor};min-width:36px">${budPct}%</span>
+        <span style="font-size:10px;color:var(--tx3)">of contract price</span>
+      </div>
     </div>`;
-  renderDetailOverview(id);
-  renderGantt(id);
-  renderDetailTasks(id);
-  renderDocs(id);
-  renderDetailAttendance(id);
-  renderDetailDaily(id);
+  renderDOverview(id);renderGantt(id);renderDetailTasks(id);
+  renderDetailBudget(id);renderDetailInventory(id);renderDocs(id);
+  renderDetailAtt(id);renderDetailDaily(id);
 }
 
-function renderDetailOverview(id){
+// ── DETAIL OVERVIEW ──
+function renderDOverview(id){
   const p=projects.find(x=>x.id===id);
   const acts=ganttActivities[id]||[];
-  const prog=calcProgress(id);
-  const pTasks=tasks.filter(t=>t.project===p.name);
-  const pLogs=dailyLogs.filter(l=>l.project===p.name);
   const pWorkers=siteWorkers.filter(w=>w.project===p.name);
+  const pLogs=dailyLogs.filter(l=>l.project===p.name);
   document.getElementById('d-overview-content').innerHTML=`
     <div class="two">
       <div class="card"><div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Schedule Summary</div></div>
-        ${acts.map(a=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--bd)">
-          <div style="flex:1"><div style="font-size:12px;font-weight:500">${a.name}</div><div style="font-size:10px;color:var(--tx2)">${a.phase}</div></div>
-          <div class="pb" style="width:80px"><div class="pf" style="width:${a.done}%;background:${p.color}"></div></div>
+        ${acts.map(a=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--bd)">
+          <div style="flex:1"><div style="font-size:12px;font-weight:500">${a.name}</div>
+          <div style="font-size:10px;color:var(--tx2)">${a.phase}${a.equip&&a.equip.length?' · 🏗 '+a.equip.join(', '):''}</div></div>
+          <div class="pb" style="width:70px"><div class="pf" style="width:${a.done}%;background:${p.color}"></div></div>
           <span style="font-size:11px;color:var(--tx2);min-width:28px;text-align:right">${a.done}%</span>
         </div>`).join('')}
       </div>
       <div>
-        <div class="card"><div class="ch"><div class="ct"><i class="ti ti-checklist"></i> Tasks</div><button class="btn btns" onclick="setDTab('tasks')">View All</button></div>
-          ${pTasks.slice(0,4).map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--bd)">
-            <div style="width:8px;height:8px;border-radius:50%;background:${t.done?'var(--ok-tx)':'var(--bd2)'};flex-shrink:0"></div>
-            <div style="font-size:12px;flex:1${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div>
-            ${pribadge(t.priority)}
-          </div>`).join('')||'<div style="font-size:12px;color:var(--tx2)">No tasks yet.</div>'}
+        <div class="card" style="margin-bottom:10px"><div class="ch"><div class="ct"><i class="ti ti-crane"></i> Equipment Schedule</div></div>
+          ${[...new Set(acts.flatMap(a=>a.equip||[]))].map(eq=>{
+            const actWithEq=acts.filter(a=>(a.equip||[]).includes(eq));
+            return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--bd)">
+              <i class="ti ti-forklift" style="color:var(--or);font-size:14px;flex-shrink:0"></i>
+              <div style="flex:1"><div style="font-size:12px;font-weight:500">${eq}</div>
+              <div style="font-size:10px;color:var(--tx2)">${actWithEq.map(a=>a.name).join(', ')}</div></div>
+            </div>`;}).join('')||'<div style="font-size:12px;color:var(--tx2)">No equipment listed.</div>'}
         </div>
-        <div class="card"><div class="ch"><div class="ct"><i class="ti ti-users"></i> Manpower</div></div>
-          <div style="font-size:22px;font-weight:700">${pWorkers.length} <span style="font-size:13px;font-weight:400;color:var(--tx2)">workers</span></div>
-          <div style="font-size:12px;color:var(--tx2);margin-top:6px">${pLogs.length} daily reports submitted</div>
+        <div class="card"><div class="ch"><div class="ct"><i class="ti ti-users"></i> Manpower & Logs</div></div>
+          <div style="font-size:22px;font-weight:700">${pWorkers.length} <span style="font-size:13px;font-weight:400;color:var(--tx2)">workers assigned</span></div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:6px">${pLogs.length} daily reports</div>
         </div>
       </div>
     </div>`;
@@ -935,179 +1086,168 @@ function renderDetailOverview(id){
 function renderGantt(id){
   const acts=ganttActivities[id]||[];
   const p=projects.find(x=>x.id===id);
+  const PHASE_COLS={Civil:'#185FA5',Structural:'#C05621',Architectural:'#534AB7',MEP:'#0F6E56',Electrical:'#854F0B',Plumbing:'#0F5F6E',Closeout:'#993C1D',Other:'#666'};
+  const EQUIP_COL='#854F0B';
   document.getElementById('d-gantt-content').innerHTML=`
     <div class="ch">
-      <div class="ct"><i class="ti ti-timeline"></i> Project Schedule (Gantt)</div>
+      <div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div>
       ${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttModal(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}
     </div>
-    ${acts.length?buildGanttChart(acts,p):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add schedule activities to auto-calculate project progress.</div>'}
-    <div style="margin-top:16px;padding:12px;background:var(--bg2);border-radius:var(--r);font-size:11px;color:var(--tx2)">
-      <i class="ti ti-info-circle"></i> <strong>Progress is automatically calculated</strong> from weighted Gantt activities. Update each activity's completion % to reflect real progress.
-    </div>`;
+    <div style="font-size:11px;color:var(--tx2);margin-bottom:10px">
+      Progress is <strong>auto-calculated</strong> from weighted activities. Click <i class="ti ti-edit"></i> to update completion %. 
+      Equipment rows show predicted rental periods.
+    </div>
+    ${acts.length?buildGanttHTML(acts,p,PHASE_COLS,EQUIP_COL):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add schedule activities to auto-calculate progress.</div>'}`;
 }
 
-function buildGanttChart(acts,p){
-  const dates=acts.flatMap(a=>[new Date(a.start),new Date(a.end)]);
-  const minD=new Date(Math.min(...dates));
-  const maxD=new Date(Math.max(...dates));
+function buildGanttHTML(acts,p,PHASE_COLS,EQUIP_COL){
+  const allDates=acts.flatMap(a=>[new Date(a.start),new Date(a.end)]);
+  const minD=new Date(Math.min(...allDates));
+  const maxD=new Date(Math.max(...allDates));
   const totalMs=maxD-minD||1;
   const todayPct=Math.min(100,Math.max(0,(new Date()-minD)/totalMs*100));
 
   // Month headers
-  const months=[];
+  let headers='';
   let cur=new Date(minD.getFullYear(),minD.getMonth(),1);
-  while(cur<=maxD){months.push(new Date(cur));cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
-  const headerHtml=months.map(m=>{
-    const left=(m-minD)/totalMs*100;
-    const next=new Date(m.getFullYear(),m.getMonth()+1,1);
-    const width=(Math.min(next,maxD)-Math.max(m,minD))/totalMs*100;
-    return`<div class="gantt-month" style="position:absolute;left:${left}%;width:${width}%">${m.toLocaleDateString('en-PH',{month:'short',year:'2-digit'})}</div>`;}).join('');
+  while(cur<=maxD){
+    const left=(cur-minD)/totalMs*100;
+    const next=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+    const width=(Math.min(next,maxD)-Math.max(cur,minD))/totalMs*100;
+    headers+=`<div class="gantt-month" style="position:absolute;left:${left.toFixed(1)}%;width:${width.toFixed(1)}%">${cur.toLocaleDateString('en-PH',{month:'short',year:'2-digit'})}</div>`;
+    cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+  }
 
-  const PHASE_COLORS={'Civil':'#185FA5','Structural':'#C05621','MEP':'#0F6E56','Architectural':'#534AB7','Closeout':'#854F0B'};
-
-  const rows=acts.map(a=>{
-    const left=(new Date(a.start)-minD)/totalMs*100;
-    const width=Math.max(1,(new Date(a.end)-new Date(a.start))/totalMs*100);
-    const col=PHASE_COLORS[a.phase]||p.color;
-    const doneW=width*a.done/100;
-    const editBtn=canDo('editProject')?`<button class="btn btns" onclick="editGanttAct(${a.id},${p.id})" style="font-size:10px;padding:2px 6px;opacity:.7" title="Update %"><i class="ti ti-edit"></i></button>`:'';
-    return`<div class="gantt-row" style="grid-template-columns:180px 1fr">
-      <div class="gantt-label">
+  // Activity rows + sub-tasks
+  let rows=acts.map(a=>{
+    const left=((new Date(a.start)-minD)/totalMs*100).toFixed(1);
+    const width=Math.max(1,((new Date(a.end)-new Date(a.start))/totalMs*100)).toFixed(1);
+    const col=PHASE_COLS[a.phase]||p.color;
+    const doneW=(width*a.done/100).toFixed(1);
+    const subDone=a.subTasks?a.subTasks.filter(s=>s.done).length:0;
+    const subTotal=a.subTasks?a.subTasks.length:0;
+    const editBtn=canDo('editProject')?`<button class="btn btns" onclick="openGanttEditModal(${a.id},${p.id})" style="font-size:10px;padding:2px 5px" title="Update"><i class="ti ti-edit"></i></button>`:'';
+    return`<div class="gantt-row" style="grid-template-columns:200px 1fr">
+      <div class="gantt-label" style="padding:5px 8px">
         <div style="font-size:11px;font-weight:600">${a.name}</div>
-        <div style="font-size:10px;color:var(--tx2)">${a.phase} · ${a.done}% · wt:${a.weight}%</div>
+        <div style="font-size:9px;color:var(--tx2)">${a.phase} · wt:${a.weight}% · ${subDone}/${subTotal} tasks</div>
+        ${a.equip&&a.equip.length?`<div style="font-size:9px;color:var(--or)"><i class="ti ti-crane" style="font-size:9px"></i> ${a.equip.join(', ')}</div>`:''}
       </div>
       <div class="gantt-bar-wrap">
-        <div class="gantt-today" style="left:${todayPct}%"></div>
-        <div class="gantt-bar" style="left:${left}%;width:${width}%;background:${col}22;border:1px solid ${col};color:${col}">${a.name}</div>
-        <div style="position:absolute;top:8px;height:20px;left:${left}%;width:${doneW}%;background:${col};border-radius:4px 0 0 4px;opacity:.7;pointer-events:none"></div>
-        <div style="position:absolute;top:4px;right:4px">${editBtn}</div>
+        <div class="gantt-today" style="left:${todayPct.toFixed(1)}%"></div>
+        <div class="gantt-bar" style="left:${left}%;width:${width}%;background:${col}22;border:1px solid ${col};color:${col}">${a.name} (${a.done}%)</div>
+        <div style="position:absolute;top:7px;left:${left}%;width:${doneW}%;height:20px;background:${col};opacity:.6;border-radius:4px 0 0 4px;pointer-events:none"></div>
+        <div style="position:absolute;top:2px;right:4px">${editBtn}</div>
+      </div>
+    </div>
+    ${a.subTasks&&a.subTasks.length?a.subTasks.map(st=>`
+      <div class="gantt-row" style="grid-template-columns:200px 1fr;background:var(--bg2);min-height:26px">
+        <div class="gantt-label" style="padding:3px 8px 3px 22px;display:flex;align-items:center;gap:5px">
+          <div style="width:11px;height:11px;border-radius:3px;border:1px solid ${st.done?col:'var(--bd2)'};background:${st.done?col:'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer" onclick="toggleSubTask(${a.id},${st.id},${p.id})" title="Toggle">
+            ${st.done?`<i class="ti ti-check" style="font-size:8px;color:#fff"></i>`:''}
+          </div>
+          <span style="font-size:10px;color:var(--tx2);${st.done?'text-decoration:line-through':''}">${st.name}</span>
+        </div>
+        <div class="gantt-bar-wrap" style="background:var(--bg2)">
+          <div class="gantt-today" style="left:${todayPct.toFixed(1)}%"></div>
+        </div>
+      </div>`).join(''):''}`;}).join('');
+
+  // Equipment rows (unique equipment across activities)
+  const allEquip=[...new Set(acts.flatMap(a=>a.equip||[]))];
+  const equipRows=allEquip.map(eq=>{
+    const actsWithEq=acts.filter(a=>(a.equip||[]).includes(eq));
+    if(!actsWithEq.length)return'';
+    const eStart=new Date(Math.min(...actsWithEq.map(a=>new Date(a.start))));
+    const eEnd=new Date(Math.max(...actsWithEq.map(a=>new Date(a.end))));
+    const left=((eStart-minD)/totalMs*100).toFixed(1);
+    const width=Math.max(2,((eEnd-eStart)/totalMs*100)).toFixed(1);
+    return`<div class="gantt-row" style="grid-template-columns:200px 1fr;background:var(--or2)">
+      <div class="gantt-label" style="padding:4px 8px">
+        <div style="font-size:11px;font-weight:600;color:var(--or)"><i class="ti ti-crane" style="font-size:11px"></i> ${eq}</div>
+        <div style="font-size:9px;color:var(--tx2)">${actsWithEq.length} activit${actsWithEq.length>1?'ies':'y'}</div>
+      </div>
+      <div class="gantt-bar-wrap" style="background:var(--or2)">
+        <div class="gantt-today" style="left:${todayPct.toFixed(1)}%"></div>
+        <div class="equip-bar" style="left:${left}%;width:${width}%;border-color:var(--or);color:var(--or)">${eq}</div>
       </div>
     </div>`;}).join('');
 
   return`<div class="gantt-wrap card" style="padding:0;overflow:hidden">
-    <div class="gantt-row" style="grid-template-columns:180px 1fr;background:var(--bg3)">
-      <div class="gantt-label" style="font-size:10px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em">Activity</div>
-      <div style="position:relative;height:30px">${headerHtml}</div>
+    <div class="gantt-row" style="grid-template-columns:200px 1fr;background:var(--bg3)">
+      <div class="gantt-label" style="font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em">Activity</div>
+      <div style="position:relative;height:28px">${headers}</div>
     </div>
     ${rows}
+    ${allEquip.length?`
+      <div style="padding:5px 10px;background:var(--or2);font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.05em;border-top:0.5px solid var(--bd2)">Equipment / Heavy Equipment Schedule</div>
+      ${equipRows}`:''}
   </div>`;
 }
 
 function openGanttModal(projId){
   document.getElementById('fg-proj-id').value=projId;
+  document.getElementById('fg-name').value='';document.getElementById('fg-phase').value='Civil';
+  document.getElementById('fg-weight').value=10;document.getElementById('fg-start').value=TODAY;
+  document.getElementById('fg-end').value=TODAY;document.getElementById('fg-done').value=0;
+  document.getElementById('fg-done-val').textContent='0%';document.getElementById('fg-equip').value='';
+  document.getElementById('fg-subtasks').value='';
   document.getElementById('fg-assign').innerHTML=users.filter(u=>u.active).map(u=>`<option>${u.name}</option>`).join('');
-  document.getElementById('fg-name').value='';
-  document.getElementById('fg-phase').value='';
-  document.getElementById('fg-start').value=TODAY;
-  document.getElementById('fg-end').value=TODAY;
-  document.getElementById('fg-weight').value=10;
-  document.getElementById('fg-done').value=0;
-  document.getElementById('fg-done-val').textContent='0%';
   document.getElementById('fm-gantt').classList.add('op');
 }
 
 function addGanttActivity(){
-  const name=document.getElementById('fg-name').value.trim();
-  if(!name){alert('Activity name required');return;}
+  const name=document.getElementById('fg-name').value.trim();if(!name){alert('Name required');return;}
   const projId=parseInt(document.getElementById('fg-proj-id').value);
   if(!ganttActivities[projId])ganttActivities[projId]=[];
-  const act={
-    id:Date.now(),name,phase:document.getElementById('fg-phase').value||'General',
+  const rawSubs=document.getElementById('fg-subtasks').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const subTasks=rawSubs.map((s,i)=>({id:Date.now()+i,name:s,done:false}));
+  const equipRaw=document.getElementById('fg-equip').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const act={id:Date.now(),name,phase:document.getElementById('fg-phase').value,
     start:document.getElementById('fg-start').value,end:document.getElementById('fg-end').value,
     weight:parseInt(document.getElementById('fg-weight').value)||10,
     done:parseInt(document.getElementById('fg-done').value)||0,
-    assign:document.getElementById('fg-assign').value
-  };
+    assign:document.getElementById('fg-assign').value,equip:equipRaw,subTasks};
   ganttActivities[projId].push(act);
-  actLog.unshift({time:nowStr(),text:`Gantt activity added: "${act.name}" to ${projects.find(p=>p.id===projId)?.name}`,color:'#185FA5'});
-  closeFm('fm-gantt');
-  renderDetailAll(projId);renderSidebar();renderMetrics();renderOverview();
-}
-
-function editGanttAct(actId,projId){
-  const acts=ganttActivities[projId]||[];
-  const act=acts.find(a=>a.id===actId);if(!act)return;
-  const val=prompt(`Update completion % for "${act.name}" (0–100):`,act.done);
-  if(val===null)return;
-  const n=Math.min(100,Math.max(0,parseInt(val)||0));
-  act.done=n;
-  actLog.unshift({time:nowStr(),text:`Activity "${act.name}" updated to ${n}% (by ${CU.name})`,color:'#0F6E56'});
-  renderDetailAll(projId);renderSidebar();renderMetrics();renderOverview();
-}
-
-// ── DOCS ──
-function renderDocs(id){
-  const p=projects.find(x=>x.id===id);
-  const docs=(documents[id]||[]).filter(d=>docAccessOk(d));
-  const canUp=canDo('docs');
-  document.getElementById('d-docs-content').innerHTML=`
-    <div class="ch">
-      <div class="ct"><i class="ti ti-files"></i> Documents & Drawings</div>
-      ${canUp?`<button class="btn btns btnp" onclick="openDocModal(${id})"><i class="ti ti-upload"></i> Upload</button>`:'<span style="font-size:11px;color:var(--tx2)">View only</span>'}
-    </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-      ${['All','Architectural Drawing','Structural Drawing','MEP Drawing','Permit / Legal','Photo','Video','Report'].map(c=>
-        `<button class="btn btns" onclick="filterDocs(${id},'${c}')">${c}</button>`).join('')}
-    </div>
-    <div class="doc-grid" id="doc-grid-${id}">
-      ${docs.length?docs.map(d=>docCard(d)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No documents uploaded yet.</div>'}
-    </div>`;
-}
-
-function filterDocs(id,cat){
-  const docs=(documents[id]||[]).filter(d=>docAccessOk(d)&&(cat==='All'||d.cat===cat));
-  document.getElementById('doc-grid-'+id).innerHTML=docs.length?docs.map(d=>docCard(d)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No documents in this category.</div>';
-}
-
-function docCard(d){
-  const icons={'Architectural Drawing':['ti-vector-triangle','#185FA5'],'Structural Drawing':['ti-ruler','#C05621'],'MEP Drawing':['ti-bolt','#0F6E56'],'Permit / Legal':['ti-certificate','#534AB7'],'Photo':['ti-photo','#0F5F6E'],'Video':['ti-video','#993C1D'],'Report':['ti-report','#854F0B'],'Contract':['ti-file-text','#633806']};
-  const [icon,col]=icons[d.cat]||['ti-file','#6b6a65'];
-  const accessLabel={'all':'All','management':'Mgmt','admin':'Admin'};
-  return`<div class="doc-card">
-    <div class="doc-icon" style="background:${col}22;color:${col}"><i class="ti ${icon}"></i></div>
-    <div class="doc-name">${d.title}</div>
-    <div class="doc-meta">${d.cat}</div>
-    <div class="doc-meta" style="margin-top:2px"><i class="ti ti-lock" style="font-size:10px"></i> ${accessLabel[d.access]}</div>
-    <div class="doc-meta">${d.files.length} file(s)</div>
-    <div class="doc-meta">${d.uploader} · ${d.date}</div>
-    ${d.notes?`<div class="doc-meta" style="color:var(--wn-tx)">${d.notes}</div>`:''}
-  </div>`;
-}
-
-function openDocModal(projId){
-  document.getElementById('fd-proj-id').value=projId;
-  document.getElementById('fd-title').value='';
-  document.getElementById('fd-notes').value='';
-  document.getElementById('doc-preview').innerHTML='';
-  document.getElementById('fm-doc').classList.add('op');
-}
-
-function uploadDoc(){
-  const title=document.getElementById('fd-title').value.trim();
-  if(!title){alert('Title required');return;}
-  const projId=parseInt(document.getElementById('fd-proj-id').value);
-  const files=document.getElementById('fd-files').files;
-  const fnames=Array.from(files).map(f=>f.name);
-  if(!documents[projId])documents[projId]=[];
-  const doc={
-    id:Date.now(),title,cat:document.getElementById('fd-cat').value,
-    access:document.getElementById('fd-access').value,
-    notes:document.getElementById('fd-notes').value,
-    files:fnames.length?fnames:['(no file)'],
-    uploader:CU.name,date:TODAY
-  };
-  documents[projId].push(doc);
-  actLog.unshift({time:nowStr(),text:`Document uploaded: "${title}" to ${projects.find(p=>p.id===projId)?.name} (by ${CU.name})`,color:'#534AB7'});
-  closeFm('fm-doc');
-  renderDocs(projId);
-}
-
-function previewDocFiles(input){
-  const prev=document.getElementById('doc-preview');prev.innerHTML='';
-  Array.from(input.files).forEach(f=>{
-    if(f.type.startsWith('image/')){const img=document.createElement('img');img.className='media-thumb';img.src=URL.createObjectURL(f);prev.appendChild(img);}
-    else{const d=document.createElement('div');d.className='media-vid';d.innerHTML=`<i class="ti ti-file" style="font-size:18px"></i><span style="font-size:9px">${f.name.slice(0,12)}</span>`;prev.appendChild(d);}
+  // Auto-create tasks for each sub-task
+  subTasks.forEach(st=>{
+    tasks.push({id:Date.now()+Math.random(),name:st.name,project:projects.find(p=>p.id===projId)?.name,
+      assignee:act.assign,due:act.end,priority:'medium',done:false,ganttId:act.id,subTaskId:st.id});
   });
+  actLog.unshift({time:nowStr(),text:`Gantt activity added: "${name}" with ${subTasks.length} sub-tasks (by ${CU.name})`,color:'#185FA5'});
+  closeFm('fm-gantt');renderDetailAll(projId);renderSidebar();renderMetrics();renderTasksGlobal();
+}
+
+function openGanttEditModal(actId,projId){
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  document.getElementById('fge-act-id').value=actId;
+  document.getElementById('fge-proj-id').value=projId;
+  document.getElementById('fge-name-label').textContent=act.name;
+  document.getElementById('fge-done').value=act.done;
+  document.getElementById('fge-done-val').textContent=act.done+'%';
+  document.getElementById('fge-equip').value=(act.equip||[]).join(', ');
+  document.getElementById('fm-gantt-edit').classList.add('op');
+}
+function saveGanttEdit(){
+  const actId=parseInt(document.getElementById('fge-act-id').value);
+  const projId=parseInt(document.getElementById('fge-proj-id').value);
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  act.done=parseInt(document.getElementById('fge-done').value)||0;
+  act.equip=document.getElementById('fge-equip').value.split(',').map(s=>s.trim()).filter(Boolean);
+  actLog.unshift({time:nowStr(),text:`"${act.name}" updated to ${act.done}% (by ${CU.name})`,color:'#0F6E56'});
+  closeFm('fm-gantt-edit');renderDetailAll(projId);renderSidebar();renderMetrics();
+}
+
+function toggleSubTask(actId,stId,projId){
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  const st=act.subTasks.find(s=>s.id===stId);if(!st)return;
+  st.done=!st.done;
+  // Sync task
+  const t=tasks.find(tk=>tk.subTaskId===stId);if(t)t.done=st.done;
+  // Auto-update activity done % from sub-tasks
+  if(act.subTasks.length){act.done=Math.round(act.subTasks.filter(s=>s.done).length/act.subTasks.length*100);}
+  actLog.unshift({time:nowStr(),text:`Sub-task "${st.name}" ${st.done?'done':'reopened'} (by ${CU.name})`,color:'#0F6E56'});
+  renderDetailAll(projId);renderSidebar();renderMetrics();renderTasksGlobal();
 }
 
 // ── DETAIL TASKS ──
@@ -1119,13 +1259,17 @@ function renderDetailTasks(id){
       <div class="ct"><i class="ti ti-checklist"></i> Project Tasks</div>
       ${canDo('newTask')?`<button class="btn btns btnp" onclick="openTaskForProject('${p.name}')"><i class="ti ti-plus"></i> Add Task</button>`:''}
     </div>
-    ${pTasks.length?pTasks.map((t,i)=>{
+    ${pTasks.length?pTasks.map(t=>{
       const ri=tasks.indexOf(t);
+      const act=t.ganttId?(ganttActivities[id]||[]).find(a=>a.id===t.ganttId):null;
       return`<div class="tr_">
-        <div class="ck${t.done?' dn':''}" onclick="toggleTask(${ri},${id})"><i class="ti ti-check" style="font-size:10px${t.done?'':';display:none'}"></i></div>
+        <div class="ck${t.done?' dn':''}" onclick="toggleTask(${ri},${id})" style="margin-top:2px">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div>
         <div style="flex:1">
           <div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div>
-          <div style="font-size:10px;color:var(--tx2);margin-top:2px">${t.assignee} · Due ${t.due}${t.ganttId?` · <span style="color:var(--in-tx)">Linked to schedule</span>`:''}</div>
+          <div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap">
+            <span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span>
+            ${act?`<span>·</span><span style="color:var(--in-tx)"><i class="ti ti-link" style="font-size:10px"></i> ${act.name}</span>`:''}
+          </div>
         </div>
         ${pribadge(t.priority)}
         ${canDo('newTask')?`<button class="btn btns btnd" onclick="removeTask(${ri},${id})"><i class="ti ti-trash"></i></button>`:''}
@@ -1133,102 +1277,181 @@ function renderDetailTasks(id){
     :'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No tasks yet for this project.</div>'}`;
 }
 
-function openTaskForProject(projName){
-  document.getElementById('fta-proj').innerHTML=projects.map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');
-  document.getElementById('fta-assign').innerHTML=users.filter(u=>u.active).map(u=>`<option>${u.name}</option>`).join('');
-  const allActs=[].concat(...Object.values(ganttActivities));
-  document.getElementById('fta-gantt').innerHTML='<option value="">None</option>'+allActs.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
-  document.getElementById('fm-task').classList.add('op');
+// ── DETAIL BUDGET ──
+function renderDetailBudget(id){
+  const p=projects.find(x=>x.id===id);
+  const pExp=expenses.filter(e=>e.proj===p.name);
+  const spent=pExp.reduce((s,e)=>s+e.amount,0);
+  const budPct=Math.min(100,Math.round(spent/p.contractPrice*100));
+  const budColor=budPct>90?'var(--er-tx)':budPct>70?'var(--wn-tx)':'var(--ok-tx)';
+  // By category
+  const byCat={};pExp.forEach(e=>{byCat[e.cat]=(byCat[e.cat]||0)+e.amount;});
+  document.getElementById('d-budget-content').innerHTML=`
+    <div class="two">
+      <div class="card">
+        <div class="ch"><div class="ct"><i class="ti ti-coins"></i> Budget Overview</div></div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Contract Price</span><strong>${fmt(p.contractPrice)}</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Contingency</span><strong>${fmt(p.contingency||0)}</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:${budColor}">Total Spent</span><strong style="color:${budColor}">${fmt(spent)} (${budPct}%)</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Remaining</span><strong style="color:var(--ok-tx)">${fmt(p.contractPrice-spent)}</strong></div>
+        </div>
+        <div class="pb" style="height:10px;margin-bottom:14px"><div class="pf" style="width:${budPct}%;background:${budColor};height:10px"></div></div>
+        <div class="ch" style="margin-bottom:8px"><div class="ct" style="font-size:12px">By Category</div></div>
+        ${Object.entries(byCat).map(([cat,amt])=>`
+          <div class="expense-row"><span>${cat}</span><strong>${fmt(amt)}</strong></div>`).join('')||'<div style="color:var(--tx2);font-size:12px">No expenses yet.</div>'}
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct"><i class="ti ti-receipt"></i> Expense Ledger</div>
+          ${canDo('expenses')?`<button class="btn btns btnp" onclick="openExpenseForProject('${p.name}')"><i class="ti ti-plus"></i> Add</button>`:''}
+        </div>
+        ${pExp.length?pExp.map(e=>`
+          <div class="expense-row">
+            <div style="flex:1">
+              <div style="font-weight:500">${e.desc}</div>
+              <div style="font-size:10px;color:var(--tx2)">${e.cat} · ${e.date} · ${e.payee}${e.ref?' · '+e.ref:''} · by ${e.by}</div>
+            </div>
+            <strong style="margin-left:10px;color:var(--er-tx)">${fmt(e.amount)}</strong>
+          </div>`).join('')
+        :'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No expenses recorded yet.</div>'}
+      </div>
+    </div>`;
+}
+
+// ── DETAIL INVENTORY ──
+function renderDetailInventory(id){
+  const p=projects.find(x=>x.id===id);
+  const pInv=inventory.filter(i=>i.project===p.name);
+  document.getElementById('d-inventory-content').innerHTML=`
+    <div class="ch">
+      <div class="ct"><i class="ti ti-package"></i> Inventory — ${p.name}</div>
+      ${canDo('inventory')?`<button class="btn btns btnp" onclick="openInvForProject('${p.name}')"><i class="ti ti-plus"></i> Add Material</button>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:14px">
+      ${pInv.map(i=>`<div class="inv-card">
+        <div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div>
+        <div style="font-size:22px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+          ${stockBadge(i)}
+          ${canDo('inventory')?`<div style="display:flex;gap:4px">
+            <button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw"><i class="ti ti-arrow-up"></i></button>
+            <button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish"><i class="ti ti-arrow-down"></i></button>
+          </div>`:''}
+        </div>
+        <div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?` · ₱${i.unitCost}/${i.unit}`:''}</div>
+      </div>`).join('')||`<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials assigned to this project yet. <button class="btn btns" onclick="openInvForProject('${p.name}')">Add Material</button></div>`}
+    </div>
+    <div class="card"><div class="ch"><div class="ct"><i class="ti ti-arrow-up-down"></i> Transactions</div></div>
+      <div>${invLog.filter(l=>l.proj===p.name).map(l=>`
+        <div class="log-row">
+          <div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}">
+            <i class="ti ${l.type==='replenish'?'ti-arrow-down':'ti-arrow-up'}" style="font-size:11px;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}"></i>
+          </div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} — ${l.type==='replenish'?'+':'-'}${l.qty} ${l.unit}</div>
+          <div style="font-size:10px;color:var(--tx2)">${l.note} · ${l.user}</div></div>
+          <div class="log-time">${l.time}</div>
+        </div>`).join('')||'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
+      </div>
+    </div>`;
+}
+
+// ── DOCS ──
+function renderDocs(id){
+  const docs=(documents[id]||[]).filter(d=>docOk(d));
+  document.getElementById('d-docs-content').innerHTML=`
+    <div class="ch">
+      <div class="ct"><i class="ti ti-files"></i> Documents & Drawings</div>
+      ${canDo('docs')?`<button class="btn btns btnp" onclick="openDocModal(${id})"><i class="ti ti-upload"></i> Upload</button>`:'<span style="font-size:11px;color:var(--tx2)">View only</span>'}
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
+      ${['All','Architectural Drawing','Structural Drawing','MEP Drawing','Permit / Legal','Photo','Report'].map(c=>
+        `<button class="btn btns" onclick="filterDocs(${id},'${c}')">${c}</button>`).join('')}
+    </div>
+    <div class="doc-grid" id="doc-grid-${id}">
+      ${docs.length?docs.map(d=>docCard(d)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No documents uploaded yet.</div>'}
+    </div>`;
+}
+function filterDocs(id,cat){
+  const docs=(documents[id]||[]).filter(d=>docOk(d)&&(cat==='All'||d.cat===cat));
+  document.getElementById('doc-grid-'+id).innerHTML=docs.length?docs.map(d=>docCard(d)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">None in this category.</div>';
+}
+function docCard(d){
+  const iconMap={'Architectural Drawing':['ti-vector-triangle','#185FA5'],'Structural Drawing':['ti-ruler','#C05621'],'MEP Drawing':['ti-bolt','#0F6E56'],'Photo':['ti-photo','#534AB7'],'Video':['ti-video','#993C1D'],'Report':['ti-report','#854F0B'],'Permit / Legal':['ti-certificate','#0F5F6E'],'Contract':['ti-file-text','#633806']};
+  const[icon,col]=iconMap[d.cat]||['ti-file','#6b6a65'];
+  return`<div class="doc-card"><div style="width:44px;height:44px;border-radius:8px;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:20px"><i class="ti ${icon}"></i></div>
+    <div style="font-size:11px;font-weight:600;word-break:break-word">${d.title}</div>
+    <div style="font-size:10px;color:var(--tx2);margin-top:2px">${d.cat}</div>
+    <div style="font-size:10px;color:var(--tx2)">${d.files.length} file(s)</div>
+    <div style="font-size:9px;color:var(--tx3)">${d.uploader} · ${d.date}</div>
+    ${d.notes?`<div style="font-size:10px;color:var(--wn-tx);margin-top:2px">${d.notes}</div>`:''}
+  </div>`;
+}
+function openDocModal(pid){
+  document.getElementById('fd-proj-id').value=pid;
+  document.getElementById('fd-title').value='';document.getElementById('fd-notes').value='';
+  document.getElementById('doc-prev').innerHTML='';
+  document.getElementById('fm-doc').classList.add('op');
+}
+function uploadDoc(){
+  const title=document.getElementById('fd-title').value.trim();if(!title){alert('Title required');return;}
+  const pid=parseInt(document.getElementById('fd-proj-id').value);
+  const files=Array.from(document.getElementById('fd-files').files).map(f=>f.name);
+  if(!documents[pid])documents[pid]=[];
+  documents[pid].push({id:Date.now(),title,cat:document.getElementById('fd-cat').value,
+    access:document.getElementById('fd-access').value,notes:document.getElementById('fd-notes').value,
+    files:files.length?files:['(no file)'],uploader:CU.name,date:TODAY});
+  actLog.unshift({time:nowStr(),text:`Doc uploaded: "${title}" by ${CU.name}`,color:'#534AB7'});
+  closeFm('fm-doc');renderDocs(pid);
 }
 
 // ── DETAIL ATTENDANCE ──
-function renderDetailAttendance(id){
+function renderDetailAtt(id){
   const p=projects.find(x=>x.id===id);
-  const workers=siteWorkers.filter(w=>w.project===p.name);
-  const dateVal=TODAY;
-  const dayAtt=siteAttendance[dateVal]||{};
   document.getElementById('d-attendance-content').innerHTML=`
     <div class="ch">
-      <div class="ct"><i class="ti ti-clock"></i> Site Attendance — ${p.name}</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input class="inp" type="date" id="datt-date-${id}" value="${dateVal}" style="width:160px" onchange="refreshDetailAtt(${id})">
+      <div class="ct"><i class="ti ti-clock"></i> Site Attendance</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input class="inp" type="date" id="datt-date-${id}" value="${TODAY}" style="width:160px" onchange="refreshDetailAtt(${id})">
         <button class="btn btns btnp" onclick="openFm('fm-worker')"><i class="ti ti-plus"></i> Add Worker</button>
       </div>
     </div>
     <div id="datt-table-${id}"></div>`;
-  renderDetailAttTable(id,dateVal);
+  renderDetailAttTable(id,TODAY);
 }
-
-function refreshDetailAtt(id){
-  const d=document.getElementById('datt-date-'+id).value;
-  renderDetailAttTable(id,d);
-}
-
+function refreshDetailAtt(id){renderDetailAttTable(id,document.getElementById('datt-date-'+id).value);}
 function renderDetailAttTable(id,dateVal){
   const p=projects.find(x=>x.id===id);
   const workers=siteWorkers.filter(w=>w.project===p.name);
   const dayAtt=siteAttendance[dateVal]||{};
   const el=document.getElementById('datt-table-'+id);if(!el)return;
-  el.innerHTML=workers.length?`
-    <div style="margin-bottom:10px;font-size:12px;color:var(--tx2)">
-      Present: <strong style="color:var(--ok-tx)">${Object.values(dayAtt).filter(r=>r.status==='in').length}</strong> &nbsp;|&nbsp;
-      Absent: <strong style="color:var(--er-tx)">${workers.filter(w=>!dayAtt[w.id]||dayAtt[w.id].status==='absent').length}</strong> &nbsp;|&nbsp;
-      On Leave: <strong style="color:var(--wn-tx)">${Object.values(dayAtt).filter(r=>r.status==='leave').length}</strong>
+  const present=workers.filter(w=>dayAtt[w.id]?.status==='in').length;
+  el.innerHTML=`
+    <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+      <span class="badge bk">Present: ${present}</span>
+      <span class="badge bw">On Leave: ${workers.filter(w=>dayAtt[w.id]?.status==='leave').length}</span>
+      <span class="badge be">Absent: ${workers.filter(w=>!dayAtt[w.id]||dayAtt[w.id].status==='absent').length}</span>
     </div>
-    ${workers.map(w=>{
+    ${workers.length?workers.map(w=>{
       const rec=dayAtt[w.id]||{status:'absent'};
       return`<div class="att-row">
-        <div style="flex:1">
-          <div style="font-weight:500;font-size:12px">${w.name}</div>
-          <div style="font-size:10px;color:var(--tx2)">${w.trade} · ${w.agency}</div>
+        <div style="flex:1"><div style="font-weight:500;font-size:12px">${w.name}</div>
+        <div style="font-size:10px;color:var(--tx2)">${w.trade} · ${w.agency}${w.rate?' · ₱'+w.rate+'/day':''}</div></div>
+        <div style="display:flex;gap:4px">
+          <button class="att-btn${rec.status==='in'?' in-a':''}" onclick="markWorkerAtt(${w.id},'in','${dateVal}',${id})">Present</button>
+          <button class="att-btn${rec.status==='leave'?' lv-a':''}" onclick="markWorkerAtt(${w.id},'leave','${dateVal}',${id})">Leave</button>
+          <button class="att-btn${rec.status==='absent'?' ab-a':''}" onclick="markWorkerAtt(${w.id},'absent','${dateVal}',${id})">Absent</button>
         </div>
-        <div style="display:flex;gap:5px">
-          <button class="att-btn${rec.status==='in'?' in-a':''}" onclick="markWorkerAtt(${w.id},'in','${dateVal}',${id})" title="Present">Present</button>
-          <button class="att-btn${rec.status==='leave'?' lv-a':''}" onclick="markWorkerAtt(${w.id},'leave','${dateVal}',${id})" title="Leave">Leave</button>
-          <button class="att-btn${rec.status==='absent'?' abs-a':''}" onclick="markWorkerAtt(${w.id},'absent','${dateVal}',${id})" title="Absent">Absent</button>
-        </div>
-        ${rec.timeIn?`<div style="font-size:10px;color:var(--tx2)">${rec.timeIn}</div>`:''}
-      </div>`;}).join('')}`
-    :`<div style="color:var(--tx2);font-size:12px;padding:16px 0">No workers assigned to this project yet. <button class="btn btns" onclick="openFm('fm-worker')">Add Worker</button></div>`;
+        ${rec.timeIn?`<span style="font-size:10px;color:var(--tx2)">${rec.timeIn}</span>`:''}
+      </div>`;}).join('')
+    :`<div style="color:var(--tx2);font-size:12px;padding:12px 0">No workers assigned. <button class="btn btns" onclick="openFm('fm-worker')">Add Worker</button></div>`}`;
 }
-
-function markWorkerAtt(workerId,status,dateVal,projId){
+function markWorkerAtt(wId,status,dateVal,projId){
   if(!siteAttendance[dateVal])siteAttendance[dateVal]={};
   const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
-  siteAttendance[dateVal][workerId]={status,timeIn:status==='in'?t:''};
-  const w=siteWorkers.find(x=>x.id===workerId);
-  actLog.unshift({time:nowStr(),text:`Attendance: ${w?.name} marked ${status} (${projects.find(p=>p.id===projId)?.name}) by ${CU.name}`,color:'#185FA5'});
-  renderDetailAttTable(projId,dateVal);
-  renderGlobalAttendance();
-}
-
-// ── GLOBAL ATTENDANCE ──
-function renderGlobalAttendance(){
-  const projSel=document.getElementById('att-proj-filter');
-  if(projSel.children.length<=1){
-    projSel.innerHTML='<option value="">All Projects</option>'+projects.map(p=>`<option>${p.name}</option>`).join('');
-  }
-  const projF=projSel.value;
-  const dateVal=document.getElementById('att-date-filter').value||TODAY;
-  const dayAtt=siteAttendance[dateVal]||{};
-  let workers=siteWorkers;
-  if(projF)workers=workers.filter(w=>w.project===projF);
-  document.getElementById('global-att-content').innerHTML=workers.length?`
-    <div style="margin-bottom:12px;font-size:12px;color:var(--tx2)">
-      Showing ${workers.length} worker(s) for ${dateVal}
-    </div>
-    ${workers.map(w=>{
-      const rec=dayAtt[w.id]||{status:'absent'};
-      const badge=rec.status==='in'?'<span class="badge bk">Present</span>':rec.status==='leave'?'<span class="badge bw">On Leave</span>':'<span class="badge be">Absent</span>';
-      return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bd);flex-wrap:wrap">
-        <div style="flex:1;min-width:120px">
-          <div style="font-weight:500;font-size:12px">${w.name}</div>
-          <div style="font-size:10px;color:var(--tx2)">${w.trade} · ${w.project}</div>
-        </div>
-        ${badge}
-        ${rec.timeIn?`<div style="font-size:10px;color:var(--tx2)">In: ${rec.timeIn}</div>`:''}
-      </div>`;}).join('')}`
-    :'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No workers found. Add workers from a project\'s Attendance tab.</div>';
+  siteAttendance[dateVal][wId]={status,timeIn:status==='in'?t:''};
+  const w=siteWorkers.find(x=>x.id===wId);
+  actLog.unshift({time:nowStr(),text:`Attendance: ${w?.name} → ${status} (${projects.find(p=>p.id===projId)?.name}) by ${CU.name}`,color:'#185FA5'});
+  renderDetailAttTable(projId,dateVal);renderGlobalAtt();renderSidebar();
 }
 
 // ── DETAIL DAILY ──
@@ -1237,119 +1460,153 @@ function renderDetailDaily(id){
   const logs=dailyLogs.filter(l=>l.project===p.name);
   document.getElementById('d-daily-content').innerHTML=`
     <div class="ch">
-      <div class="ct"><i class="ti ti-notebook"></i> Daily Logs — ${p.name}</div>
+      <div class="ct"><i class="ti ti-notebook"></i> Daily Logs</div>
       <button class="btn btns btnp" onclick="openDailyModal('${p.name}')"><i class="ti ti-plus"></i> New Report</button>
     </div>
-    ${logs.length?logs.map(l=>dailyCard(l)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No daily logs yet for this project.</div>'}`;
+    ${logs.length?logs.map(l=>dailyCard(l)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No logs yet.</div>'}`;
 }
 
 function dailyCard(l){
   return`<div class="daily-card">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:13px;font-weight:600">${l.project} — ${l.date}</div>
-        <div style="font-size:11px;color:var(--tx2);margin-top:2px">By ${l.submittedBy} · ${l.time}</div>
-      </div>
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div style="font-size:13px;font-weight:600">${l.project} — ${l.date}</div>
+      <div style="font-size:11px;color:var(--tx2)">By ${l.submittedBy} · ${l.time}</div></div>
       <div style="display:flex;gap:5px;flex-wrap:wrap">
         <span class="badge bi">${l.weather}</span>
-        <span class="badge bg_"><i class="ti ti-users" style="font-size:10px"></i> ${l.workers} workers</span>
+        <span class="badge bg_"><i class="ti ti-users" style="font-size:10px"></i> ${l.workers}</span>
+        <span class="badge bg_"><i class="ti ti-clock" style="font-size:10px"></i> ${l.hours||8}h</span>
       </div>
     </div>
-    <div style="font-size:12px;margin-bottom:8px"><strong>Work Done:</strong> ${l.work}</div>
-    ${l.equip?`<div style="font-size:12px;margin-bottom:6px;color:var(--tx2)"><i class="ti ti-settings" style="font-size:11px"></i> ${l.equip}</div>`:''}
-    ${l.materials?`<div style="font-size:12px;margin-bottom:6px;color:var(--tx2)"><i class="ti ti-package" style="font-size:11px"></i> ${l.materials}</div>`:''}
-    ${l.issues?`<div style="font-size:12px;padding:6px 10px;border-radius:var(--r);background:var(--wn-bg);color:var(--wn-tx);margin-bottom:6px"><i class="ti ti-alert-triangle" style="font-size:11px"></i> ${l.issues}</div>`:''}
-    ${l.mediaCount>0?`<div style="font-size:11px;color:var(--in-tx);display:flex;align-items:center;gap:4px"><i class="ti ti-photo"></i> ${l.mediaCount} media file(s) attached</div>`:''}
+    <div style="font-size:12px;margin-bottom:7px"><strong>Work Done:</strong> ${l.work}</div>
+    ${l.equip?`<div style="font-size:12px;margin-bottom:5px;color:var(--tx2)"><i class="ti ti-crane" style="font-size:11px"></i> ${l.equip}</div>`:''}
+    ${l.materials?`<div style="font-size:12px;margin-bottom:5px;color:var(--tx2)"><i class="ti ti-package" style="font-size:11px"></i> ${l.materials}</div>`:''}
+    ${l.issues?`<div style="font-size:12px;padding:5px 8px;border-radius:var(--r);background:var(--wn-bg);color:var(--wn-tx);margin-bottom:5px"><i class="ti ti-alert-triangle" style="font-size:11px"></i> ${l.issues}</div>`:''}
+    ${l.mediaCount>0?`<div style="font-size:11px;color:var(--in-tx);display:flex;align-items:center;gap:4px"><i class="ti ti-photo"></i> ${l.mediaCount} media file(s)</div>`:''}
   </div>`;
 }
 
-// ── GLOBAL DAILY ──
+// ── GLOBAL VIEWS ──
+function renderGlobalAtt(){
+  const sel=document.getElementById('att-proj-filter');
+  const mp=myProjects();
+  if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');
+  const projF=sel.value;const dateVal=document.getElementById('att-date-filter').value||TODAY;
+  const dayAtt=siteAttendance[dateVal]||{};
+  let workers=siteWorkers.filter(w=>mp.some(p=>p.name===w.project));
+  if(projF)workers=workers.filter(w=>w.project===projF);
+  document.getElementById('global-att-content').innerHTML=workers.length
+    ?`<div style="margin-bottom:10px;font-size:12px;color:var(--tx2)">Showing ${workers.length} worker(s) for ${dateVal}</div>`+
+      workers.map(w=>{const rec=dayAtt[w.id]||{status:'absent'};
+        const badge=rec.status==='in'?'<span class="badge bk">Present</span>':rec.status==='leave'?'<span class="badge bw">On Leave</span>':'<span class="badge be">Absent</span>';
+        return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--bd);flex-wrap:wrap">
+          <div style="flex:1"><div style="font-weight:500;font-size:12px">${w.name}</div>
+          <div style="font-size:10px;color:var(--tx2)">${w.trade} · ${w.project}</div></div>
+          ${badge}${rec.timeIn?`<div style="font-size:10px;color:var(--tx2)">In: ${rec.timeIn}</div>`:''}
+        </div>`;}).join('')
+    :'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No workers found. Add workers from a project\'s Attendance tab.</div>';
+}
+
 function renderGlobalDaily(){
+  const mp=myProjects();
   const sel=document.getElementById('daily-proj-filter');
-  if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+projects.map(p=>`<option>${p.name}</option>`).join('');
+  if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');
   const f=sel.value;
-  const list=dailyLogs.filter(l=>!f||l.project===f);
-  document.getElementById('global-daily-list').innerHTML=list.length?list.map(l=>dailyCard(l)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No daily reports yet. Submit your first one!</div>';
+  const list=dailyLogs.filter(l=>(!f||l.project===f)&&mp.some(p=>p.name===l.project));
+  document.getElementById('global-daily-list').innerHTML=list.length?list.map(l=>dailyCard(l)).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No reports yet.</div>';
 }
 
-function openDailyModal(projName){
-  document.getElementById('fdl-proj').innerHTML=projects.map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');
-  document.getElementById('fdl-date').value=TODAY;
-  document.getElementById('fdl-work').value='';
-  document.getElementById('fdl-workers').value='';
-  document.getElementById('fdl-equip').value='';
-  document.getElementById('fdl-issues').value='';
-  document.getElementById('fdl-materials').value='';
-  document.getElementById('fdl-files').value='';
-  document.getElementById('daily-preview').innerHTML='';
-  document.getElementById('fm-daily').classList.add('op');
+function renderGlobalInventory(){
+  const mp=myProjects();
+  const sel=document.getElementById('inv-proj-filter');
+  if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');
+  const f=sel.value;
+  let inv=inventory.filter(i=>mp.some(p=>p.name===i.project));
+  if(f)inv=inv.filter(i=>i.project===f);
+  document.getElementById('inv-grid-global').innerHTML=inv.map(i=>`
+    <div class="inv-card">
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div>
+      <div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div>
+      <div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        ${stockBadge(i)}
+        ${canDo('inventory')?`<div style="display:flex;gap:4px">
+          <button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw"><i class="ti ti-arrow-up"></i></button>
+          <button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish"><i class="ti ti-arrow-down"></i></button>
+        </div>`:''}
+      </div>
+      <div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' · ₱'+i.unitCost+'/'+i.unit:''}</div>
+    </div>`).join('')||'<div style="color:var(--tx2);font-size:12px;padding:8px 0;grid-column:1/-1">No materials found.</div>';
+  document.getElementById('inv-log-global').innerHTML=invLog.length
+    ?invLog.filter(l=>!f||l.proj===f).map(l=>`
+      <div class="log-row">
+        <div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}">
+          <i class="ti ${l.type==='replenish'?'ti-arrow-down':'ti-arrow-up'}" style="font-size:11px;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}"></i>
+        </div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} — ${l.type==='replenish'?'+':'-'}${l.qty}</div>
+        <div style="font-size:10px;color:var(--tx2)">${l.proj} · ${l.note} · ${l.user}</div></div>
+        <div class="log-time">${l.time}</div>
+      </div>`).join('')
+    :'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>';
 }
 
-function previewDailyMedia(input){
-  const prev=document.getElementById('daily-preview');prev.innerHTML='';
-  Array.from(input.files).forEach(f=>{
-    if(f.type.startsWith('image/')){const img=document.createElement('img');img.className='media-thumb';img.src=URL.createObjectURL(f);prev.appendChild(img);}
-    else{const d=document.createElement('div');d.className='media-vid';d.innerHTML=`<i class="ti ti-video" style="font-size:18px"></i><span style="font-size:9px">${f.name.slice(0,10)}</span>`;prev.appendChild(d);}
-  });
-}
-
-function submitDaily(){
-  const work=document.getElementById('fdl-work').value.trim();
-  if(!work){alert('Work description required');return;}
-  const files=document.getElementById('fdl-files').files;
-  const log={
-    id:Date.now(),date:document.getElementById('fdl-date').value||TODAY,
-    project:document.getElementById('fdl-proj').value,
-    work,workers:document.getElementById('fdl-workers').value||'0',
-    weather:document.getElementById('fdl-weather').value,
-    equip:document.getElementById('fdl-equip').value,
-    issues:document.getElementById('fdl-issues').value,
-    materials:document.getElementById('fdl-materials').value,
-    mediaCount:files.length,submittedBy:CU.name,time:nowStr()
-  };
-  dailyLogs.unshift(log);
-  actLog.unshift({time:nowStr(),text:`Daily report: ${log.project} by ${CU.name}`,color:'#534AB7'});
-  closeFm('fm-daily');
-  renderGlobalDaily();
-  if(activeProjectId)renderDetailDaily(activeProjectId);
-}
-
-// ── GLOBAL TASKS ──
-function buildTaskFilterBar(){
-  const projs=['All',...projects.map(p=>p.name)];
-  const statusF=['All','Open','Done','High Priority','Mine'];
-  document.getElementById('task-filter-bar').innerHTML=`
-    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:11px;color:var(--tx2);margin-right:4px">Project:</span>
-      ${projs.map(n=>`<button class="btn btns${taskProjFilter===n?' btnp':''}" onclick="setTaskProjFilter('${n}')">${n}</button>`).join('')}
+function renderGlobalExpenses(){
+  const mp=myProjects();
+  const sel=document.getElementById('exp-proj-filter');
+  if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');
+  const pf=sel.value;const cf=document.getElementById('exp-cat-filter').value;
+  let exp=expenses.filter(e=>mp.some(p=>p.name===e.proj));
+  if(pf)exp=exp.filter(e=>e.proj===pf);if(cf)exp=exp.filter(e=>e.cat===cf);
+  const total=exp.reduce((s,e)=>s+e.amount,0);
+  document.getElementById('global-exp-content').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:13px;font-weight:600">${exp.length} expense(s)</div>
+      <div style="font-size:14px;font-weight:700;color:var(--er-tx)">Total: ${fmt(total)}</div>
     </div>
-    <div style="width:100%;height:0.5px;background:var(--bd);margin:6px 0"></div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:11px;color:var(--tx2);margin-right:4px">Status:</span>
-      ${statusF.map(f=>`<button class="btn btns${taskFilter===f?' btnp':''}" onclick="setTaskFilter('${f}')">${f}</button>`).join('')}
+    ${exp.length?exp.map(e=>`
+      <div class="expense-row">
+        <div style="flex:1">
+          <div style="font-weight:500">${e.desc}</div>
+          <div style="font-size:10px;color:var(--tx2)">${e.proj} · ${e.cat} · ${e.date} · ${e.payee}${e.ref?' · '+e.ref:''} · by ${e.by}</div>
+        </div>
+        <strong style="margin-left:10px;color:var(--er-tx)">${fmt(e.amount)}</strong>
+      </div>`).join('')
+    :'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No expenses found.</div>'}`;
+}
+
+// ── TASK FILTER ──
+function buildTaskFilterBar(){
+  const mp=myProjects();
+  document.getElementById('task-filter-bar').innerHTML=`
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
+      <span style="font-size:11px;color:var(--tx2);flex-shrink:0">Project:</span>
+      ${['All',...mp.map(p=>p.name)].map(n=>`<button class="btn btns${taskProjFilter===n?' btnp':''}" onclick="setTPF('${n}')">${n}</button>`).join('')}
+    </div>
+    <div style="width:100%;height:0.5px;background:var(--bd);margin:5px 0"></div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
+      <span style="font-size:11px;color:var(--tx2);flex-shrink:0">Status:</span>
+      ${['All','Open','Done','High','Mine'].map(f=>`<button class="btn btns${taskStatusFilter===f?' btnp':''}" onclick="setTSF('${f}')">${f}</button>`).join('')}
     </div>`;
 }
-function setTaskProjFilter(n){taskProjFilter=n;buildTaskFilterBar();renderTasksGlobal();}
-function setTaskFilter(f){taskFilter=f;buildTaskFilterBar();renderTasksGlobal();}
+function setTPF(n){taskProjFilter=n;buildTaskFilterBar();renderTasksGlobal();}
+function setTSF(f){taskStatusFilter=f;buildTaskFilterBar();renderTasksGlobal();}
 
 function renderTasksGlobal(){
-  let list=tasks;
+  const mp=myProjects();
+  let list=tasks.filter(t=>mp.some(p=>p.name===t.project));
   if(taskProjFilter!=='All')list=list.filter(t=>t.project===taskProjFilter);
-  if(taskFilter==='Open')list=list.filter(t=>!t.done);
-  else if(taskFilter==='Done')list=list.filter(t=>t.done);
-  else if(taskFilter==='High Priority')list=list.filter(t=>t.priority==='high');
-  else if(taskFilter==='Mine')list=list.filter(t=>t.assignee===CU.name);
+  if(taskStatusFilter==='Open')list=list.filter(t=>!t.done);
+  else if(taskStatusFilter==='Done')list=list.filter(t=>t.done);
+  else if(taskStatusFilter==='High')list=list.filter(t=>t.priority==='high');
+  else if(taskStatusFilter==='Mine')list=list.filter(t=>t.assignee===CU.name);
   document.getElementById('task-list').innerHTML=list.length?list.map(t=>{
     const ri=tasks.indexOf(t);
     return`<div class="tr_">
-      <div class="ck${t.done?' dn':''}" onclick="toggleTask(${ri},null)">
-        ${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}
-      </div>
+      <div class="ck${t.done?' dn':''}" onclick="toggleTask(${ri},null)" style="margin-top:2px">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div>
       <div style="flex:1">
         <div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div>
         <div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap">
           <span style="color:var(--in-tx)">${t.project}</span><span>·</span><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span>
-          ${t.ganttId?`<span>·</span><span style="color:var(--ok-tx)"><i class="ti ti-link" style="font-size:10px"></i> Linked to schedule</span>`:''}
+          ${t.ganttId?`<span>·</span><span style="color:var(--ok-tx)"><i class="ti ti-link" style="font-size:10px"></i> Linked</span>`:''}
         </div>
       </div>
       ${pribadge(t.priority)}
@@ -1359,76 +1616,67 @@ function renderTasksGlobal(){
 }
 
 // ── TASK ACTIONS ──
+function openTaskForProject(projName){
+  const mp=myProjects();
+  document.getElementById('fta-proj').innerHTML=mp.map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');
+  document.getElementById('fta-assign').innerHTML=users.filter(u=>u.active).map(u=>`<option>${u.name}</option>`).join('');
+  updateGanttSelect();
+  document.getElementById('fm-task').classList.add('op');
+}
 function addTask(){
-  const name=document.getElementById('fta-name').value.trim();
-  if(!name){alert('Task name required');return;}
-  const ganttId=parseInt(document.getElementById('fta-gantt').value)||null;
-  const t={id:Date.now(),name,project:document.getElementById('fta-proj').value,
-    assignee:document.getElementById('fta-assign').value,
-    due:document.getElementById('fta-due').value||TODAY,
-    priority:document.getElementById('fta-pri').value,done:false,ganttId};
-  tasks.push(t);
-  actLog.unshift({time:nowStr(),text:`Task added: "${t.name}" → ${t.assignee} (by ${CU.name})`,color:'#185FA5'});
+  const name=document.getElementById('fta-name').value.trim();if(!name){alert('Name required');return;}
+  const ganttIdRaw=document.getElementById('fta-gantt').value;
+  const ganttId=ganttIdRaw?parseInt(ganttIdRaw):null;
+  tasks.push({id:Date.now(),name,project:document.getElementById('fta-proj').value,
+    assignee:document.getElementById('fta-assign').value,due:document.getElementById('fta-due').value||TODAY,
+    priority:document.getElementById('fta-pri').value,done:false,ganttId,subTaskId:null});
+  actLog.unshift({time:nowStr(),text:`Task added: "${name}" (by ${CU.name})`,color:'#185FA5'});
   document.getElementById('fta-name').value='';
-  closeFm('fm-task');
-  renderTasksGlobal();renderSidebar();
-  if(activeProjectId){renderDetailTasks(activeProjectId);renderDetailOverview(activeProjectId);}
+  closeFm('fm-task');renderTasksGlobal();renderSidebar();
+  if(activeProjectId)renderDetailTasks(activeProjectId);
 }
 function toggleTask(i,projId){
+  if(i<0||i>=tasks.length)return;
   tasks[i].done=!tasks[i].done;
-  actLog.unshift({time:nowStr(),text:`Task ${tasks[i].done?'completed':'reopened'}: "${tasks[i].name}" (by ${CU.name})`,color:'#0F6E56'});
-  renderTasksGlobal();renderMetrics();
-  if(projId||activeProjectId)renderDetailTasks(projId||activeProjectId);
+  // Sync sub-task in gantt
+  if(tasks[i].subTaskId){
+    Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{
+      const st=a.subTasks?.find(s=>s.id===tasks[i].subTaskId);
+      if(st){st.done=tasks[i].done;if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);}
+    }));
+  }
+  actLog.unshift({time:nowStr(),text:`Task ${tasks[i].done?'done':'reopened'}: "${tasks[i].name}" (by ${CU.name})`,color:'#0F6E56'});
+  renderTasksGlobal();renderMetrics();renderSidebar();
+  if(projId||activeProjectId){const pid=projId||activeProjectId;renderDetailTasks(pid);renderGantt(pid);renderDOverview(pid);}
 }
 function removeTask(i,projId){
   const n=tasks[i].name;tasks.splice(i,1);
   actLog.unshift({time:nowStr(),text:`Task removed: "${n}" (by ${CU.name})`,color:'#993C1D'});
-  renderTasksGlobal();renderMetrics();
+  renderTasksGlobal();renderSidebar();
   if(projId||activeProjectId)renderDetailTasks(projId||activeProjectId);
 }
 
-// ── INVENTORY ──
-function renderInventory(){
-  document.getElementById('inv-grid').innerHTML=inventory.map(i=>
-    `<div class="card" style="margin-bottom:0">
-      <div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div>
-      <div style="font-size:10px;color:var(--tx2);margin-bottom:8px">${i.project}</div>
-      <div style="font-size:22px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-        ${stockBadge(i)}
-        ${canDo('inventory')?`<div style="display:flex;gap:4px">
-          <button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw"><i class="ti ti-arrow-up"></i></button>
-          <button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish"><i class="ti ti-arrow-down"></i></button>
-        </div>`:''}
-      </div>
-      <div style="font-size:10px;color:var(--tx2);margin-top:6px">Min: ${i.min} ${i.unit}</div>
-    </div>`).join('');
-  document.getElementById('inv-log').innerHTML=invLog.length?invLog.map(l=>
-    `<div class="log-row">
-      <div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}">
-        <i class="ti ${l.type==='replenish'?'ti-arrow-down':'ti-arrow-up'}" style="font-size:11px;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}"></i>
-      </div>
-      <div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} — ${l.type==='replenish'?'+':'-'}${l.qty}</div>
-      <div style="font-size:10px;color:var(--tx2)">${l.note} · ${l.user}</div></div>
-      <div class="log-time">${l.time}</div>
-    </div>`).join('')
-    :'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>';
+// ── INVENTORY ACTIONS ──
+function openInvForProject(projName){
+  document.getElementById('fi-proj').innerHTML=myProjects().map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');
+  document.getElementById('fm-inv-add').classList.add('op');
 }
-
 function addMaterial(){
   const name=document.getElementById('fi-name').value.trim();if(!name){alert('Name required');return;}
   const qty=parseInt(document.getElementById('fi-qty').value)||0;
-  const mat={id:Date.now(),name,qty,unit:document.getElementById('fi-unit').value||'pcs',min:parseInt(document.getElementById('fi-min').value)||0,project:document.getElementById('fi-proj').value};
-  inventory.push(mat);
-  invLog.unshift({time:nowStr(),mat:name,type:'replenish',qty,note:'Initial stock',user:CU.name});
-  actLog.unshift({time:nowStr(),text:`Material added: ${name} (by ${CU.name})`,color:'#185FA5'});
-  ['fi-name','fi-qty','fi-unit','fi-min'].forEach(id=>document.getElementById(id).value='');
-  closeFm('fm-inv-add');renderInventory();renderOverview();
+  const proj=document.getElementById('fi-proj').value;
+  inventory.push({id:Date.now(),name,qty,unit:document.getElementById('fi-unit').value||'pcs',
+    min:parseInt(document.getElementById('fi-min').value)||0,project:proj,
+    unitCost:parseFloat(document.getElementById('fi-cost').value)||0});
+  invLog.unshift({time:nowStr(),mat:name,type:'replenish',qty,unit:document.getElementById('fi-unit').value||'pcs',note:'Initial stock',user:CU.name,proj});
+  actLog.unshift({time:nowStr(),text:`Material added: ${name} → ${proj} (by ${CU.name})`,color:'#185FA5'});
+  ['fi-name','fi-qty','fi-unit','fi-min','fi-cost'].forEach(id=>document.getElementById(id).value='');
+  closeFm('fm-inv-add');renderGlobalInventory();renderOverview();
+  if(activeProjectId)renderDetailInventory(activeProjectId);
 }
 function openTxn(id,type){
   const mat=inventory.find(i=>i.id===id);if(!mat)return;
-  document.getElementById('txn-id').value=id;
-  document.getElementById('txn-type').value=type;
+  document.getElementById('txn-id').value=id;document.getElementById('txn-type').value=type;
   document.getElementById('txn-title').textContent=type==='withdraw'?'Withdraw Material':'Replenish Material';
   document.getElementById('txn-mat').textContent=mat.name;
   document.getElementById('txn-cur').textContent=`${mat.qty} ${mat.unit}`;
@@ -1442,34 +1690,68 @@ function doTxn(){
   const note=document.getElementById('txn-note').value||'—';
   const mat=inventory.find(i=>i.id===id);
   if(!mat||!qty||qty<=0){alert('Enter valid quantity');return;}
-  if(type==='withdraw'&&qty>mat.qty){alert(`Only ${mat.qty} ${mat.unit} available`);return;}
+  if(type==='withdraw'&&qty>mat.qty){alert(`Only ${mat.qty} ${mat.unit} in stock`);return;}
   mat.qty=type==='withdraw'?mat.qty-qty:mat.qty+qty;
-  invLog.unshift({time:nowStr(),mat:mat.name,type,qty,note,user:CU.name});
+  // Auto-create expense if withdraw + unitCost set
+  if(type==='withdraw'&&mat.unitCost>0){
+    const cost=qty*mat.unitCost;
+    expenses.push({id:Date.now(),proj:mat.project,date:TODAY,cat:'Materials',amount:cost,
+      desc:`${mat.name} x${qty} ${mat.unit} withdrawn`,payee:'Inventory',ref:'',by:CU.name});
+    actLog.unshift({time:nowStr(),text:`Auto-expense: ${fmt(cost)} for ${qty} ${mat.unit} ${mat.name} (by ${CU.name})`,color:'#C05621'});
+  }
+  invLog.unshift({time:nowStr(),mat:mat.name,type,qty,unit:mat.unit,note,user:CU.name,proj:mat.project});
   actLog.unshift({time:nowStr(),text:`Inventory ${type}: ${type==='withdraw'?'-':'+'}${qty} ${mat.unit} ${mat.name} (by ${CU.name})`,color:type==='withdraw'?'#993C1D':'#0F6E56'});
-  closeFm('fm-txn');renderInventory();renderOverview();
+  closeFm('fm-txn');renderGlobalInventory();renderOverview();renderGlobalExpenses();
+  if(activeProjectId){renderDetailInventory(activeProjectId);renderDetailBudget(activeProjectId);renderDetailAll_header(activeProjectId);}
+}
+function renderDetailAll_header(id){const p=projects.find(x=>x.id===id);if(p&&activeProjectId===id)renderDetailAll(id);}
+
+// ── EXPENSES ──
+function openExpenseForProject(projName){
+  document.getElementById('fex-proj').innerHTML=myProjects().map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');
+  document.getElementById('fex-date').value=TODAY;document.getElementById('fex-by').value=CU.name;
+  document.getElementById('fm-expense').classList.add('op');
+}
+function addExpense(){
+  const desc=document.getElementById('fex-desc').value.trim();
+  const amount=parseFloat(document.getElementById('fex-amount').value);
+  if(!desc){alert('Description required');return;}if(!amount||amount<=0){alert('Enter valid amount');return;}
+  const proj=document.getElementById('fex-proj').value;
+  expenses.push({id:Date.now(),proj,date:document.getElementById('fex-date').value||TODAY,
+    cat:document.getElementById('fex-cat').value,amount,desc,
+    payee:document.getElementById('fex-payee').value||'—',
+    ref:document.getElementById('fex-ref').value,by:CU.name});
+  actLog.unshift({time:nowStr(),text:`Expense added: ${fmt(amount)} (${document.getElementById('fex-cat').value}) — ${proj} (by ${CU.name})`,color:'#C05621'});
+  ['fex-desc','fex-amount','fex-payee','fex-ref'].forEach(id=>document.getElementById(id).value='');
+  closeFm('fm-expense');renderGlobalExpenses();renderOverview();renderProjects();
+  if(activeProjectId)renderDetailBudget(activeProjectId);
 }
 
 // ── PROJECT ACTIONS ──
 function addProject(){
   const name=document.getElementById('fp-name').value.trim();if(!name){alert('Name required');return;}
   const id=Date.now();
+  // Collect assigned users
+  const assignedUsers=[];
+  document.querySelectorAll('#fp-assign-users input:checked').forEach(cb=>assignedUsers.push(cb.value));
   const p={id,name,client:document.getElementById('fp-client').value||'Client',
     location:document.getElementById('fp-loc').value||'TBD',
-    budget:parseInt(document.getElementById('fp-budget').value)||1000000,spent:0,
+    contractPrice:parseFloat(document.getElementById('fp-contract').value)||1000000,
+    contingency:parseFloat(document.getElementById('fp-contingency').value)||0,
     start:document.getElementById('fp-start').value||TODAY,end:document.getElementById('fp-end').value||'2026-12-31',
     status:'on-track',color:COLS[projects.length%COLS.length],desc:document.getElementById('fp-desc').value,notes:''};
   projects.push(p);ganttActivities[id]=[];documents[id]=[];
+  // Update user project assignments
+  assignedUsers.forEach(un=>{const u=users.find(x=>x.name===un||x.id===parseInt(un));if(u&&!u.projects.includes(p.name))u.projects.push(p.name);});
   actLog.unshift({time:nowStr(),text:`Project created: ${name} (by ${CU.name})`,color:p.color});
-  ['fp-name','fp-client','fp-loc','fp-budget','fp-start','fp-end','fp-desc'].forEach(i=>document.getElementById(i).value='');
+  ['fp-name','fp-client','fp-loc','fp-contract','fp-contingency','fp-start','fp-end','fp-desc'].forEach(i=>document.getElementById(i).value='');
   closeFm('fm-proj');render();
 }
 function openEdit(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
-  document.getElementById('fe-id').value=id;
-  document.getElementById('fe-name').value=p.name;
-  document.getElementById('fe-client').value=p.client;
-  document.getElementById('fe-status').value=p.status;
-  document.getElementById('fe-spent').value=p.spent;
+  document.getElementById('fe-id').value=id;document.getElementById('fe-name').value=p.name;
+  document.getElementById('fe-client').value=p.client;document.getElementById('fe-status').value=p.status;
+  document.getElementById('fe-contract').value=p.contractPrice;document.getElementById('fe-contingency').value=p.contingency||0;
   document.getElementById('fe-notes').value=p.notes||'';
   document.getElementById('fm-edit').classList.add('op');
 }
@@ -1480,7 +1762,8 @@ function saveEdit(){
   p.name=document.getElementById('fe-name').value||p.name;
   p.client=document.getElementById('fe-client').value||p.client;
   p.status=document.getElementById('fe-status').value;
-  p.spent=parseFloat(document.getElementById('fe-spent').value)||p.spent;
+  p.contractPrice=parseFloat(document.getElementById('fe-contract').value)||p.contractPrice;
+  p.contingency=parseFloat(document.getElementById('fe-contingency').value)||0;
   p.notes=document.getElementById('fe-notes').value;
   if(p.status!==os)actLog.unshift({time:nowStr(),text:`${p.name}: status → ${p.status} (by ${CU.name})`,color:p.color});
   closeFm('fm-edit');render();if(activeProjectId===id)renderDetailAll(id);
@@ -1489,14 +1772,42 @@ function saveEdit(){
 // ── WORKERS ──
 function addWorker(){
   const name=document.getElementById('fw-name').value.trim();if(!name){alert('Name required');return;}
-  const w={id:Date.now(),name,trade:document.getElementById('fw-trade').value||'General',
-    project:document.getElementById('fw-proj').value,agency:document.getElementById('fw-agency').value||'Direct Hire'};
-  siteWorkers.push(w);
-  actLog.unshift({time:nowStr(),text:`Worker added: ${w.name} (${w.trade}) → ${w.project} (by ${CU.name})`,color:'#185FA5'});
-  ['fw-name','fw-trade','fw-agency'].forEach(id=>document.getElementById(id).value='');
+  const proj=document.getElementById('fw-proj').value;
+  siteWorkers.push({id:Date.now(),name,trade:document.getElementById('fw-trade').value||'General',
+    project:proj,agency:document.getElementById('fw-agency').value||'Direct Hire',
+    rate:parseFloat(document.getElementById('fw-rate').value)||0});
+  actLog.unshift({time:nowStr(),text:`Worker added: ${name} → ${proj} (by ${CU.name})`,color:'#185FA5'});
+  ['fw-name','fw-trade','fw-agency','fw-rate'].forEach(id=>document.getElementById(id).value='');
   closeFm('fm-worker');
-  if(activeProjectId)renderDetailAttendance(activeProjectId);
-  renderGlobalAttendance();
+  if(activeProjectId)renderDetailAtt(activeProjectId);renderGlobalAtt();
+}
+
+// ── DAILY LOG ──
+function openDailyModal(projName){
+  const mp=myProjects();
+  document.getElementById('fdl-proj').innerHTML=mp.map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');
+  document.getElementById('fdl-date').value=TODAY;
+  ['fdl-work','fdl-equip','fdl-materials','fdl-issues'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fdl-workers').value='';document.getElementById('fdl-hours').value='8';
+  document.getElementById('fdl-files').value='';document.getElementById('daily-prev').innerHTML='';
+  document.getElementById('fm-daily').classList.add('op');
+}
+function submitDaily(){
+  const work=document.getElementById('fdl-work').value.trim();if(!work){alert('Work description required');return;}
+  const files=document.getElementById('fdl-files').files;
+  const log={id:Date.now(),date:document.getElementById('fdl-date').value||TODAY,
+    project:document.getElementById('fdl-proj').value,work,
+    workers:document.getElementById('fdl-workers').value||'0',
+    weather:document.getElementById('fdl-weather').value,
+    hours:document.getElementById('fdl-hours').value||'8',
+    equip:document.getElementById('fdl-equip').value,
+    materials:document.getElementById('fdl-materials').value,
+    issues:document.getElementById('fdl-issues').value,
+    mediaCount:files.length,submittedBy:CU.name,time:nowStr()};
+  dailyLogs.unshift(log);
+  actLog.unshift({time:nowStr(),text:`Daily report: ${log.project} by ${CU.name}`,color:'#534AB7'});
+  closeFm('fm-daily');renderGlobalDaily();
+  if(activeProjectId)renderDetailDaily(activeProjectId);
 }
 
 // ── USERS ──
@@ -1505,7 +1816,7 @@ function renderUsers(){
   document.getElementById('users-tbody').innerHTML=users.map(u=>
     `<tr><td><div style="display:flex;align-items:center;gap:8px">${avEl(u.name)}<span style="font-weight:500">${u.name}</span></div></td>
     <td><span class="badge ${ROLE_BADGE[u.role]}">${ROLE_LABELS[u.role]}</span></td>
-    <td style="font-size:11px;color:var(--tx2)">${u.project}</td>
+    <td style="font-size:11px;color:var(--tx2);max-width:200px">${u.projects.join(', ')}</td>
     <td>${u.active?'<span class="badge bk">Active</span>':'<span class="badge be">Inactive</span>'}</td>
     <td><button class="btn btns" onclick="toggleUser(${u.id})">${u.active?'Deactivate':'Activate'}</button></td></tr>`).join('');
 }
@@ -1518,20 +1829,45 @@ function toggleUser(id){
 function addUser(){
   const name=document.getElementById('fu-name').value.trim();
   const pin=document.getElementById('fu-pin').value;
-  if(!name){alert('Name required');return;}
-  if(!pin||pin.length<4){alert('PIN must be 4+ digits');return;}
-  const u={id:Date.now(),name,role:document.getElementById('fu-role').value,project:document.getElementById('fu-proj').value,pin,active:true};
-  users.push(u);
-  actLog.unshift({time:nowStr(),text:`User added: ${u.name} (${ROLE_LABELS[u.role]}) by ${CU.name}`,color:'#534AB7'});
+  if(!name){alert('Name required');return;}if(!pin||pin.length<4){alert('PIN must be 4+ digits');return;}
+  const role=document.getElementById('fu-role').value;
+  let projs=role==='admin'?['ALL']:[];
+  if(role!=='admin')document.querySelectorAll('#fu-proj-checkboxes input:checked').forEach(cb=>projs.push(cb.value));
+  users.push({id:Date.now(),name,role,projects:projs,pin,active:true});
+  actLog.unshift({time:nowStr(),text:`User added: ${name} (${ROLE_LABELS[role]}) by ${CU.name}`,color:'#534AB7'});
   ['fu-name','fu-pin'].forEach(id=>document.getElementById(id).value='');
   closeFm('fm-user');renderUsers();initAuth();
 }
 
-// ── ACTIVITY ──
-function renderActivity(){document.getElementById('act-log').innerHTML=actLog.map(l=>`<div class="log-row"><div class="log-dot" style="background:${l.color}"></div><div style="flex:1;font-size:12px">${l.text}</div><div class="log-time">${l.time}</div></div>`).join('')}
+// ── NEW PROJECT USER ASSIGNMENT ──
+function openFm_proj_extra(){
+  document.getElementById('fp-assign-users').innerHTML=users.filter(u=>u.role!=='admin').map(u=>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:3px 8px;border:0.5px solid var(--bd2);border-radius:var(--r)">
+      <input type="checkbox" value="${u.name}" style="accent-color:var(--or)"> ${u.name} (${ROLE_LABELS[u.role]})
+    </label>`).join('');
+}
 
-// INIT
+// ── ACTIVITY ──
+function renderActivity(){
+  document.getElementById('act-log').innerHTML=actLog.map(l=>
+    `<div class="log-row"><div class="log-dot" style="background:${l.color}"></div><div style="flex:1;font-size:12px">${l.text}</div><div class="log-time">${l.time}</div></div>`).join('');
+}
+
+// ── MEDIA PREVIEW ──
+function prevMedia(input,targetId){
+  const prev=document.getElementById(targetId);prev.innerHTML='';
+  Array.from(input.files).forEach(f=>{
+    if(f.type.startsWith('image/')){const img=document.createElement('img');img.className='media-thumb';img.src=URL.createObjectURL(f);prev.appendChild(img);}
+    else{const d=document.createElement('div');d.className='media-vid';d.innerHTML=`<i class="ti ti-file" style="font-size:16px"></i><span style="font-size:9px">${f.name.slice(0,10)}</span>`;prev.appendChild(d);}
+  });
+}
+
+// ── INIT ──
 initAuth();
+// Pre-build fp-assign-users when project modal opens
+document.getElementById('fm-proj').addEventListener('click',()=>{});
+const origOpenFm=openFm;
+window.openFm=function(id){origOpenFm(id);if(id==='fm-proj')openFm_proj_extra();};
 </script>
 </body>
 </html>
