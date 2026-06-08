@@ -1069,7 +1069,10 @@ function showLoadingOverlay(show){
 }
 
 async function sbLog(text,color,cat,proj){
-  await sb.from('activity_log').insert([{text,color:color||'#666',category:cat||'',user_name:CU?.name||'',project_name:proj||''}]);
+  const{data}=await sb.from('activity_log').insert([{text,color:color||'#666',category:cat||'',user_name:CU?.name||'',project_name:proj||''}]).select();
+  if(data&&data[0]){
+    actLog.unshift({id:data[0].id,text,color:color||'#666',cat:cat||'',user:CU?.name||'',proj:proj||'',time:new Date().toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})});
+  }
 }
 
 // ─── SUPABASE SAVE FUNCTIONS ──────────────────────────────────────
@@ -2237,7 +2240,40 @@ function addContact(){const name=document.getElementById('fc-name').value.trim()
 function renderDirectory(){const df=document.getElementById('dir-dept-filter');const s=(document.getElementById('dir-search').value||'').toLowerCase();const depts=[...new Set(directory.map(d=>d.dept).filter(Boolean))];if(df.children.length<=1)df.innerHTML='<option value="">All Departments</option>'+depts.map(d=>`<option>${d}</option>`).join('');const pf=df.value;const tBadge={Internal:'bi',Client:'bk',Supplier:'bw',Contractor:'bg_',Government:'be',Emergency:'be'};let list=directory;if(pf)list=list.filter(d=>d.dept===pf);if(s)list=list.filter(d=>(d.name+d.position+d.dept+d.type).toLowerCase().includes(s));document.getElementById('directory-list').innerHTML=list.length?list.map(d=>{const c=avC(d.name);return`<div class="dir-card"><div class="av" style="width:40px;height:40px;font-size:16px;font-weight:700;background:${c.bg};color:${c.c};flex-shrink:0">${initials(d.name)}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:12px;color:var(--tx2)">${d.position||''}${d.dept?' · '+d.dept:''}</div>${d.notes?`<div style="font-size:11px;color:var(--tx3)">${d.notes}</div>`:''}</div><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end"><span class="badge ${tBadge[d.type]||'bg_'}">${d.type}</span><div style="display:flex;gap:5px">${d.phone?`<a href="tel:${d.phone}" class="btn btns" style="text-decoration:none" title="Call ${d.phone}"><i class="ti ti-phone" style="color:var(--ok-tx)"></i></a>`:''} ${d.email?`<a href="mailto:${d.email}" class="btn btns" style="text-decoration:none" title="Email ${d.email}"><i class="ti ti-mail" style="color:var(--in-tx)"></i></a>`:''}</div>${d.phone?`<div style="font-size:10px;color:var(--tx3)">${d.phone}</div>`:''}</div></div>`}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:20px">No contacts found.</div>'}
 
 // PROJECT CRUD
-function addProject(){const name=document.getElementById('fp-name').value.trim();if(!name){alert('Name required');return}const id=Date.now();const p={id,name,client:document.getElementById('fp-client').value||'Client',location:document.getElementById('fp-loc').value||'TBD',contractPrice:parseFloat(document.getElementById('fp-contract').value)||1000000,contingency:parseFloat(document.getElementById('fp-contingency').value)||0,start:document.getElementById('fp-start').value||TODAY,end:document.getElementById('fp-end').value||'2026-12-31',status:'on-track',color:COLS[projects.length%COLS.length],desc:document.getElementById('fp-desc').value,notes:'',_isNew:true};projects.push(p);ganttActivities[id]=[];documents[id]=[];sbSaveProject(p).then(()=>sbLog(`Project created: ${name}`,p.color,'Projects',''));closeFm('fm-proj');render()}
+async function addProject(){
+  const name=document.getElementById('fp-name').value.trim();
+  if(!name){alert('Name required');return}
+  const p={
+    name,
+    client:document.getElementById('fp-client').value||'Client',
+    location:document.getElementById('fp-loc').value||'TBD',
+    contractPrice:parseFloat(document.getElementById('fp-contract').value)||1000000,
+    contingency:parseFloat(document.getElementById('fp-contingency').value)||0,
+    start:document.getElementById('fp-start').value||TODAY,
+    end:document.getElementById('fp-end').value||'2026-12-31',
+    status:'on-track',
+    color:COLS[projects.length%COLS.length],
+    desc:document.getElementById('fp-desc').value,
+    notes:'',
+    _isNew:true
+  };
+  // Save to Supabase first so we get the real ID back
+  const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,pm:'',progress:0,description:p.desc||'',color:p.color};
+  const {data,error}=await sb.from('projects').insert([row]).select();
+  if(error||!data||!data[0]){
+    alert('Failed to save project to database. Check console for details.');
+    console.error('Supabase insert error:',error);
+    return;
+  }
+  p.id=data[0].id; // use real Supabase ID
+  delete p._isNew;
+  projects.push(p);
+  ganttActivities[p.id]=[];
+  documents[p.id]=[];
+  sbLog(`Project created: ${name}`,p.color,'Projects','');
+  closeFm('fm-proj');
+  render();
+}
 function openEdit(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('fe-id').value=id;document.getElementById('fe-name').value=p.name;document.getElementById('fe-status').value=p.status;document.getElementById('fe-contract').value=p.contractPrice;document.getElementById('fe-notes').value=p.notes||'';document.getElementById('fm-edit').classList.add('op')}
 function saveEdit(){const id=parseInt(document.getElementById('fe-id').value);const p=projects.find(x=>x.id===id);if(!p)return;const os=p.status;p.name=document.getElementById('fe-name').value||p.name;p.status=document.getElementById('fe-status').value;p.contractPrice=parseFloat(document.getElementById('fe-contract').value)||p.contractPrice;p.notes=document.getElementById('fe-notes').value;sbSaveProject(p);if(p.status!==os){sbLog(`${p.name}: status changed to ${p.status}`,p.color,'Projects',p.name);}closeFm('fm-edit');render();if(activeProjectId===id)renderDetailAll(id)}
 
@@ -2370,13 +2406,36 @@ function deleteTemplate(id){
   renderTemplates();
 }
 
+async function deleteActivity(id){
+  if(!confirm('Delete this activity log entry?'))return;
+  await sb.from('activity_log').delete().eq('id',id);
+  actLog=actLog.filter(l=>l.id!==id);
+  renderActivity();
+}
+
 function renderActivity(){
   const srch=(document.getElementById('act-search')?.value||'').toLowerCase();
   const catF=document.getElementById('act-cat-filter')?.value||'';
   let log=actLog;
   if(srch)log=log.filter(l=>(l.text+' '+(l.user||'')+' '+(l.proj||'')+' '+(l.note||'')).toLowerCase().includes(srch));
   if(catF)log=log.filter(l=>(l.cat||'').toLowerCase().includes(catF.toLowerCase()));
-  document.getElementById('act-log').innerHTML=log.length?log.map((l,i)=>'<div class="log-row" style="cursor:pointer;flex-wrap:wrap;gap:4px;align-items:flex-start" onclick="goToActivity('+i+')" title="Go to activity"><div class="log-dot" style="background:'+l.color+';margin-top:3px;flex-shrink:0"></div><div style="flex:1;min-width:200px"><div style="font-size:12px;font-weight:500">'+l.text+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">'+(l.cat?'<span style="font-size:10px;background:var(--bg2);border-radius:4px;padding:1px 5px;color:var(--tx2)">'+l.cat+'</span>':'')+(l.user?'<span style="font-size:10px;color:var(--tx3)"><i class="ti ti-user" style="font-size:9px"></i> '+l.user+'</span>':'')+(l.proj?'<span style="font-size:10px;color:var(--tx3)"><i class="ti ti-folder" style="font-size:9px"></i> '+l.proj+'</span>':'')+(l.note?'<span style="font-size:10px;color:var(--tx2);font-style:italic">'+l.note+'</span>':'')+'</div></div><div class="log-time" style="flex-shrink:0;padding-top:2px">'+l.time+'</div></div>').join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No activity matches your filter.</div>';
+  document.getElementById('act-log').innerHTML=log.length?log.map((l,i)=>
+    '<div class="log-row" style="flex-wrap:wrap;gap:4px;align-items:flex-start">'
+    +'<div class="log-dot" style="background:'+l.color+';margin-top:3px;flex-shrink:0"></div>'
+    +'<div style="flex:1;min-width:200px;cursor:pointer" onclick="goToActivity('+i+')">'
+    +'<div style="font-size:12px;font-weight:500">'+l.text+'</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">'
+    +(l.cat?'<span style="font-size:10px;background:var(--bg2);border-radius:4px;padding:1px 5px;color:var(--tx2)">'+l.cat+'</span>':'')
+    +(l.user?'<span style="font-size:10px;color:var(--tx3)"><i class="ti ti-user" style="font-size:9px"></i> '+l.user+'</span>':'')
+    +(l.proj?'<span style="font-size:10px;color:var(--tx3)"><i class="ti ti-folder" style="font-size:9px"></i> '+l.proj+'</span>':'')
+    +(l.note?'<span style="font-size:10px;color:var(--tx2);font-style:italic">'+l.note+'</span>':'')
+    +'</div></div>'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;padding-top:2px">'
+    +'<div class="log-time">'+l.time+'</div>'
+    +(CU&&CU.role==='admin'&&l.id?'<button class="btn btns" onclick="deleteActivity('+l.id+')" title="Delete" style="padding:2px 6px"><i class="ti ti-trash" style="font-size:11px;color:var(--er-tx)"></i></button>':'')
+    +'</div>'
+    +'</div>'
+  ).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No activity matches your filter.</div>';
 }
 function goToActivity(idx){
   const l=actLog[idx];if(!l)return;
