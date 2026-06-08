@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>JCY Design Studio — Project Management</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1005,6 +1006,127 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fa"><button class="btn" onclick="closeFm('fm-user')">Cancel</button><button class="btn btnp" onclick="addUser()">Add User</button></div>
 </div></div>
 <script>
+// ─── SUPABASE SETUP ───────────────────────────────────────────────
+const SUPABASE_URL='https://lmhpqidfbucvfqomvxni.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtaHBxaWRmYnVjdmZxb212eG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDQ5NjEsImV4cCI6MjA5NjQyMDk2MX0.oiJ5MJisXx950s3pxU77z61QPnurbEG4OU6TxPQHnNA';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// ─── SUPABASE DATA LOADERS ────────────────────────────────────────
+async function loadAllData(){
+  showLoadingOverlay(true);
+  try{
+    const [uRes,pRes,tRes,mpRes,invRes,delRes,expRes,meetRes,visRes,actRes,pipRes]=await Promise.all([
+      sb.from('users').select('*').order('name'),
+      sb.from('projects').select('*').order('created_at'),
+      sb.from('tasks').select('*').order('created_at',{ascending:false}),
+      sb.from('manpower').select('*').order('name'),
+      sb.from('inventory').select('*').order('material'),
+      sb.from('deliveries').select('*').order('created_at',{ascending:false}),
+      sb.from('expenses').select('*').order('created_at',{ascending:false}),
+      sb.from('meetings').select('*').order('created_at',{ascending:false}),
+      sb.from('visitors').select('*').order('created_at',{ascending:false}),
+      sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(200),
+      sb.from('pipeline').select('*').order('created_at',{ascending:false}),
+    ]);
+    if(uRes.data)users=uRes.data.map(u=>({...u,projects:u.project_access||[],active:u.active!==false}));
+    if(pRes.data)projects=pRes.data.map(p=>({...p,contractPrice:p.budget||0,contingency:p.contingency||0,color:p.color||COLS[0],status:p.status||'on-track',start:p.start_date,end:p.end_date}));
+    if(tRes.data)tasks=tRes.data.map(t=>({...t,project:t.project_name,assignee:t.assigned_to,done:t.status==='done',reports:t.reports||[],scheduleDays:t.schedule_days||[],subTasks:[]}));
+    if(mpRes.data)manpower=mpRes.data.map(w=>({...w,project:w.project_name,rate:w.rate_per_day||0,emergency:w.emergency_contact||''}));
+    if(invRes.data)inventory=invRes.data.map(i=>({...i,name:i.material,qty:i.qty_on_hand||0,min:i.reorder_point||0,project:i.project_name,unitCost:i.unit_cost||0}));
+    if(delRes.data)deliveries=delRes.data.map(d=>({...d,proj:d.project_name,date:d.scheduled_date,items:d.items||'',mediaCount:0}));
+    if(expRes.data)expenses=expRes.data.map(e=>({...e,proj:e.project_name,amount:e.amount||0,by:e.recorded_by||'',cat:e.category||''}));
+    if(meetRes.data)meetings=meetRes.data.map(m=>({...m,proj:m.project_name,datetime:m.date}));
+    if(visRes.data)visitors=visRes.data.map(v=>({...v,proj:v.project_name,timein:v.visit_date}));
+    if(actRes.data)actLog=actRes.data.map(l=>({...l,text:l.text,color:l.color||'#666',time:new Date(l.created_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),user:l.user_name,proj:l.project_name}));
+    if(pipRes.data)pipeline=pipRes.data.map(l=>({...l,closedate:l.closedate,history:[]}));
+    // Load gantt from tasks (gantt stored in tasks with gantt_data jsonb col, fallback to empty)
+    projects.forEach(p=>{if(!ganttActivities[p.id])ganttActivities[p.id]=[];});
+    const ganttRes=await sb.from('gantt_activities').select('*');
+    if(ganttRes.data){
+      ganttRes.data.forEach(g=>{
+        if(!ganttActivities[g.project_id])ganttActivities[g.project_id]=[];
+        ganttActivities[g.project_id].push({...g,subTasks:g.sub_tasks||[],equip:g.equipment||[],done:g.completion||0,assign:g.assigned_to||''});
+      });
+    }
+    const docRes=await sb.from('documents').select('*');
+    if(docRes.data){
+      projects.forEach(p=>{documents[p.id]=[];});
+      docRes.data.forEach(d=>{if(!documents[d.project_id])documents[d.project_id]=[];documents[d.project_id].push(d);});
+    }
+  }catch(e){console.error('Load error:',e);}
+  showLoadingOverlay(false);
+}
+
+function showLoadingOverlay(show){
+  let el=document.getElementById('loading-overlay');
+  if(!el&&show){
+    el=document.createElement('div');
+    el.id='loading-overlay';
+    el.style.cssText='position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px';
+    el.innerHTML='<div style="width:36px;height:36px;background:var(--or);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px"><i class="ti ti-building-skyscraper"></i></div><div style="font-size:14px;font-weight:600;color:var(--tx)">Loading JCY Design Studio...</div><div style="font-size:12px;color:var(--tx2)">Connecting to database</div>';
+    document.body.appendChild(el);
+  }else if(el&&!show){el.remove();}
+}
+
+async function sbLog(text,color,cat,proj){
+  await sb.from('activity_log').insert([{text,color:color||'#666',category:cat||'',user_name:CU?.name||'',project_name:proj||''}]);
+}
+
+// ─── SUPABASE SAVE FUNCTIONS ──────────────────────────────────────
+async function sbSaveProject(p){
+  const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,pm:p.pm||'',progress:p.progress||0,description:p.desc||'',color:p.color};
+  if(p._isNew){const{data}=await sb.from('projects').insert([row]).select();if(data&&data[0])p.id=data[0].id;}
+  else await sb.from('projects').update(row).eq('id',p.id);
+}
+async function sbSaveTask(t){
+  const row={project_name:t.project,name:t.name,assigned_to:t.assignee||'',status:t.status||'pending',priority:t.priority||'medium',due_date:t.due||null,description:t.details||''};
+  if(t._isNew){const{data}=await sb.from('tasks').insert([row]).select();if(data&&data[0])t.id=data[0].id;}
+  else await sb.from('tasks').update(row).eq('id',t.id);
+}
+async function sbSaveManpower(w){
+  const row={name:w.name,trade:w.trade||'',project_name:w.project||'',agency:w.agency||'',rate_per_day:w.rate||0,status:w.status||'active',phone:w.phone||'',emergency_contact:w.emergency||''};
+  if(w._isNew){const{data}=await sb.from('manpower').insert([row]).select();if(data&&data[0])w.id=data[0].id;}
+  else await sb.from('manpower').update(row).eq('id',w.id);
+}
+async function sbSaveInventory(i){
+  const row={project_name:i.project,material:i.name,unit:i.unit||'pcs',qty_on_hand:i.qty||0,reorder_point:i.min||0,unit_cost:i.unitCost||0};
+  if(i._isNew){const{data}=await sb.from('inventory').insert([row]).select();if(data&&data[0])i.id=data[0].id;}
+  else await sb.from('inventory').update(row).eq('id',i.id);
+}
+async function sbSaveDelivery(d){
+  const row={project_name:d.proj,supplier:d.supplier||'',items:d.items||'',scheduled_date:d.date||null,status:d.status||'Scheduled',notes:d.notes||''};
+  if(d._isNew){const{data}=await sb.from('deliveries').insert([row]).select();if(data&&data[0])d.id=data[0].id;}
+  else await sb.from('deliveries').update(row).eq('id',d.id);
+}
+async function sbSaveExpense(e){
+  const row={project_name:e.proj,category:e.cat||'',description:e.desc||'',amount:e.amount||0,date:e.date||null,recorded_by:e.by||''};
+  const{data}=await sb.from('expenses').insert([row]).select();if(data&&data[0])e.id=data[0].id;
+}
+async function sbSaveMeeting(m){
+  const row={project_name:m.proj,title:m.title,date:m.datetime||null,attendees:m.attendees||'',minutes:m.minutes||''};
+  const{data}=await sb.from('meetings').insert([row]).select();if(data&&data[0])m.id=data[0].id;
+}
+async function sbSaveVisitor(v){
+  const row={project_name:v.proj,name:v.name,company:v.company||'',purpose:v.purpose||'',visit_date:v.timein?v.timein.split('T')[0]:null};
+  const{data}=await sb.from('visitors').insert([row]).select();if(data&&data[0])v.id=data[0].id;
+}
+async function sbSaveUser(u){
+  const row={name:u.name,role:u.role,pin:u.pin,color:u.color||'',initials:initials(u.name),project_access:u.projects||[]};
+  if(u._isNew){const{data}=await sb.from('users').insert([row]).select();if(data&&data[0])u.id=data[0].id;}
+  else await sb.from('users').update(row).eq('id',u.id);
+}
+async function sbSavePipeline(l){
+  const row={name:l.name,client:l.client,location:l.location||'',stage:l.stage,value:l.value||0,prob:l.prob||50,closedate:l.closedate||null,source:l.source||'',notes:l.notes||''};
+  if(l._isNew){const{data}=await sb.from('pipeline').insert([row]).select();if(data&&data[0])l.id=data[0].id;}
+  else await sb.from('pipeline').update(row).eq('id',l.id);
+}
+async function sbSaveGanttActivity(a,projId){
+  const row={project_id:projId,name:a.name,phase:a.phase||'',start_date:a.start,end_date:a.end,actual_start:a.actualStart||null,actual_end:a.actualEnd||null,weight:a.weight||10,completion:a.done||0,assigned_to:a.assign||'',equipment:a.equip||[],sub_tasks:a.subTasks||[],risk_level:a.riskLevel||'LOW'};
+  if(a._isNew){const{data}=await sb.from('gantt_activities').insert([row]).select();if(data&&data[0])a.id=data[0].id;}
+  else await sb.from('gantt_activities').update(row).eq('id',a.id);
+}
+
+// ─── CONSTANTS ────────────────────────────────────────────────────
 const COLS=['#C05621','#185FA5','#0F6E56','#993C1D','#534AB7','#854F0B','#0F5F6E','#7B2D8B'];
 const AVC=[{bg:'#FAEEDA',c:'#633806'},{bg:'#E6F1FB',c:'#0C447C'},{bg:'#E1F5EE',c:'#085041'},{bg:'#FAECE7',c:'#712B13'},{bg:'#EEEDFE',c:'#3C3489'},{bg:'#EAF3DE',c:'#27500A'}];
 const RLBL={admin:'Admin',pm:'Project Manager',engineer:'Engineer',designer:'Designer',foreman:'Foreman',warehouse:'Warehouse',worker:'Worker'};
@@ -1020,87 +1142,22 @@ const PERMS={
 };
 const TODAY=new Date().toISOString().slice(0,10);
 
-let users=[
-{id:1,name:'Maria Santos',role:'admin',projects:['ALL'],pin:'1234',active:true},
-{id:2,name:'Carlos Reyes',role:'pm',projects:['Ortigas Office Tower','BF Homes Renovation'],pin:'1234',active:true},
-{id:3,name:'Ben Torres',role:'engineer',projects:['Ortigas Office Tower'],pin:'1234',active:true},
-{id:4,name:'Luz Cruz',role:'engineer',projects:['C5 Road Widening'],pin:'1234',active:true},
-{id:5,name:'Dino Lim',role:'worker',projects:['Eastwood Condo Phase 2'],pin:'1234',active:true},
-{id:6,name:'Jun Foreman',role:'foreman',projects:['Ortigas Office Tower'],pin:'1234',active:true},
-{id:7,name:'Rico Warehouse',role:'warehouse',projects:['Ortigas Office Tower','C5 Road Widening'],pin:'1234',active:true},
-{id:8,name:'Ana Designer',role:'designer',projects:['BF Homes Renovation'],pin:'1234',active:true},
-];
-let projects=[{id:1,name:'Ortigas Office Tower',client:'DMCI Homes',location:'Pasig City',contractPrice:48000000,contingency:2400000,start:'2025-01-10',end:'2026-06-30',status:'on-track',color:COLS[0],desc:'25-storey commercial office tower.',notes:''},{id:2,name:'BF Homes Renovation',client:'SM Prime',location:'Paranaque',contractPrice:8500000,contingency:425000,start:'2024-11-01',end:'2025-08-31',status:'at-risk',color:COLS[1],desc:'Full renovation of 3 residential units.',notes:''},{id:3,name:'C5 Road Widening',client:'DPWH',location:'Taguig',contractPrice:22000000,contingency:1100000,start:'2025-03-01',end:'2026-12-31',status:'on-track',color:COLS[2],desc:'Road widening and drainage improvement.',notes:''},{id:4,name:'Eastwood Condo Phase 2',client:'Megaworld',location:'Libis QC',contractPrice:95000000,contingency:4750000,start:'2025-06-01',end:'2027-06-30',status:'on-track',color:COLS[3],desc:'32-storey residential condominium.',notes:''}];
-let ganttActivities={
-1:[
-{id:101,name:'Site Preparation',phase:'Civil',start:'2025-01-10',end:'2025-02-15',weight:5,done:100,assign:'Carlos Reyes',equip:['Backhoe','Dump Truck'],subTasks:[{id:10101,name:'Deployment / Mobilization',done:true},{id:10102,name:'Site office & barracks setup',done:true},{id:10103,name:'Perimeter fence installation',done:true},{id:10104,name:'Temporary utilities connection',done:true}]},
-{id:102,name:'Foundation Works',phase:'Structural',start:'2025-02-01',end:'2025-04-30',weight:15,done:100,assign:'Ben Torres',equip:['Drilling Rig','Concrete Pump','Vibrator'],subTasks:[{id:10201,name:'Pile driving',done:true},{id:10202,name:'Pile cap excavation',done:true},{id:10203,name:'Rebar installation',done:true},{id:10204,name:'Concrete pour & curing',done:true}]},
-{id:103,name:'Ground Floor Slab',phase:'Structural',start:'2025-04-15',end:'2025-05-31',weight:8,done:90,assign:'Ben Torres',equip:['Concrete Pump','Scaffolding'],subTasks:[{id:10301,name:'Formwork installation',done:true},{id:10302,name:'Rebar placement',done:true},{id:10303,name:'Concrete pour',done:true},{id:10304,name:'Curing & stripping',done:false}]},
-{id:104,name:'Floors 2-10 Structure',phase:'Structural',start:'2025-05-01',end:'2025-09-30',weight:20,done:60,assign:'Ben Torres',equip:['Tower Crane','Concrete Pump','Man Lift'],subTasks:[{id:10401,name:'Formwork per floor',done:true},{id:10402,name:'Rebar placement',done:true},{id:10403,name:'Concrete pour per floor',done:false},{id:10404,name:'Column works',done:false}]},
-{id:105,name:'Floors 11-25 Structure',phase:'Structural',start:'2025-09-01',end:'2026-02-28',weight:20,done:10,assign:'Ben Torres',equip:['Tower Crane','Concrete Pump'],subTasks:[{id:10501,name:'Formwork upper floors',done:false},{id:10502,name:'Rebar upper floors',done:false},{id:10503,name:'Concrete pours',done:false}]},
-{id:106,name:'MEP Rough-in',phase:'MEP',start:'2025-07-01',end:'2026-03-31',weight:15,done:20,assign:'Luz Cruz',equip:['Man Lift','Pipe Bender','Cable Puller'],subTasks:[{id:10601,name:'Electrical conduit rough-in',done:true},{id:10602,name:'Plumbing rough-in',done:false},{id:10603,name:'HVAC ductwork',done:false},{id:10604,name:'Fire protection piping',done:false}]},
-{id:107,name:'Interior Finishes',phase:'Architectural',start:'2025-11-01',end:'2026-05-31',weight:12,done:0,assign:'Carlos Reyes',equip:['Scaffolding','Boom Lift'],subTasks:[{id:10701,name:'Drywall partitions',done:false},{id:10702,name:'Ceiling works',done:false},{id:10703,name:'Floor tiles',done:false},{id:10704,name:'Paint works',done:false}]},
-{id:108,name:'Commissioning & Turnover',phase:'Closeout',start:'2026-04-01',end:'2026-06-30',weight:5,done:0,assign:'Carlos Reyes',equip:[],subTasks:[{id:10801,name:'Systems testing',done:false},{id:10802,name:'Punch list rectification',done:false},{id:10803,name:'Turnover documentation',done:false}]}
-],
-2:[
-{id:201,name:'Demolition',phase:'Civil',start:'2024-11-01',end:'2024-11-30',weight:10,done:100,assign:'Ben Torres',equip:['Jackhammer','Dump Truck'],subTasks:[{id:20101,name:'Partition removal',done:true},{id:20102,name:'Debris hauling',done:true}]},
-{id:202,name:'Structural Repair',phase:'Structural',start:'2024-12-01',end:'2025-01-31',weight:20,done:100,assign:'Ben Torres',equip:['Scaffolding'],subTasks:[{id:20201,name:'Crack injection',done:true},{id:20202,name:'Column jacketing',done:true},{id:20203,name:'Beam strengthening',done:true}]},
-{id:203,name:'MEP Upgrade',phase:'MEP',start:'2025-01-15',end:'2025-04-30',weight:25,done:85,assign:'Carlos Reyes',equip:['Pipe Bender','Cable Puller'],subTasks:[{id:20301,name:'Panel board replacement',done:true},{id:20302,name:'Wiring upgrade',done:true},{id:20303,name:'Plumbing rerouting',done:false}]},
-{id:204,name:'Interior Finishing',phase:'Architectural',start:'2025-03-01',end:'2025-07-31',weight:35,done:50,assign:'Carlos Reyes',equip:['Scaffolding'],subTasks:[{id:20401,name:'Tiling',done:true},{id:20402,name:'Painting',done:true},{id:20403,name:'Cabinetry',done:false},{id:20404,name:'Fixtures installation',done:false}]},
-{id:205,name:'Punch List & Turnover',phase:'Closeout',start:'2025-07-01',end:'2025-08-31',weight:10,done:0,assign:'Carlos Reyes',equip:[],subTasks:[{id:20501,name:'Defect rectification',done:false},{id:20502,name:'Final cleaning',done:false},{id:20503,name:'Turnover documents',done:false}]}
-],
-3:[
-{id:301,name:'Survey & Design',phase:'Civil',start:'2025-03-01',end:'2025-04-30',weight:5,done:100,assign:'Luz Cruz',equip:['Total Station','GPS Equipment'],subTasks:[{id:30101,name:'Topographic survey',done:true},{id:30102,name:'Design approval',done:true}]},
-{id:302,name:'Clearing & Grubbing',phase:'Civil',start:'2025-04-01',end:'2025-05-31',weight:10,done:100,assign:'Luz Cruz',equip:['Bulldozer','Chainsaw','Dump Truck'],subTasks:[{id:30201,name:'Tree & vegetation removal',done:true},{id:30202,name:'Topsoil stripping',done:true}]},
-{id:303,name:'Earthworks & Subbase',phase:'Civil',start:'2025-05-01',end:'2025-09-30',weight:30,done:45,assign:'Carlos Reyes',equip:['Motor Grader','Compactor','Dump Truck','Bulldozer'],subTasks:[{id:30301,name:'Subgrade preparation',done:true},{id:30302,name:'Subbase material delivery',done:true},{id:30303,name:'Subbase compaction',done:false},{id:30304,name:'Base course laying',done:false}]},
-{id:304,name:'Drainage Works',phase:'Civil',start:'2025-06-01',end:'2025-11-30',weight:25,done:20,assign:'Carlos Reyes',equip:['Excavator','Concrete Mixer','Dump Truck'],subTasks:[{id:30401,name:'Catch basin construction',done:true},{id:30402,name:'Culvert installation',done:false},{id:30403,name:'Canal lining',done:false}]},
-{id:305,name:'Pavement Works',phase:'Civil',start:'2025-10-01',end:'2026-08-31',weight:25,done:0,assign:'Ben Torres',equip:['Asphalt Paver','Road Roller','Compactor'],subTasks:[{id:30501,name:'Prime coat application',done:false},{id:30502,name:'Asphalt laying',done:false},{id:30503,name:'Compaction & finishing',done:false}]},
-{id:306,name:'Road Markings & Signage',phase:'Civil',start:'2026-07-01',end:'2026-12-31',weight:5,done:0,assign:'Luz Cruz',equip:['Line Marking Machine'],subTasks:[{id:30601,name:'Road markings painting',done:false},{id:30602,name:'Traffic sign installation',done:false}]}
-],
-4:[
-{id:401,name:'Excavation & Shoring',phase:'Civil',start:'2025-06-01',end:'2025-08-31',weight:8,done:30,assign:'Carlos Reyes',equip:['Excavator','Sheet Pile Driver','Dump Truck','Dewatering Pump'],subTasks:[{id:40101,name:'Deployment / Mobilization',done:true},{id:40102,name:'Sheet pile installation',done:true},{id:40103,name:'Excavation to basement level',done:false},{id:40104,name:'Dewatering system setup',done:false}]},
-{id:402,name:'Foundation & Basement',phase:'Structural',start:'2025-08-01',end:'2025-12-31',weight:15,done:5,assign:'Ben Torres',equip:['Drilling Rig','Concrete Pump','Vibrator'],subTasks:[{id:40201,name:'Pile works',done:false},{id:40202,name:'Pile cap',done:false},{id:40203,name:'Mat foundation',done:false},{id:40204,name:'Basement walls',done:false}]},
-{id:403,name:'Tower Structure',phase:'Structural',start:'2025-11-01',end:'2026-12-31',weight:30,done:0,assign:'Ben Torres',equip:['Tower Crane','Concrete Pump','Man Lift'],subTasks:[{id:40301,name:'Core wall construction',done:false},{id:40302,name:'Floor plate works',done:false},{id:40303,name:'Column works per floor',done:false}]},
-{id:404,name:'MEP Systems',phase:'MEP',start:'2026-06-01',end:'2027-03-31',weight:20,done:0,assign:'Luz Cruz',equip:['Man Lift','Pipe Bender','Cable Puller'],subTasks:[{id:40401,name:'Electrical systems',done:false},{id:40402,name:'Plumbing systems',done:false},{id:40403,name:'HVAC systems',done:false}]},
-{id:405,name:'Interior & Finishes',phase:'Architectural',start:'2026-09-01',end:'2027-05-31',weight:20,done:0,assign:'Carlos Reyes',equip:['Scaffolding','Boom Lift'],subTasks:[{id:40501,name:'Facade works',done:false},{id:40502,name:'Interior partitions',done:false},{id:40503,name:'Floor & wall finishes',done:false}]},
-{id:406,name:'Commissioning',phase:'Closeout',start:'2027-04-01',end:'2027-06-30',weight:7,done:0,assign:'Carlos Reyes',equip:[],subTasks:[{id:40601,name:'Systems testing',done:false},{id:40602,name:'Punch list',done:false},{id:40603,name:'Turnover',done:false}]}
-]};
-let tasks=[
-{id:1,name:'Deployment / Mobilization',project:'Ortigas Office Tower',assignee:'Carlos Reyes',due:'2025-01-15',priority:'high',done:true,status:'done',ganttId:101,subTaskId:10101,schedule:'once',scheduleDays:[],details:'Move all equipment and personnel to site.',reports:[]},
-{id:2,name:'Electrical conduit rough-in floors 3-5',project:'Ortigas Office Tower',assignee:'Ben Torres',due:'2025-07-20',priority:'high',done:false,ganttId:106,subTaskId:10601,schedule:'daily',scheduleDays:[],details:'Install electrical conduit on floors 3 through 5 per approved electrical drawings.',reports:[]},
-{id:3,name:'Subbase compaction',project:'C5 Road Widening',assignee:'Carlos Reyes',due:'2025-08-01',priority:'medium',done:false,ganttId:303,subTaskId:30303,schedule:'once',scheduleDays:[],details:'Compact subbase per approved specifications. Target density 95% MDD.',reports:[]},
-{id:4,name:'Sheet pile installation',project:'Eastwood Condo Phase 2',assignee:'Ben Torres',due:'2025-07-01',priority:'high',done:true,ganttId:401,subTaskId:40102,schedule:'once',scheduleDays:[],details:'Install sheet piles along excavation perimeter per structural drawings.',reports:[]},
-];
-let manpower=[
-{id:1,name:'Jun Dela Cruz',trade:'Mason / Foreman',project:'Ortigas Office Tower',agency:'ABC Builders',rate:750,phone:'+63 912 111 2222',status:'active',started:'2025-01-10',emergency:'Maria Dela Cruz +63 912 333 4444',skills:'NCII Mason, Safety Officer lvl 1, First Aid',notes:'Promoted to Foreman January 2025. Excellent attendance record.'},
-{id:2,name:'Rico Santos',trade:'Carpenter',project:'Ortigas Office Tower',agency:'ABC Builders',rate:700,phone:'+63 913 222 3333',status:'active',started:'2025-01-10',emergency:'Ana Santos +63 913 444 5555',skills:'NCII Carpentry',notes:''},
-{id:3,name:'Manny Torres',trade:'Electrician',project:'BF Homes Renovation',agency:'Direct Hire',rate:850,phone:'+63 914 333 4444',status:'active',started:'2024-11-01',emergency:'',skills:'NCII Electrical Installation, Licensed Master Electrician',notes:''},
-{id:4,name:'Leo Cruz',trade:'Welder',project:'C5 Road Widening',agency:'XYZ Construction',rate:800,phone:'+63 915 444 5555',status:'active',started:'2025-03-01',emergency:'',skills:'AWS Welding Certification',notes:''},
-{id:5,name:'Ben Reyes',trade:'Heavy Equipment Operator',project:'Eastwood Condo Phase 2',agency:'Direct Hire',rate:900,phone:'+63 916 555 6666',status:'active',started:'2025-06-01',emergency:'',skills:"Professional Driver's License, NCII HEO",notes:''},
-];
+let users=[];
+let projects=[];
+let ganttActivities={};
+let tasks=[];
+let manpower=[];
 let attendance={};
-let inventory=[{id:1,name:'Portland Cement',qty:420,unit:'bags',min:100,project:'Ortigas Office Tower',unitCost:280},{id:2,name:'Deformed Rebar 12mm',qty:85,unit:'pcs',min:200,project:'Eastwood Condo Phase 2',unitCost:180},{id:3,name:'Hollow Blocks',qty:1240,unit:'pcs',min:500,project:'BF Homes Renovation',unitCost:18},{id:4,name:'Ready Mix Concrete',qty:18,unit:'m3',min:20,project:'C5 Road Widening',unitCost:4500},{id:5,name:'G.I. Pipes 2in',qty:310,unit:'pcs',min:50,project:'Ortigas Office Tower',unitCost:420}];
+let inventory=[];
 let invLog=[];
-let expenses=[{id:1,proj:'Ortigas Office Tower',date:'2025-06-01',cat:'Materials',amount:145600,desc:'Portland Cement 520 bags',payee:'Eagle Cement Corp',ref:'DR-001',by:'Carlos Reyes'},{id:2,proj:'Ortigas Office Tower',date:'2025-06-05',cat:'Manpower / Salary',amount:280000,desc:'Labor payroll May 2025',payee:'Workers',ref:'PR-052025',by:'Maria Santos'},{id:3,proj:'C5 Road Widening',date:'2025-06-07',cat:'Fuel / Gasoline',amount:18500,desc:'Diesel for equipment 2 weeks',payee:'Flying V',ref:'OR-9911',by:'Luz Cruz'}];
-let documents={1:[{id:1,title:'Architectural Plans Rev2',cat:'Architectural Drawing',access:'all',files:['arch_rev2.pdf'],uploader:'Maria Santos',date:TODAY,notes:'Latest approved set'}],2:[],3:[],4:[]};
+let expenses=[];
+let documents={};
 let deliveries=[],visitors=[],meetings=[];
-let sops=[
-  {id:1,title:'Site Safety Protocol',cat:'Safety',version:'v2.1',date:'2025-01-01',desc:'Mandatory safety procedures for all site personnel.',content:'1. Wear complete PPE at all times\n2. No entry without safety briefing\n3. Report all near-miss incidents immediately\n4. Follow emergency evacuation procedures',files:[],by:'Maria Santos',history:[{version:'v2.1',date:'2025-01-01',by:'Maria Santos',note:'Added emergency evacuation procedures'},{version:'v2.0',date:'2024-06-01',by:'Maria Santos',note:'Updated PPE requirements'},{version:'v1.0',date:'2024-01-01',by:'Admin',note:'Initial version'}]},
-  {id:2,title:'Tool & Equipment Inventory',cat:'Operations',version:'v1.0',date:'2025-02-01',desc:'Procedure for logging and managing tools and equipment.',content:'1. All tools must be tagged with project code\n2. Log in/out in tool register daily\n3. Report damaged tools immediately',files:[],by:'Carlos Reyes',history:[{version:'v1.0',date:'2025-02-01',by:'Carlos Reyes',note:'Initial release'}]}
-];
-let directory=[{id:1,name:'Maria Santos',position:'General Manager',dept:'Management',phone:'+63 917 111 1111',email:'m.santos@buildops.ph',type:'Internal',notes:''},{id:2,name:'Carlos Reyes',position:'Project Manager',dept:'Engineering',phone:'+63 918 222 2222',email:'c.reyes@buildops.ph',type:'Internal',notes:''},{id:3,name:'DPWH NCR',position:'Government Agency',dept:'Government',phone:'(02) 304-3000',email:'',type:'Government',notes:'Road projects permitting'},{id:4,name:'Eagle Cement Corp',position:'Supplier',dept:'Supply Chain',phone:'+63 999 888 7777',email:'sales@eaglecement.ph',type:'Supplier',notes:'Main cement supplier'}];
-let pipeline=[
-  {id:1,name:'BGC Office Complex Renovation',client:'Ayala Land',location:'Taguig',stage:'Proposal',value:35000000,prob:60,source:'Direct',closedate:'2025-09-30',contact:'Jon Cruz +63 917 555 1234',notes:'Submitted proposal. Awaiting client decision.',by:'Maria Santos',created:TODAY},
-  {id:2,name:'Pasay Road Rehabilitation',client:'DPWH NCR',location:'Pasay',stage:'Negotiation',value:18000000,prob:75,source:'Bidding',closedate:'2025-08-15',contact:'Engr. Santos',notes:'Bid awarded pending contract signing.',by:'Carlos Reyes',created:TODAY},
-  {id:3,name:'Alabang Condo Tower A',client:'SMDC',location:'Muntinlupa',stage:'Lead Gen',value:120000000,prob:20,source:'Referral',closedate:'2026-01-31',contact:'',notes:'Initial inquiry received. Needs site visit.',by:'Maria Santos',created:TODAY},
-];
-let templates=[
-  {id:1,title:"Weekly Progress Report Template",cat:"Reporting Templates",desc:"Standard weekly progress report for client submission.",files:["Weekly_Progress_Report_v1.docx"],uploader:"Admin",date:"2026-01-10",notes:"v1.0",downloads:12},
-  {id:2,title:"Gantt Chart Template",cat:"Gantt Chart Templates",desc:"Excel-based Gantt chart for construction scheduling.",files:["Gantt_Template_2026.xlsx"],uploader:"Admin",date:"2026-01-10",notes:"v2.1",downloads:8},
-  {id:3,title:"Safety Inspection Form",cat:"Inspection Forms",desc:"Daily safety checklist for site supervisors.",files:["Safety_Inspection_Form.pdf"],uploader:"Admin",date:"2026-01-10",notes:"v1.0",downloads:20},
-  {id:4,title:"Client Report Template",cat:"Client Report Templates",desc:"Professional client progress report with photo inserts.",files:["Client_Report_Template.docx"],uploader:"Admin",date:"2026-01-10",notes:"v3.0",downloads:15},
-];
-let actLog=[{time:'Today 08:12',text:'Task completed: Deployment / Mobilization',color:'#0F6E56'},{time:'Today 07:55',text:'Expense added: P145,600 Portland Cement',color:'#C05621'},{time:'Yesterday',text:'BF Homes Renovation set to At Risk',color:'#C05621'}];
+let sops=[];
+let directory=[];
+let pipeline=[];
+let templates=[];
+let actLog=[];
 let CU=null,selectedAuthUser=null,activeProjectId=null,activeMpId=null;
 let taskProjFilter='All',taskStatusFilter='All';
 
@@ -1137,7 +1194,15 @@ function prevMedia(input,tid){const p=document.getElementById(tid);if(!p)return;
 function toggleDaysWrap(){document.getElementById('fta-days-wrap').style.display=document.getElementById('fta-schedule').value==='specific'?'block':'none'}
 
 // AUTH
-function initAuth(){document.getElementById('user-list').innerHTML=users.filter(u=>u.active).map(u=>{const c=avC(u.name);return`<div class="au" id="au-${u.id}" onclick="selUser(${u.id})"><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${c.bg};color:${c.c}">${initials(u.name)}</div><div><div style="font-size:12px;font-weight:600">${u.name}</div><span class="badge ${RBDG[u.role]}">${RLBL[u.role]}</span></div></div></div>`;}).join('')}
+function initAuth(){
+  document.getElementById('user-list').innerHTML=users.filter(u=>u.active!==false).map(u=>{
+    const c=avC(u.name);
+    return`<div class="au" id="au-${u.id}" onclick="selUser(${u.id})"><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${c.bg};color:${c.c}">${initials(u.name)}</div><div><div style="font-size:12px;font-weight:600">${u.name}</div><span class="badge ${RBDG[u.role]}">${RLBL[u.role]}</span></div></div></div>`;
+  }).join('');
+  if(!users.length){
+    document.getElementById('user-list').innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--tx2);padding:8px">No users yet. <br>Add your first user in Supabase → users table.</div>';
+  }
+}
 function selUser(id){selectedAuthUser=users.find(u=>u.id===id);document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));const el=document.getElementById('au-'+id);if(el)el.classList.add('sel');document.getElementById('auth-pin').focus()}
 function doLogin(){if(!selectedAuthUser){alert('Select a user first.');return}const pin=document.getElementById('auth-pin').value;if(pin!==selectedAuthUser.pin){document.getElementById('auth-err').style.display='block';document.getElementById('auth-pin').value='';return}document.getElementById('auth-err').style.display='none';CU=selectedAuthUser;document.getElementById('auth-screen').style.display='none';document.getElementById('app').classList.add('on');document.getElementById('auth-pin').value='';setupApp();render()}
 function doLogout(){CU=null;selectedAuthUser=null;activeProjectId=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').classList.remove('on');document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));initAuth()}
@@ -1952,14 +2017,15 @@ function saveManpowerEdit(){
   w.emergency=document.getElementById('femp-emergency').value;
   w.skills=document.getElementById('femp-skills').value;
   w.notes=document.getElementById('femp-notes').value;
-  if(w.status!==oldStatus)actLog.unshift({time:nowStr(),text:`${w.name} status changed to ${w.status}`,color:'#534AB7'});
-  actLog.unshift({time:nowStr(),text:`Worker profile updated: ${w.name} by ${CU.name}`,color:'#185FA5'});
+  if(w.status!==oldStatus)sbLog(`${w.name} status changed to ${w.status}`,'#534AB7','Manpower','');
+  sbSaveManpower(w);
+  sbLog(`Worker profile updated: ${w.name} by ${CU.name}`,'#185FA5','Manpower','');
   closeFm('fm-edit-mp');
   renderManpower();
   if(activeMpId===id)openMpDetail(id);
 }
 function closeMpDetail(){document.getElementById('mp-list-view').style.display='block';document.getElementById('mp-detail-view').style.display='none';activeMpId=null}
-function addManpower(){const name=document.getElementById('fmp-name').value.trim();if(!name){alert('Name required');return}const proj=document.getElementById('fmp-proj').value;manpower.push({id:Date.now(),name,trade:document.getElementById('fmp-trade').value||'General',project:proj,agency:document.getElementById('fmp-agency').value||'Direct Hire',rate:parseFloat(document.getElementById('fmp-rate').value)||0,phone:document.getElementById('fmp-phone').value,status:document.getElementById('fmp-status').value,started:document.getElementById('fmp-started').value,emergency:document.getElementById('fmp-emergency').value,skills:document.getElementById('fmp-skills').value,notes:document.getElementById('fmp-notes').value});actLog.unshift({time:nowStr(),text:`Worker added: ${name} to ${proj}`,color:'#185FA5'});closeFm('fm-manpower');renderManpower();if(activeProjectId)renderDetailAtt(activeProjectId)}
+function addManpower(){const name=document.getElementById('fmp-name').value.trim();if(!name){alert('Name required');return}const proj=document.getElementById('fmp-proj').value;const w={_isNew:true,name,trade:document.getElementById('fmp-trade').value||'General',project:proj,agency:document.getElementById('fmp-agency').value||'Direct Hire',rate:parseFloat(document.getElementById('fmp-rate').value)||0,phone:document.getElementById('fmp-phone').value,status:document.getElementById('fmp-status').value,started:document.getElementById('fmp-started').value,emergency:document.getElementById('fmp-emergency').value,skills:document.getElementById('fmp-skills').value,notes:document.getElementById('fmp-notes').value};manpower.push(w);sbSaveManpower(w).then(()=>sbLog(`Worker added: ${name} to ${proj}`,'#185FA5','Manpower',proj));closeFm('fm-manpower');renderManpower();if(activeProjectId)renderDetailAtt(activeProjectId)}
 
 // ATTENDANCE
 let _attCurWid=null;
@@ -1976,14 +2042,10 @@ function addDelivery(){
   const delDate=document.getElementById('fdel-date').value||TODAY;
   const status=document.getElementById('fdel-status').value;
   const supplier=document.getElementById('fdel-supplier').value;
-  const did=Date.now();
-  deliveries.unshift({id:did,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:files.length,by:CU.name,time:nowStr()});
-  // If scheduled, auto-create a task to receive delivery
-  if(status==='Scheduled'){
-    tasks.push({id:did+1,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items+'. Supplier: '+(supplier||'—')+'. Invoice: '+(document.getElementById('fdel-invoice').value||'—'),riskLevel:'LOW',reports:[],autoType:'delivery',refId:did});
-    renderTasksGlobal();renderSidebar();
-  }
-  actLog.unshift({time:nowStr(),text:'Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']',color:'#0F5F6E',cat:'Delivery',user:CU.name,proj:projName,note:'Supplier: '+(supplier||'—')+' · Date: '+delDate});
+  const d={_isNew:true,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:files.length,by:CU.name,time:nowStr()};
+  deliveries.unshift(d);
+  sbSaveDelivery(d).then(()=>sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName));
+  if(status==='Scheduled'){tasks.push({id:Date.now()+1,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items,riskLevel:'LOW',reports:[],autoType:'delivery'});renderTasksGlobal();renderSidebar();}
   closeFm('fm-delivery');renderDeliveries();renderSidebar();if(activeProjectId)refreshDetailDelivery(activeProjectId);
 }
 function renderDeliveries(){const mp=myProjects();const pf=document.getElementById('del-proj-filter').value;const sf=document.getElementById('del-status-filter').value;const sel=document.getElementById('del-proj-filter');if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const delSrch=(document.getElementById('del-search')?.value||'').toLowerCase();let list=deliveries.filter(d=>mp.some(p=>p.name===d.proj));if(pf)list=list.filter(d=>d.proj===pf);if(sf)list=list.filter(d=>d.status===sf);if(delSrch)list=list.filter(d=>(d.items+' '+(d.supplier||'')+' '+(d.driver||'')+' '+(d.receiver||'')).toLowerCase().includes(delSrch));const sBadge={Scheduled:'bw',Delivered:'bk',Partial:'bi',Cancelled:'be'};document.getElementById('delivery-list').innerHTML=list.length?list.map(d=>`<div class="delivery-card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><div><div style="font-size:13px;font-weight:600">${d.proj} - ${d.date}</div><div style="font-size:11px;color:var(--tx2)">${d.supplier||''} ${d.driver?'- Driver: '+d.driver:''} ${d.receiver?'- Rcvd: '+d.receiver:''}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge ${sBadge[d.status]||'bg_'}">${d.status}</span>${d.amount>0?`<span class="badge bg_">${fmt(d.amount)}</span>`:''}</div></div><div style="font-size:12px;margin-bottom:5px">${d.items}</div><div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap">${d.invoice?`<span>INV: ${d.invoice}</span>`:''} ${d.dr?`<span>DR: ${d.dr}</span>`:''} ${d.mediaCount>0?`<span style="color:var(--in-tx)"><i class="ti ti-photo"></i> ${d.mediaCount} proof file(s)</span>`:''} ${d.notes?`<span style="color:var(--wn-tx)"><i class="ti ti-alert-circle"></i> ${d.notes}</span>`:''}</div></div>`).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:20px">No deliveries recorded yet.</div>'}
@@ -1995,12 +2057,11 @@ function addVisitor(){
   const timeIn=document.getElementById('fv-timein').value;
   const purpose=document.getElementById('fv-purpose').value;
   const host=document.getElementById('fv-host').value;
-  const vid=Date.now();
-  visitors.unshift({id:vid,name,company:document.getElementById('fv-company').value,purpose,host,timein:timeIn,proj:projName,idPresented:document.getElementById('fv-id').value,remarks:document.getElementById('fv-remarks').value,status:'scheduled',by:CU.name,time:nowStr()});
-  // Auto-create task for visitor preparation
+  const v={_isNew:true,name,company:document.getElementById('fv-company').value,purpose,host,timein:timeIn,proj:projName,idPresented:document.getElementById('fv-id').value,remarks:document.getElementById('fv-remarks').value,status:'scheduled',by:CU.name,time:nowStr()};
+  visitors.unshift(v);
+  sbSaveVisitor(v).then(()=>sbLog('Visitor scheduled: '+name+' at '+projName,'#854F0B','Visitors',projName));
   const dueDate=timeIn?timeIn.split('T')[0]:TODAY;
-  tasks.push({id:vid+1,name:'Prepare for visitor: '+name+(purpose?' ('+purpose+')':''),project:projName,assignee:host||CU.name,due:dueDate,priority:'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled visitor: '+name+(document.getElementById('fv-company').value?' from '+document.getElementById('fv-company').value:'')+'. Purpose: '+(purpose||'—')+'. Time: '+(timeIn||'').replace('T',' '),riskLevel:'LOW',reports:[],autoType:'visitor',refId:vid});
-  actLog.unshift({time:nowStr(),text:'Visitor scheduled: '+name+' at '+projName+' on '+(timeIn||'').replace('T',' '),color:'#854F0B',cat:'Visitors',user:CU.name,proj:projName,note:'Purpose: '+(purpose||'—')});
+  tasks.push({id:Date.now()+1,name:'Prepare for visitor: '+name+(purpose?' ('+purpose+')':''),project:projName,assignee:host||CU.name,due:dueDate,priority:'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled visitor: '+name+'. Purpose: '+(purpose||'—'),riskLevel:'LOW',reports:[],autoType:'visitor'});
   closeFm('fm-visitor');renderVisitorCal();renderVisitorList();renderTasksGlobal();renderSidebar();
 }
 function visitorStatusBadge(v){const s=v.status||'scheduled';const m={scheduled:'<span style="background:var(--in-bg);color:var(--in-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">SCHEDULED</span>',rescheduled:'<span style="background:var(--wn-bg);color:var(--wn-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">RESCHEDULED</span>',cancelled:'<span style="background:var(--er-bg);color:var(--er-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CANCELLED</span>','checked-in':'<span style="background:var(--ok-bg);color:var(--ok-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED IN</span>','checked-out':'<span style="background:var(--bg2);color:var(--tx2);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED OUT</span>'};return m[s]||m.scheduled;}
@@ -2020,7 +2081,7 @@ function renderVisitorList(){
 function renderVisitorCal(){const now=new Date();const yr=now.getFullYear();const mo=now.getMonth();const firstDay=new Date(yr,mo,1).getDay();const daysInMonth=new Date(yr,mo+1,0).getDate();const headers=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-hdr">${d}</div>`).join('');let cells='';for(let i=0;i<firstDay;i++)cells+='<div></div>';for(let d=1;d<=daysInMonth;d++){const dStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const evs=visitors.filter(v=>v.timein&&v.timein.startsWith(dStr));const isToday=dStr===TODAY;cells+=`<div class="cal-day${isToday?' today':''}${evs.length?' has-ev':''}"><div>${d}</div>${evs.map(v=>`<div class="cal-ev">${v.name.split(' ')[0]}</div>`).join('')}</div>`}document.getElementById('visitor-cal').innerHTML=`<div class="cal-wrap">${headers}${cells}</div>`}
 
 // MEETINGS
-function addMeeting(){const title=document.getElementById('fm2-title').value.trim();if(!title){alert('Title required');return}meetings.unshift({id:Date.now(),title,datetime:document.getElementById('fm2-datetime').value,location:document.getElementById('fm2-location').value,proj:document.getElementById('fm2-proj').value,attendees:document.getElementById('fm2-attendees').value,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,by:CU.name,time:nowStr()});actLog.unshift({time:nowStr(),text:`Meeting added: ${title}`,color:'#534AB7'});closeFm('fm-meeting');renderMeetings()}
+function addMeeting(){const title=document.getElementById('fm2-title').value.trim();if(!title){alert('Title required');return}const m={_isNew:true,title,datetime:document.getElementById('fm2-datetime').value,location:document.getElementById('fm2-location').value,proj:document.getElementById('fm2-proj').value,attendees:document.getElementById('fm2-attendees').value,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,by:CU.name,time:nowStr()};meetings.unshift(m);sbSaveMeeting(m).then(()=>sbLog(`Meeting added: ${title}`,'#534AB7','Meetings',''));closeFm('fm-meeting');renderMeetings()}
 function renderMeetings(){const filteredMeetings=meetings.filter(m=>CU.role==='admin'||CU.role==='pm'||(m.attendees||'').toLowerCase().includes(CU.name.toLowerCase()));document.getElementById('meeting-list').innerHTML=filteredMeetings.length?filteredMeetings.map(m=>`<div class="meeting-card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px"><div><div style="font-size:14px;font-weight:700">${m.title}</div><div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} - ${m.location||''} - ${m.proj}</div></div></div>${m.attendees?`<div style="font-size:12px;margin-bottom:6px"><strong>Attendees:</strong> ${m.attendees}</div>`:''} ${m.agenda?`<div style="font-size:12px;margin-bottom:6px;padding:8px;background:var(--bg2);border-radius:var(--r)"><strong>Agenda:</strong><br>${m.agenda.replace(/\n/g,'<br>')}</div>`:''} ${m.minutes?`<div style="font-size:12px;margin-bottom:6px"><strong>Minutes:</strong><br><span style="color:var(--tx2)">${m.minutes.replace(/\n/g,'<br>')}</span></div>`:''} ${m.actions?`<div style="font-size:12px;margin-bottom:6px;padding:8px;background:var(--ok-bg);border-radius:var(--r);color:var(--ok-tx)"><strong>Action Items:</strong><br>${m.actions.replace(/\n/g,'<br>')}</div>`:''} ${m.next?`<div style="font-size:11px;color:var(--tx2)"><i class="ti ti-calendar"></i> Next meeting: ${m.next}</div>`:''}</div>`).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:20px">No meetings recorded yet.</div>'}
 
 // INVENTORY
@@ -2031,7 +2092,7 @@ function setInvFilter(f){
   renderGlobalInventory();
 }
 function renderGlobalInventory(){const mp=myProjects();const sel=document.getElementById('inv-proj-filter');if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const f=sel.value;const invSrch=(document.getElementById('inv-search')?.value||'').toLowerCase();let inv=inventory.filter(i=>mp.some(p=>p.name===i.project));if(f)inv=inv.filter(i=>i.project===f);if(invSrch)inv=inv.filter(i=>i.name.toLowerCase().includes(invSrch));if(_invStockFilter==='critical')inv=inv.filter(i=>i.qty<=i.min*0.5);else if(_invStockFilter==='low')inv=inv.filter(i=>i.qty<=i.min&&i.qty>i.min*0.5);else if(_invStockFilter==='ok')inv=inv.filter(i=>i.qty>i.min);document.getElementById('inv-grid-global').innerHTML=inv.map(i=>`<div class="inv-card" id="inv-item-${i.id}" style="cursor:pointer;scroll-margin-top:12px" onclick="highlightInventoryItem(${i.id})"><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div><div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw"><i class="ti ti-arrow-up"></i></button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish"><i class="ti ti-arrow-down"></i></button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' - P'+i.unitCost+'/'+i.unit:''}</div></div>`).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials found.</div>';document.getElementById('inv-log-global').innerHTML=invLog.length?invLog.filter(l=>!f||l.proj===f).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><i class="ti ${l.type==='replenish'?'ti-arrow-down':'ti-arrow-up'}" style="font-size:11px;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} - ${l.type==='replenish'?'+':'-'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.proj} - ${l.note||''} - by ${l.user}${l.requestor?' · Requestor: <strong>'+l.requestor+'</strong>':''}</div></div><div class="log-time">${l.time}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
-function addMaterial(){const name=document.getElementById('fi-name').value.trim();if(!name){alert('Name required');return}const qty=parseInt(document.getElementById('fi-qty').value)||0;const proj=document.getElementById('fi-proj').value;inventory.push({id:Date.now(),name,qty,unit:document.getElementById('fi-unit').value||'pcs',min:parseInt(document.getElementById('fi-min').value)||0,project:proj,unitCost:parseFloat(document.getElementById('fi-cost').value)||0});invLog.unshift({time:nowStr(),mat:name,type:'replenish',qty,unit:document.getElementById('fi-unit').value||'pcs',note:'Initial stock',user:CU.name,proj});actLog.unshift({time:nowStr(),text:`Material added: ${name} to ${proj}`,color:'#185FA5'});closeFm('fm-inv-add');renderGlobalInventory();renderSidebar();if(activeProjectId)renderDetailInventory(activeProjectId)}
+function addMaterial(){const name=document.getElementById('fi-name').value.trim();if(!name){alert('Name required');return}const qty=parseInt(document.getElementById('fi-qty').value)||0;const proj=document.getElementById('fi-proj').value;const i={_isNew:true,name,qty,unit:document.getElementById('fi-unit').value||'pcs',min:parseInt(document.getElementById('fi-min').value)||0,project:proj,unitCost:parseFloat(document.getElementById('fi-cost').value)||0};inventory.push(i);invLog.unshift({time:nowStr(),mat:name,type:'replenish',qty,unit:i.unit,note:'Initial stock',user:CU.name,proj});sbSaveInventory(i).then(()=>sbLog(`Material added: ${name} to ${proj}`,'#185FA5','Inventory',proj));closeFm('fm-inv-add');renderGlobalInventory();renderSidebar();if(activeProjectId)renderDetailInventory(activeProjectId)}
 function jumpToInventoryFilter(f){
   setTab('inventory');
   setTimeout(function(){setInvFilter(f);renderGlobalInventory();},80);
@@ -2113,7 +2174,7 @@ function renderBudgetOverview(){
     +'</div></div>';
 }
 function renderGlobalExpenses(){const mp=myProjects();const pSel=document.getElementById('exp-proj-filter');if(pSel.children.length<=1)pSel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const pf=pSel.value;const cf=document.getElementById('exp-cat-filter').value;let exp=expenses.filter(e=>mp.some(p=>p.name===e.proj));if(pf)exp=exp.filter(e=>e.proj===pf);if(cf)exp=exp.filter(e=>e.cat===cf);const total=exp.reduce((s,e)=>s+e.amount,0);document.getElementById('global-exp-content').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div style="font-size:13px;font-weight:600">${exp.length} expense(s)</div><div style="font-size:14px;font-weight:700;color:var(--er-tx)">Total: ${fmt(total)}</div></div>${exp.length?exp.map(e=>`<div class="expense-row"><div style="flex:1"><div style="font-weight:500">${e.desc}</div><div style="font-size:10px;color:var(--tx2)">${e.proj} - ${e.cat} - ${e.date} ${e.payee?'- '+e.payee:''} ${e.ref?'- '+e.ref:''} - by ${e.by}</div></div><strong style="color:var(--er-tx)">${fmt(e.amount)}</strong></div>`).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No expenses found.</div>'}`}
-function addExpense(){const desc=document.getElementById('fex-desc').value.trim();const amount=parseFloat(document.getElementById('fex-amount').value);if(!desc){alert('Description required');return}if(!amount||amount<=0){alert('Enter valid amount');return}const proj=document.getElementById('fex-proj').value;expenses.push({id:Date.now(),proj,date:document.getElementById('fex-date').value||TODAY,cat:document.getElementById('fex-cat').value,amount,desc,payee:document.getElementById('fex-payee').value||'--',ref:document.getElementById('fex-ref').value,by:CU.name});actLog.unshift({time:nowStr(),text:`Expense: ${fmt(amount)} (${document.getElementById('fex-cat').value}) - ${proj}`,color:'#C05621'});closeFm('fm-expense');renderGlobalExpenses();if(activeProjectId)renderDetailBudget(activeProjectId)}
+function addExpense(){const desc=document.getElementById('fex-desc').value.trim();const amount=parseFloat(document.getElementById('fex-amount').value);if(!desc){alert('Description required');return}if(!amount||amount<=0){alert('Enter valid amount');return}const proj=document.getElementById('fex-proj').value;const e={_isNew:true,proj,date:document.getElementById('fex-date').value||TODAY,cat:document.getElementById('fex-cat').value,amount,desc,payee:document.getElementById('fex-payee').value||'--',ref:document.getElementById('fex-ref').value,by:CU.name};expenses.push(e);sbSaveExpense(e).then(()=>sbLog(`Expense: ${fmt(amount)} (${e.cat}) - ${proj}`,'#C05621','Budget',proj));closeFm('fm-expense');renderGlobalExpenses();if(activeProjectId)renderDetailBudget(activeProjectId)}
 function openExpForProj(projName){document.getElementById('fex-proj').innerHTML=myProjects().map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');document.getElementById('fex-date').value=TODAY;document.getElementById('fex-by').value=CU.name;document.getElementById('fm-expense').classList.add('op')}
 
 // SOP
@@ -2176,14 +2237,14 @@ function addContact(){const name=document.getElementById('fc-name').value.trim()
 function renderDirectory(){const df=document.getElementById('dir-dept-filter');const s=(document.getElementById('dir-search').value||'').toLowerCase();const depts=[...new Set(directory.map(d=>d.dept).filter(Boolean))];if(df.children.length<=1)df.innerHTML='<option value="">All Departments</option>'+depts.map(d=>`<option>${d}</option>`).join('');const pf=df.value;const tBadge={Internal:'bi',Client:'bk',Supplier:'bw',Contractor:'bg_',Government:'be',Emergency:'be'};let list=directory;if(pf)list=list.filter(d=>d.dept===pf);if(s)list=list.filter(d=>(d.name+d.position+d.dept+d.type).toLowerCase().includes(s));document.getElementById('directory-list').innerHTML=list.length?list.map(d=>{const c=avC(d.name);return`<div class="dir-card"><div class="av" style="width:40px;height:40px;font-size:16px;font-weight:700;background:${c.bg};color:${c.c};flex-shrink:0">${initials(d.name)}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:12px;color:var(--tx2)">${d.position||''}${d.dept?' · '+d.dept:''}</div>${d.notes?`<div style="font-size:11px;color:var(--tx3)">${d.notes}</div>`:''}</div><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end"><span class="badge ${tBadge[d.type]||'bg_'}">${d.type}</span><div style="display:flex;gap:5px">${d.phone?`<a href="tel:${d.phone}" class="btn btns" style="text-decoration:none" title="Call ${d.phone}"><i class="ti ti-phone" style="color:var(--ok-tx)"></i></a>`:''} ${d.email?`<a href="mailto:${d.email}" class="btn btns" style="text-decoration:none" title="Email ${d.email}"><i class="ti ti-mail" style="color:var(--in-tx)"></i></a>`:''}</div>${d.phone?`<div style="font-size:10px;color:var(--tx3)">${d.phone}</div>`:''}</div></div>`}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:20px">No contacts found.</div>'}
 
 // PROJECT CRUD
-function addProject(){const name=document.getElementById('fp-name').value.trim();if(!name){alert('Name required');return}const id=Date.now();const p={id,name,client:document.getElementById('fp-client').value||'Client',location:document.getElementById('fp-loc').value||'TBD',contractPrice:parseFloat(document.getElementById('fp-contract').value)||1000000,contingency:parseFloat(document.getElementById('fp-contingency').value)||0,start:document.getElementById('fp-start').value||TODAY,end:document.getElementById('fp-end').value||'2026-12-31',status:'on-track',color:COLS[projects.length%COLS.length],desc:document.getElementById('fp-desc').value,notes:''};projects.push(p);ganttActivities[id]=[];documents[id]=[];actLog.unshift({time:nowStr(),text:`Project created: ${name}`,color:p.color});closeFm('fm-proj');render()}
+function addProject(){const name=document.getElementById('fp-name').value.trim();if(!name){alert('Name required');return}const id=Date.now();const p={id,name,client:document.getElementById('fp-client').value||'Client',location:document.getElementById('fp-loc').value||'TBD',contractPrice:parseFloat(document.getElementById('fp-contract').value)||1000000,contingency:parseFloat(document.getElementById('fp-contingency').value)||0,start:document.getElementById('fp-start').value||TODAY,end:document.getElementById('fp-end').value||'2026-12-31',status:'on-track',color:COLS[projects.length%COLS.length],desc:document.getElementById('fp-desc').value,notes:'',_isNew:true};projects.push(p);ganttActivities[id]=[];documents[id]=[];sbSaveProject(p).then(()=>sbLog(`Project created: ${name}`,p.color,'Projects',''));closeFm('fm-proj');render()}
 function openEdit(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('fe-id').value=id;document.getElementById('fe-name').value=p.name;document.getElementById('fe-status').value=p.status;document.getElementById('fe-contract').value=p.contractPrice;document.getElementById('fe-notes').value=p.notes||'';document.getElementById('fm-edit').classList.add('op')}
-function saveEdit(){const id=parseInt(document.getElementById('fe-id').value);const p=projects.find(x=>x.id===id);if(!p)return;const os=p.status;p.name=document.getElementById('fe-name').value||p.name;p.status=document.getElementById('fe-status').value;p.contractPrice=parseFloat(document.getElementById('fe-contract').value)||p.contractPrice;p.notes=document.getElementById('fe-notes').value;if(p.status!==os)actLog.unshift({time:nowStr(),text:`${p.name}: status changed to ${p.status}`,color:p.color});closeFm('fm-edit');render();if(activeProjectId===id)renderDetailAll(id)}
+function saveEdit(){const id=parseInt(document.getElementById('fe-id').value);const p=projects.find(x=>x.id===id);if(!p)return;const os=p.status;p.name=document.getElementById('fe-name').value||p.name;p.status=document.getElementById('fe-status').value;p.contractPrice=parseFloat(document.getElementById('fe-contract').value)||p.contractPrice;p.notes=document.getElementById('fe-notes').value;sbSaveProject(p);if(p.status!==os){sbLog(`${p.name}: status changed to ${p.status}`,p.color,'Projects',p.name);}closeFm('fm-edit');render();if(activeProjectId===id)renderDetailAll(id)}
 
 // USERS
 function renderUsers(){if(!CU||CU.role!=='admin')return;document.getElementById('users-tbody').innerHTML=users.map(u=>`<tr><td><div style="display:flex;align-items:center;gap:8px">${avEl(u.name)}<span style="font-weight:500">${u.name}</span></div></td><td><span class="badge ${RBDG[u.role]}">${RLBL[u.role]}</span></td><td style="font-size:11px;color:var(--tx2);max-width:200px">${u.projects.join(', ')}</td><td>${u.active?'<span class="badge bk">Active</span>':'<span class="badge be">Inactive</span>'}</td><td><button class="btn btns" onclick="toggleUser(${u.id})">${u.active?'Deactivate':'Activate'}</button></td></tr>`).join('')}
 function toggleUser(id){const u=users.find(x=>x.id===id);if(!u)return;u.active=!u.active;actLog.unshift({time:nowStr(),text:`User ${u.active?'activated':'deactivated'}: ${u.name}`,color:'#534AB7'});renderUsers();initAuth()}
-function addUser(){const name=document.getElementById('fu-name').value.trim();const pin=document.getElementById('fu-pin').value;if(!name){alert('Name required');return}if(!pin||pin.length<4){alert('PIN must be 4+ digits');return}const role=document.getElementById('fu-role').value;let projs=role==='admin'?['ALL']:[];if(role!=='admin')document.querySelectorAll('#fu-proj-cbs input:checked').forEach(cb=>projs.push(cb.value));users.push({id:Date.now(),name,role,projects:projs,pin,active:true});actLog.unshift({time:nowStr(),text:`User added: ${name} (${RLBL[role]})`,color:'#534AB7'});closeFm('fm-user');renderUsers();initAuth()}
+function addUser(){const name=document.getElementById('fu-name').value.trim();const pin=document.getElementById('fu-pin').value;if(!name){alert('Name required');return}if(!pin||pin.length<4){alert('PIN must be 4+ digits');return}const role=document.getElementById('fu-role').value;let projs=role==='admin'?['ALL']:[];if(role!=='admin')document.querySelectorAll('#fu-proj-cbs input:checked').forEach(cb=>projs.push(cb.value));const u={_isNew:true,name,role,projects:projs,pin,active:true};users.push(u);sbSaveUser(u).then(()=>sbLog(`User added: ${name} (${RLBL[role]})`,'#534AB7','Users',''));closeFm('fm-user');renderUsers();initAuth()}
 
 // ACTIVITY
 function addPipelineLead(){
@@ -2191,9 +2252,9 @@ function addPipelineLead(){
   const client=document.getElementById('fpl-client').value.trim();
   if(!name||!client){alert('Name and client required');return;}
   const stage=document.getElementById('fpl-stage').value;
-  const lead={id:Date.now(),name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,notes:document.getElementById('fpl-notes').value,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
+  const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,notes:document.getElementById('fpl-notes').value,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
   pipeline.push(lead);
-  actLog.unshift({time:nowStr(),text:`Pipeline lead added: "${name}" — ${stage}`,color:'#7B2D8B'});
+  sbSavePipeline(lead).then(()=>sbLog(`Pipeline lead added: "${name}" — ${stage}`,'#7B2D8B','Pipeline',''));
   if(stage==='Awarded')promotePipelineToProject(lead);
   closeFm('fm-pipeline');renderPipeline();
 }
@@ -2217,7 +2278,8 @@ function savePipelineLead(){
   const note=document.getElementById('fple-notes').value;
   if(!l.history)l.history=[];
   l.history.push({date:TODAY,stage:l.stage,note:note||'Status updated',by:CU.name});
-  actLog.unshift({time:nowStr(),text:`Pipeline: "${l.name}" moved to ${l.stage}`,color:'#7B2D8B'});
+  sbSavePipeline(l);
+  sbLog(`Pipeline: "${l.name}" moved to ${l.stage}`,'#7B2D8B','Pipeline','');
   if(l.stage==='Awarded'&&oldStage!=='Awarded'){
     if(confirm(`"${l.name}" is Awarded! Add it to My Projects as an Ongoing Project?`)){
       promotePipelineToProject(l);
@@ -2338,7 +2400,12 @@ function goToActivity(idx){
 }
 
 // INIT
-initAuth();
+async function boot(){
+  showLoadingOverlay(true);
+  await loadAllData();
+  initAuth();
+}
+boot();
 </script>
 </body>
 </html>
