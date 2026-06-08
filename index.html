@@ -760,7 +760,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
   <div class="fg"><label class="fl">Equipment (comma-separated)</label><input class="inp" id="fge-equip"></div>
   <input type="hidden" id="fge-act-id"><input type="hidden" id="fge-proj-id">
-  <div class="fa"><button class="btn" onclick="closeFm('fm-gantt-edit')">Cancel</button><button class="btn btnp" onclick="saveGanttEdit()">Update</button></div>
+  <div class="fa" style="justify-content:space-between"><button class="btn" style="color:var(--er-tx);border-color:var(--er-tx)" onclick="deleteGanttActivity()"><i class="ti ti-trash"></i> Delete</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeFm('fm-gantt-edit')">Cancel</button><button class="btn btnp" onclick="saveGanttEdit()">Update</button></div></div>
 </div></div>
 
 <!-- Manpower -->
@@ -1469,7 +1469,29 @@ tasks.push({id:Date.now()+1,name:act.name,project:pn,assignee:act.assign,due:act
 // Auto-create tasks for each subtask
 subTasks.forEach((st,idx)=>{tasks.push({id:Date.now()+10+idx,name:st.name,project:pn,assignee:act.assign,due:act.end,start:act.start,priority:'medium',done:false,status:'pending',ganttId:act.id,subTaskId:st.id,schedule:'once',scheduleDays:[],details:'Sub-task of: '+act.name+' | Planned: '+act.start+' → '+act.end,riskLevel:act.riskLevel||'LOW',reports:[]});});actLog.unshift({time:nowStr(),text:`Gantt activity added: "${name}" with ${subTasks.length} sub-tasks`,color:'#185FA5',cat:'Gantt',user:CU.name,proj:projects.find(p=>p.id===projId)?.name||'',note:document.getElementById('fg-phase').value+' phase'});closeFm('fm-gantt');renderDetailAll(projId);renderSidebar();renderMetrics();renderTasksGlobal()}
 function openGanttEditModal(actId,projId){const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;document.getElementById('fge-act-id').value=actId;document.getElementById('fge-proj-id').value=projId;document.getElementById('fge-name-lbl').textContent=act.name;document.getElementById('fge-done').value=act.done;document.getElementById('fge-done-val').textContent=act.done+'%';document.getElementById('fge-equip').value=(act.equip||[]).join(', ');document.getElementById('fge-actual-start').value=act.actualStart||'';document.getElementById('fge-actual-end').value=act.actualEnd||'';document.getElementById('fm-gantt-edit').classList.add('op')}
-function saveGanttEdit(){const actId=parseInt(document.getElementById('fge-act-id').value);const projId=parseInt(document.getElementById('fge-proj-id').value);const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;act.done=parseInt(document.getElementById('fge-done').value)||0;act.equip=document.getElementById('fge-equip').value.split(',').map(s=>s.trim()).filter(Boolean);act.actualStart=document.getElementById('fge-actual-start').value||act.actualStart||'';act.actualEnd=document.getElementById('fge-actual-end').value||act.actualEnd||'';actLog.unshift({time:nowStr(),text:`Gantt updated: "${act.name}" → ${act.done}%`,color:'#0F6E56',cat:'Gantt',user:CU.name,proj:projects.find(p=>p.id===projId)?.name||'',note:act.done+'% complete'});closeFm('fm-gantt-edit');renderDetailAll(projId);renderSidebar();renderMetrics()}
+function saveGanttEdit(){const actId=parseInt(document.getElementById('fge-act-id').value);const projId=parseInt(document.getElementById('fge-proj-id').value);const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;act.done=parseInt(document.getElementById('fge-done').value)||0;act.equip=document.getElementById('fge-equip').value.split(',').map(s=>s.trim()).filter(Boolean);act.actualStart=document.getElementById('fge-actual-start').value||act.actualStart||'';act.actualEnd=document.getElementById('fge-actual-end').value||act.actualEnd||'';sbSaveGanttActivity(act,projId);sbLog(`Gantt updated: "${act.name}" → ${act.done}%`,'#0F6E56','Gantt',projects.find(p=>p.id===projId)?.name||'');closeFm('fm-gantt-edit');renderDetailAll(projId);renderSidebar();renderMetrics()}
+
+async function deleteGanttActivity(){
+  const actId=parseInt(document.getElementById('fge-act-id').value);
+  const projId=parseInt(document.getElementById('fge-proj-id').value);
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);
+  if(!act)return;
+  if(!confirm(`Delete activity "${act.name}"? This will also remove linked tasks. This cannot be undone.`))return;
+  // Delete from Supabase if it has a real DB id
+  if(act.id&&typeof act.id==='number'&&act.id<2000000000){
+    await sb.from('gantt_activities').delete().eq('id',act.id);
+  }
+  // Remove linked tasks
+  tasks=tasks.filter(t=>t.ganttId!==actId);
+  // Remove from local array
+  ganttActivities[projId]=(ganttActivities[projId]||[]).filter(a=>a.id!==actId);
+  const projName=projects.find(p=>p.id===projId)?.name||'';
+  sbLog(`Gantt activity deleted: "${act.name}"`,'#993C1D','Gantt',projName);
+  closeFm('fm-gantt-edit');
+  renderDetailAll(projId);
+  renderSidebar();
+  renderMetrics();
+}
 function openSubTaskReport(actId,stId,projId){
   if(!CU||(CU.role!=='admin'&&CU.role!=='pm')){alert('Only Admin or Project Manager can change task completion status.');return}
   const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);
