@@ -859,6 +859,27 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
 </div></div>
 
+<!-- Edit Equipment Dates -->
+<div class="fm" id="fm-equip-edit"><div class="fb">
+  <div class="ft"><i class="ti ti-crane"></i> Set Equipment Dates</div>
+  <div id="feq-name-lbl" style="font-size:13px;font-weight:700;color:var(--or);margin-bottom:12px"></div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Override the auto-calculated dates (derived from activities) with specific mobilization/demobilization dates.</div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Mobilization Date (Start)</label><input class="inp" id="feq-start" type="date"></div>
+    <div class="fg"><label class="fl">Demobilization Date (End)</label><input class="inp" id="feq-end" type="date"></div>
+  </div>
+  <div class="fg"><label class="fl">Notes (optional)</label><input class="inp" id="feq-notes" placeholder="e.g. Rental from ABC Equipment Co."></div>
+  <input type="hidden" id="feq-proj-id">
+  <input type="hidden" id="feq-eq-name">
+  <div class="fa" style="justify-content:space-between">
+    <button class="btn btns" style="color:var(--er-tx)" onclick="clearEquipDates()"><i class="ti ti-x"></i> Clear Custom</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeFm('fm-equip-edit')">Cancel</button>
+      <button class="btn btnp" onclick="saveEquipEdit()"><i class="ti ti-check"></i> Save Dates</button>
+    </div>
+  </div>
+</div></div>
+
 <!-- Edit Sub-task -->
 <div class="fm" id="fm-subtask-edit"><div class="fb">
   <div class="ft"><i class="ti ti-subtask"></i> Edit Sub-task</div>
@@ -1228,7 +1249,20 @@ async function loadAllData(){
     if(ganttRes.data){
       ganttRes.data.forEach(g=>{
         if(!ganttActivities[g.project_id])ganttActivities[g.project_id]=[];
-        ganttActivities[g.project_id].push({...g,subTasks:g.sub_tasks||[],equip:g.equipment||[],done:g.completion||0,assign:g.assigned_to||''});
+        ganttActivities[g.project_id].push({
+          ...g,
+          start:g.start_date||'',
+          end:g.end_date||'',
+          actualStart:g.actual_start||'',
+          actualEnd:g.actual_end||'',
+          phase:g.phase||'Civil',
+          riskLevel:g.risk_level||'LOW',
+          weight:g.weight||10,
+          done:g.completion||0,
+          assign:g.assigned_to||'',
+          equip:g.equipment||[],
+          subTasks:(g.sub_tasks||[]).map(st=>({...st,start:st.start||g.start_date||'',end:st.end||g.end_date||''}))
+        });
       });
     }
     const docRes=await sb.from('documents').select('*');
@@ -1614,69 +1648,67 @@ document.getElementById('d-ov-content').innerHTML=`
 // GANTT CHART
 function renderGanttDetail(id){const acts=ganttActivities[id]||[];const p=projects.find(x=>x.id===id);
 const PCOLS={Civil:'#185FA5',Structural:'#C05621',Architectural:'#534AB7',MEP:'#0F6E56',Electrical:'#854F0B',Plumbing:'#0F5F6E',Closeout:'#993C1D',Other:'#666'};
-document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="exportGanttCSV(${id})" title="Download CSV"><i class="ti ti-file-spreadsheet"></i> CSV</button><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Progress auto-calculated from weighted activities. Click edit to update %. Toggle sub-task checkboxes to auto-update. Equipment rows show predicted rental period.</div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`}
+document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttCSV(${id})" title="Export CSV"><i class="ti ti-file-spreadsheet"></i> Export CSV</button><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Progress auto-calculated from weighted activities. Click edit to update %. Toggle sub-task checkboxes to auto-update. Equipment rows show predicted rental period.</div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`}
 
-// ─── GANTT EXPORT ─────────────────────────────────────────────────
-function exportGanttCSV(projId){
+
+// ─── EQUIPMENT DATE EDIT ──────────────────────────────────────────
+function openEquipEdit(eqName, projId){
   const p=projects.find(x=>x.id===projId);if(!p)return;
-  const acts=ganttActivities[projId]||[];
-  if(!acts.length){alert('No activities to export.');return;}
+  if(!p.equipDates)p.equipDates={};
+  const existing=p.equipDates[eqName]||null;
+  document.getElementById('feq-proj-id').value=projId;
+  document.getElementById('feq-eq-name').value=eqName;
+  document.getElementById('feq-name-lbl').textContent=eqName;
+  document.getElementById('feq-start').value=existing?existing.start:'';
+  document.getElementById('feq-end').value=existing?existing.end:'';
+  document.getElementById('feq-notes').value=existing?existing.notes||'':'';
+  document.getElementById('fm-equip-edit').classList.add('op');
+}
+function saveEquipEdit(){
+  const projId=parseInt(document.getElementById('feq-proj-id').value);
+  const eqName=document.getElementById('feq-eq-name').value;
+  const start=document.getElementById('feq-start').value;
+  const end=document.getElementById('feq-end').value;
+  if(!start||!end){alert('Both start and end dates are required.');return;}
+  if(start>end){alert('Start must be before end.');return;}
+  const p=projects.find(x=>x.id===projId);if(!p)return;
+  if(!p.equipDates)p.equipDates={};
+  p.equipDates[eqName]={start,end,notes:document.getElementById('feq-notes').value};
+  sbLog('Equipment dates set: '+eqName+' '+start+' → '+end,'#C05621','Gantt',p.name);
+  closeFm('fm-equip-edit');
+  renderGanttDetail(projId);
+}
+function clearEquipDates(){
+  const projId=parseInt(document.getElementById('feq-proj-id').value);
+  const eqName=document.getElementById('feq-eq-name').value;
+  const p=projects.find(x=>x.id===projId);if(!p)return;
+  if(p.equipDates)delete p.equipDates[eqName];
+  closeFm('fm-equip-edit');
+  renderGanttDetail(projId);
+}
+
+// ─── GANTT CSV TEMPLATE ───────────────────────────────────────────
+function downloadGanttTemplate(){
   const rows=[
-    ['JCY Design Studio — Gantt Chart Export'],
-    ['Project:',p.name,'Client:',p.client,'Location:',p.location],
-    ['Exported:',new Date().toLocaleDateString('en-PH'),''],
-    [],
-    ['#','Activity','Phase','Risk Level','Planned Start','Planned End','Actual Start','Actual End','Completion %','Weight %','Assigned To','Equipment','Sub-tasks']
+    ['# JCY Design Studio — Gantt Chart Import Template'],
+    ['# Fill in each row below. Required: activity_name, phase, start_date, end_date'],
+    ['# Date format: YYYY-MM-DD (e.g. 2025-06-01)'],
+    ['# risk_level: LOW | MEDIUM | HIGH | CRITICAL'],
+    ['# phase: Civil | Structural | Architectural | MEP | Electrical | Plumbing | Closeout | Other'],
+    ['# completion: 0-100 (percent done)'],
+    ['# weight: importance weighting (all weights should add up to 100 ideally)'],
+    ['# sub_tasks: comma-separated list of sub-task names'],
+    ['# equipment: comma-separated list of equipment names'],
+    ['#'],
+    ['activity_name','phase','risk_level','planned_start','planned_end','actual_start','actual_end','completion','weight','assigned_to','equipment','sub_tasks','notes'],
+    ['Foundation Works','Civil','HIGH','2025-06-01','2025-06-30','2025-06-01','','25','20','Juan dela Cruz','Excavator,Concrete Pump','Site clearing,Excavation,Rebar installation,Concrete pouring','Critical path item'],
+    ['Structural Works','Structural','HIGH','2025-07-01','2025-08-15','','','0','25','Maria Santos','Tower Crane','Column works,Beam installation,Slab pouring',''],
+    ['Architectural Finishes','Architectural','MEDIUM','2025-08-01','2025-09-30','','','0','20','Pedro Reyes','','Masonry,Plastering,Painting,Tiling',''],
+    ['MEP Rough-in','MEP','MEDIUM','2025-07-15','2025-09-01','','','0','15','Jose Garcia','','Electrical rough-in,Plumbing rough-in,HVAC ducts',''],
+    ['Doors & Windows','Architectural','LOW','2025-09-01','2025-09-20','','','0','10','Ana Cruz','','Door installation,Window installation',''],
+    ['Testing & Commissioning','Closeout','LOW','2025-09-15','2025-10-01','','','0','10','Juan dela Cruz','','Systems testing,Snag list,Final inspection',''],
   ];
-  acts.forEach((a,i)=>{
-    rows.push([
-      i+1,
-      a.name,
-      a.phase||'',
-      a.riskLevel||'LOW',
-      a.start||'',
-      a.end||'',
-      a.actualStart||'',
-      a.actualEnd||'',
-      (a.done||0)+'%',
-      (a.weight||10)+'%',
-      a.assign||'',
-      (a.equip||[]).join('; '),
-      (a.subTasks||[]).map(s=>(s.done?'[x] ':'[ ] ')+s.name).join(' | ')
-    ]);
-    // Sub-task rows indented
-    (a.subTasks||[]).forEach((st,si)=>{
-      rows.push([
-        i+1+'.'+(si+1),
-        '    └ '+st.name,
-        a.phase||'',
-        '',
-        a.start||'',
-        a.end||'',
-        '','',
-        st.done?'100%':'0%',
-        '','','',''
-      ]);
-    });
-  });
-  // Equipment schedule summary
-  const allEquip=[...new Set(acts.flatMap(a=>a.equip||[]))];
-  if(allEquip.length){
-    rows.push([]);
-    rows.push(['EQUIPMENT SCHEDULE']);
-    rows.push(['Equipment','Activities','Start','End','Duration (days)']);
-    allEquip.forEach(eq=>{
-      const aa=acts.filter(a=>(a.equip||[]).includes(eq));
-      const eS=new Date(Math.min(...aa.map(a=>new Date(a.start))));
-      const eE=new Date(Math.max(...aa.map(a=>new Date(a.end))));
-      const days=Math.round((eE-eS)/(1000*60*60*24));
-      rows.push([eq,aa.map(a=>a.name).join('; '),eS.toISOString().slice(0,10),eE.toISOString().slice(0,10),days]);
-    });
-  }
-  const csv=rows.map(r=>r.map(c=>{
-    const s=String(c===null||c===undefined?'':c).replace(/"/g,'""');
-    return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s+'"':s;
-  }).join(',')).join('\r\n');
+  const CRLF='\r\n';const csv=rows.map(r=>r.map(c=>{const s=String(c===null||c===undefined?'':c).replace(/"/g,'""');return(s.indexOf(',')>=0||s.indexOf('"')>=0)?'"'+s+'"':s;}).join(',')).join(CRLF);
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -2060,12 +2092,7 @@ const rowsHTML=acts.map(a=>{
     <!-- % label inside -->
     <div style="position:absolute;top:10px;left:${barLeft+5}px;font-size:9px;font-weight:700;
       color:${col};z-index:4;pointer-events:none;white-space:nowrap">${a.done||0}%</div>
-    <!-- start date tick -->
-    <div style="position:absolute;top:${ROW_H-16}px;left:${barLeft}px;font-size:7.5px;font-weight:700;
-      color:${col};z-index:4;pointer-events:none;white-space:nowrap;transform:translateX(-50%)">${fmtShort(a.start)}</div>
-    <!-- end date tick -->
-    <div style="position:absolute;top:${ROW_H-16}px;left:${barLeft+barW}px;font-size:7.5px;font-weight:700;
-      color:${col};z-index:4;pointer-events:none;white-space:nowrap;transform:translateX(-50%)">${fmtShort(a.end)}</div>
+    <!-- dates shown in header -->
     ${actualBarHTML}
     ${todayLine}
     ${editBtn}`;
@@ -2086,8 +2113,7 @@ const rowsHTML=acts.map(a=>{
         border:1.5px ${st.start&&st.end?'solid':'dashed'} ${col};box-sizing:border-box;z-index:2"></div>
       ${st.done?`<div style="position:absolute;top:7px;left:${stLeft}px;width:${stW}px;height:${SUB_H-16}px;
         border-radius:3px;background:${col};opacity:.35;z-index:2;pointer-events:none"></div>`:''}
-      <div style="position:absolute;top:${SUB_H-14}px;left:${stLeft}px;font-size:7px;font-weight:600;
-        color:${col};z-index:4;pointer-events:none;white-space:nowrap;transform:translateX(-50%)">${fmtShort(stS)}</div>
+      <!-- dates shown in header -->
       ${todayLine}`;
     return `<div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;border-bottom:1px solid var(--bd);background:var(--bg2)">
       <div style="display:flex;align-items:center;gap:5px;padding:3px 8px 3px 22px;border-right:1px solid var(--bd);background:var(--bg2);position:sticky;left:0;z-index:6">
@@ -2128,17 +2154,26 @@ const equipRowsHTML=allEquip.length?`
   const eLeft=dayLeft(eS);
   const eW=dayWidth(eS,eE);
   const days=Math.round((eE-eS)/(1000*60*60*24))+1;
+  // Find equipment-level custom dates if stored
+  const eqKey='eq_'+p.id+'_'+eq.replace(/[^a-z0-9]/gi,'_');
+  const eqCustom=(p.equipDates&&p.equipDates[eq])||null;
+  const dispS=eqCustom?new Date(eqCustom.start):eS;
+  const dispE=eqCustom?new Date(eqCustom.end):eE;
+  const dispLeft=dayLeft(dispS);const dispW=dayWidth(dispS,dispE);
+  const dispDays=Math.round((dispE-dispS)/(1000*60*60*24))+1;
+  const editEqBtn=isAdminOrPM?`<button class="btn btns" style="font-size:9px;padding:1px 4px;flex-shrink:0;margin-left:4px" onclick="openEquipEdit('${eq.replace(/'/g,"\\'")}',${p.id})" title="Set custom dates"><i class="ti ti-edit"></i></button>`:'';
   return`<div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;border-bottom:1px solid var(--bd);background:var(--or2)">
     <div style="display:flex;align-items:center;gap:6px;padding:4px 8px 4px 12px;border-right:1px solid var(--bd);background:var(--or2);position:sticky;left:0;z-index:6">
       <i class="ti ti-crane" style="color:#C05621;font-size:12px;flex-shrink:0"></i>
-      <div>
+      <div style="flex:1;min-width:0">
         <div style="font-size:10px;font-weight:700;color:#C05621">${eq}</div>
-        <div style="font-size:8px;color:var(--tx2)">${fmtShort(eS)} → ${fmtShort(eE)} · ${days}d</div>
+        <div style="font-size:8px;color:var(--tx2)">${fmtShort(dispS)} → ${fmtShort(dispE)} · ${dispDays}d${eqCustom?' <span style="color:var(--ok-tx);font-weight:700">custom</span>':''}</div>
       </div>
+      ${editEqBtn}
     </div>
     <div style="position:relative;height:32px;overflow:hidden;min-width:${totalPx}px">
       ${gridBg}
-      <div style="position:absolute;top:8px;left:${eLeft}px;width:${eW}px;height:16px;border-radius:3px;
+      <div style="position:absolute;top:8px;left:${dispLeft}px;width:${dispW}px;height:16px;border-radius:3px;
         background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(192,86,33,.15) 3px,rgba(192,86,33,.15) 6px);
         border:1.5px solid #C05621;display:flex;align-items:center;padding:0 6px;overflow:hidden;z-index:2">
         <span style="font-size:8px;font-weight:700;color:#C05621;white-space:nowrap">${eq}</span>
@@ -2218,7 +2253,9 @@ async function addGanttActivity(){
   const projId=parseInt(document.getElementById('fg-proj-id').value);
   if(!ganttActivities[projId])ganttActivities[projId]=[];
   const rawSubs=document.getElementById('fg-subtasks').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  const subTasks=rawSubs.map((s,i)=>({id:Date.now()+i,name:s,done:false}));
+  const actStart=document.getElementById('fg-start').value||TODAY;
+  const actEnd=document.getElementById('fg-end').value||TODAY;
+  const subTasks=rawSubs.map((s,i)=>({id:Date.now()+i,name:s,done:false,start:actStart,end:actEnd}));
   const equip=document.getElementById('fg-equip').value.split(',').map(s=>s.trim()).filter(Boolean);
   const riskVal=document.getElementById('fg-risk')?.value||'LOW';
   const act={
@@ -2250,13 +2287,20 @@ async function addGanttActivity(){
     sub_tasks:subTasks,
     risk_level:riskVal
   };
+  console.log('Saving gantt activity to Supabase:',row);
   const {data,error}=await sb.from('gantt_activities').insert([row]).select();
-  if(error||!data||!data[0]){
-    alert('Failed to save Gantt activity. Check console.');
-    console.error('Gantt insert error:',error);
+  if(error){
+    console.error('Gantt insert error full:',JSON.stringify(error));
+    alert('Supabase error saving Gantt:\n'+JSON.stringify(error.message||error));
     return;
   }
-  act.id=data[0].id; // real Supabase ID
+  if(!data||!data[0]){
+    console.error('Gantt insert: no data returned');
+    alert('Gantt activity was not saved — no data returned. Check Supabase RLS policies for gantt_activities table.');
+    return;
+  }
+  act.id=data[0].id;
+  console.log('✓ Gantt activity saved, ID:',act.id);
   ganttActivities[projId].push(act);
   const pn=projects.find(p=>p.id===projId)?.name;
   // Auto-create a task for the main activity
@@ -2313,8 +2357,10 @@ async function saveGanttEdit(){
   act.equip=document.getElementById('fge-equip').value.split(',').map(s=>s.trim()).filter(Boolean);
   // Save to Supabase
   const row={name:act.name,phase:act.phase,start_date:act.start,end_date:act.end,actual_start:act.actualStart||null,actual_end:act.actualEnd||null,weight:act.weight,completion:act.done,assigned_to:act.assign,equipment:act.equip,sub_tasks:act.subTasks||[],risk_level:act.riskLevel};
+  console.log('Updating gantt activity in Supabase, id:',actId,'row:',row);
   const{error}=await sb.from('gantt_activities').update(row).eq('id',actId);
-  if(error)console.error('Gantt update error:',error);
+  if(error){console.error('Gantt update error:',JSON.stringify(error));alert('Supabase update error:\n'+(error.message||JSON.stringify(error)));}
+  else console.log('✓ Gantt activity updated in Supabase');
   // Also update the linked task in Supabase
   const linkedTask=tasks.find(t=>t.ganttId===actId&&!t.subTaskId);
   if(linkedTask){linkedTask.name=act.name;linkedTask.due=act.end;linkedTask.assignee=act.assign;linkedTask.riskLevel=act.riskLevel;await sbSaveTask(linkedTask);}
@@ -2346,15 +2392,19 @@ async function saveSubTaskEdit(){
   Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{if(a.id===actId){foundAct=a;const st=(a.subTasks||[]).find(s=>s.id===stId);if(st)foundSt=st;}}));
   if(!foundAct||!foundSt)return;
   foundSt.name=document.getElementById('fste-name').value.trim()||foundSt.name;
-  foundSt.start=document.getElementById('fste-start').value||foundAct.start;
-  foundSt.end=document.getElementById('fste-end').value||foundAct.end;
+  foundSt.start=document.getElementById('fste-start').value||foundAct.start||'';
+  foundSt.end=document.getElementById('fste-end').value||foundAct.end||'';
   foundSt.done=document.getElementById('fste-done').value==='1';
+  // Persist dates in the sub_tasks array stored to Supabase
+  const stForSave=foundAct.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||foundAct.start||'',end:s.end||foundAct.end||''}));
   // Update parent completion
   if(foundAct.subTasks.length)foundAct.done=Math.round(foundAct.subTasks.filter(s=>s.done).length/foundAct.subTasks.length*100);
   // Save gantt activity (with updated sub_tasks)
-  const row={sub_tasks:foundAct.subTasks,completion:foundAct.done};
+  const row={sub_tasks:stForSave||foundAct.subTasks,completion:foundAct.done};
+  console.log('Saving sub-task update to Supabase, actId:',actId);
   const{error}=await sb.from('gantt_activities').update(row).eq('id',actId);
-  if(error)console.error('Sub-task save error:',error);
+  if(error)console.error('Sub-task save error:',JSON.stringify(error));
+  else console.log('✓ Sub-task saved to Supabase');
   // Update linked task
   const linkedTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
   if(linkedTask){linkedTask.name=foundSt.name;linkedTask.due=foundSt.end||foundAct.end;linkedTask.done=foundSt.done;linkedTask.status=foundSt.done?'done':'pending';await sbSaveTask(linkedTask);}
@@ -2453,7 +2503,7 @@ function renderDetailTasks(id){
   const addBtn=canDo('newTask')?'<button class="btn btns btnp" onclick="openTaskForProjById('+id+')"><i class="ti ti-plus"></i> Add Task</button>':'';
   document.getElementById('d-tasks-content').innerHTML='<div class="ch"><div class="ct"><i class="ti ti-checklist"></i> Project Tasks</div>'+addBtn+'</div>'
     +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:11px;color:var(--tx2);align-self:center">Filter:</span>'
-    +['All','Pending','Done','High','Mine'].map(function(f){return '<button class="btn btns" style="font-size:10px;padding:3px 7px" onclick="filterDetailTasks('+id+',\''+f+'\')" >'+f+'</button>';}).join('')+'</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px"><span style="font-size:11px;color:var(--tx2)">Due From:</span><input class="inp" type="date" id="dtask-from-'+id+'" style="width:130px;font-size:10px"><span style="font-size:11px;color:var(--tx2)">To:</span><input class="inp" type="date" id="dtask-to-'+id+'" style="width:130px;font-size:10px"><button class="btn btns" style="font-size:10px" onclick="filterDetailTasks('+id+')">Apply</button><button class="btn btns" style="font-size:10px" onclick="clearDTaskDates('+id+')">Clear</button>'
+    +['All','Today','Pending','Overdue','Done','High','Mine'].map(function(f){return '<button class="btn btns" style="font-size:10px;padding:3px 7px" onclick="filterDetailTasks('+id+',\''+f+'\')" >'+f+'</button>';}).join('')+'</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px"><span style="font-size:11px;color:var(--tx2)">Due From:</span><input class="inp" type="date" id="dtask-from-'+id+'" style="width:130px;font-size:10px"><span style="font-size:11px;color:var(--tx2)">To:</span><input class="inp" type="date" id="dtask-to-'+id+'" style="width:130px;font-size:10px"><button class="btn btns" style="font-size:10px" onclick="filterDetailTasks('+id+')">Apply</button><button class="btn btns" style="font-size:10px" onclick="clearDTaskDates('+id+')">Clear</button>'
     +'<input class="inp" id="dtask-search-'+id+'" style="max-width:280px;font-size:11px;margin-bottom:8px" placeholder="Search tasks..." oninput="filterDetailTasks('+id+',null)">'
     +'<div id="d-tasks-list-'+id+'"></div>';
   filterDetailTasks(id,'All');
@@ -2816,9 +2866,12 @@ function filterDetailTasks(id,statusFilter){
   const sf=(!statusFilter||statusFilter==='null')?currentDTaskFilter[id]||'All':statusFilter;if(statusFilter&&statusFilter!=='null')currentDTaskFilter[id]=sf;
   const el=document.getElementById('d-tasks-list-'+id);if(!el)return;
   let list=tasks.filter(t=>t.project===p.name&&(CU.role==='admin'||CU.role==='pm'||t.assignee===CU.name));
-  if(sf==='Pending')list=list.filter(t=>(t.status||'pending')==='pending'&&!t.done);
-  
+  if(sf==='Today')list=list.filter(t=>t.due===TODAY&&!t.done);
+  else if(sf==='Overdue')list=list.filter(t=>!t.done&&t.due&&t.due<TODAY);
+  else if(sf==='Pending')list=list.filter(t=>(t.status||'pending')==='pending'&&!t.done);
   else if(sf==='Done')list=list.filter(t=>t.done);
+  else if(sf==='High')list=list.filter(t=>t.priority==='high');
+  else if(sf==='Mine')list=list.filter(t=>t.assignee===CU.name);
   if(srch)list=list.filter(t=>(t.name+' '+(t.assignee||'')).toLowerCase().includes(srch));
   const dateFrom=document.getElementById('dtask-from-'+id)?.value||'';const dateTo=document.getElementById('dtask-to-'+id)?.value||'';if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);el.innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);const act=t.ganttId?(ganttActivities[id]||[]).find(a=>a.id===t.ganttId):null;return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},${id})">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span>${act?`<span style="color:var(--in-tx)"><i class="ti ti-link" style="font-size:9px"></i> ${act.name}</span>`:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskStatusBadge(t)}${pribadge(t.priority)}</div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No tasks match.</div>';
 }
@@ -2841,14 +2894,14 @@ function buildTaskFilterBar(){
     +'<span style="font-size:11px;color:var(--tx2);flex-shrink:0">Project:</span>'
     +'<select class="inp" style="width:220px" onchange="setTPF(this.value)">'+projOptions+'</select>'
     +'<span style="font-size:11px;color:var(--tx2);flex-shrink:0;margin-left:8px">Filter:</span>'
-    +['All','Pending','Done','High','Mine'].map(f2=>'<button class="btn btns'+(taskStatusFilter===f2?' btnp':'')+'" onclick="setTSF(\'' +f2+ '\')">'+f2+'</button>').join('')
+    +['All','Today','Pending','Overdue','Done','High','Mine'].map(f2=>'<button class="btn btns'+(taskStatusFilter===f2?' btnp':'')+'" onclick="setTSF(\'' +f2+ '\')">'+f2+'</button>').join('')
     +'</div>';
 }
 function setTPF(n){taskProjFilter=n;buildTaskFilterBar();renderTasksGlobal()}
 function setTSF(f){taskStatusFilter=f;buildTaskFilterBar();renderTasksGlobal()}
 function clearDTaskDates(id){const f=document.getElementById('dtask-from-'+id);const t=document.getElementById('dtask-to-'+id);if(f)f.value='';if(t)t.value='';window['_taskDateFrom_'+id]='';window['_taskDateTo_'+id]='';filterDetailTasks(id);}
 function clearTaskDateFilter(){const f=document.getElementById('task-date-from');const t2=document.getElementById('task-date-to');if(f)f.value='';if(t2)t2.value='';renderTasksGlobal();}
-function renderTasksGlobal(){const mp=myProjects();const taskSrch=(document.getElementById('task-search')?.value||'').toLowerCase();const dateFrom=document.getElementById('task-date-from')?.value||'';const dateTo=document.getElementById('task-date-to')?.value||'';let list=tasks.filter(t=>mp.some(p=>p.name===t.project)&&(canDo('viewAll')||CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name));if(taskSrch)list=list.filter(t=>(t.name+' '+(t.assignee||'')+' '+(t.project||'')).toLowerCase().includes(taskSrch));if(taskProjFilter!=='All')list=list.filter(t=>t.project===taskProjFilter);if(taskStatusFilter==='Pending')list=list.filter(t=>!t.done&&(t.status||'pending')==='pending');else if(taskStatusFilter==='Done')list=list.filter(t=>t.done);else if(taskStatusFilter==='High')list=list.filter(t=>t.priority==='high');else if(taskStatusFilter==='Mine')list=list.filter(t=>t.assignee===CU.name);if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);document.getElementById('task-list').innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},null)">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span style="color:var(--in-tx)">${t.project}</span><span>·</span><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span></div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskStatusBadge(t)}${pribadge(t.priority)}<span style="font-size:10px;color:var(--tx2)">${(t.reports||[]).length} report(s)</span></div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No tasks match this filter.</div>'}
+function renderTasksGlobal(){const mp=myProjects();const taskSrch=(document.getElementById('task-search')?.value||'').toLowerCase();const dateFrom=document.getElementById('task-date-from')?.value||'';const dateTo=document.getElementById('task-date-to')?.value||'';let list=tasks.filter(t=>mp.some(p=>p.name===t.project)&&(canDo('viewAll')||CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name));if(taskSrch)list=list.filter(t=>(t.name+' '+(t.assignee||'')+' '+(t.project||'')).toLowerCase().includes(taskSrch));if(taskProjFilter!=='All')list=list.filter(t=>t.project===taskProjFilter);if(taskStatusFilter==='Today')list=list.filter(t=>t.due===TODAY&&!t.done);else if(taskStatusFilter==='Pending')list=list.filter(t=>!t.done&&(t.status||'pending')==='pending');else if(taskStatusFilter==='Done')list=list.filter(t=>t.done);else if(taskStatusFilter==='High')list=list.filter(t=>t.priority==='high');else if(taskStatusFilter==='Overdue')list=list.filter(t=>!t.done&&t.due&&t.due<TODAY);else if(taskStatusFilter==='Mine')list=list.filter(t=>t.assignee===CU.name);if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);document.getElementById('task-list').innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},null)">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span style="color:var(--in-tx)">${t.project}</span><span>·</span><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span></div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskStatusBadge(t)}${pribadge(t.priority)}<span style="font-size:10px;color:var(--tx2)">${(t.reports||[]).length} report(s)</span></div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No tasks match this filter.</div>'}
 
 function openTaskDetail(taskId){const t=tasks.find(x=>x.id===taskId);if(!t)return;document.getElementById('ftd-title').textContent=t.name;document.getElementById('ftd-task-id').value=taskId;document.getElementById('ftd-date').value=TODAY;document.getElementById('ftd-pct').value=0;document.getElementById('ftd-pct-val').textContent='0%';['ftd-work','ftd-issues','ftd-equip','ftd-materials'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const wEl=document.getElementById('ftd-workers');if(wEl)wEl.value='';const hEl=document.getElementById('ftd-hours');if(hEl)hEl.value='8';const pEl=document.getElementById('ftd-prev');if(pEl)pEl.innerHTML='';
 const proj=projects.find(p=>p.name===t.project);const acts=proj?ganttActivities[proj.id]||[]:[];const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
