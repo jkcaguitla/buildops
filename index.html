@@ -189,6 +189,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <button class="ntab" onclick="setTab('inventory')" id="t-inventory"><i class="ti ti-package"></i> Inventory</button>
     <button class="ntab" onclick="setTab('expenses')" id="t-expenses"><i class="ti ti-coins"></i> Budget</button>
     <button class="ntab" onclick="setTab('sop')" id="t-sop"><i class="ti ti-book"></i> SOP</button>
+    <button class="ntab" onclick="setTab('reports')" id="t-reports"><i class="ti ti-report"></i> Reports</button>
     <button class="ntab" onclick="setTab('directory')" id="t-directory"><i class="ti ti-address-book"></i> Directory</button>
     <button class="ntab" onclick="setTab('users')" id="t-users"><i class="ti ti-users"></i> Users</button>
     <button class="ntab" onclick="setTab('pipeline')" id="t-pipeline"><i class="ti ti-funnel"></i> Pipeline</button>
@@ -623,6 +624,34 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 </div>
 
 <!-- ACTIVITY -->
+<div class="pg" id="pg-reports">
+  <div class="ph">
+    <div><div class="pt">Reports</div><div class="ps">All task completion reports across projects</div></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end">
+    <div class="fg" style="margin:0;min-width:180px"><label class="fl">Project</label>
+      <select class="inp" id="grpt-proj" onchange="renderGlobalReports()"><option value="">All Projects</option></select>
+    </div>
+    <div class="fg" style="margin:0"><label class="fl">From</label><input class="inp" type="date" id="grpt-from" style="width:140px" onchange="renderGlobalReports()"></div>
+    <div class="fg" style="margin:0"><label class="fl">To</label><input class="inp" type="date" id="grpt-to" style="width:140px" onchange="renderGlobalReports()"></div>
+    <div class="fg" style="margin:0;min-width:140px"><label class="fl">Source</label>
+      <select class="inp" id="grpt-source" onchange="renderGlobalReports()">
+        <option value="">All Sources</option>
+        <option value="gantt">Gantt</option>
+        <option value="meeting">Meeting</option>
+        <option value="visitor">Visitor</option>
+        <option value="delivery">Delivery</option>
+        <option value="pipeline">Pipeline</option>
+        <option value="manual">Manual Task</option>
+      </select>
+    </div>
+    <div class="fg" style="margin:0"><label class="fl">Search</label><input class="inp" id="grpt-search" style="width:200px" placeholder="Task, worker, notes..." oninput="renderGlobalReports()"></div>
+    <button class="btn btns" onclick="clearGlobalReportFilters()">Clear</button>
+  </div>
+  <div id="grpt-summary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <div id="global-reports-list"></div>
+</div>
+
 <div class="pg" id="pg-activity">
   <div class="ph"><div><div class="pt">Activity Log</div><div class="ps">Full audit trail</div></div></div>
   <div class="card"><div id="act-log"></div></div>
@@ -650,7 +679,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="ft">Edit Project</div>
   <div class="fg"><label class="fl">Name</label><input class="inp" id="fe-name"></div>
   <div class="fr2">
-    <div class="fg"><label class="fl">Status</label><select class="inp" id="fe-status"><option value="on-track">On Track</option><option value="at-risk">At Risk</option><option value="delayed">Delayed</option><option value="completed">Completed</option></select></div>
+    <div class="fg"><label class="fl">Status</label><select class="inp" id="fe-status"><option value="on-track">On Track</option><option value="at-risk">At Risk</option><option value="delayed">Delayed</option><option value="critical">Critical</option><option value="completed">Completed</option></select></div>
     <div class="fg"><label class="fl">Contract Price (₱)</label><input class="inp" id="fe-contract" type="number"></div>
   </div>
   <div class="fg"><label class="fl">Notes</label><textarea class="inp" id="fe-notes"></textarea></div>
@@ -849,6 +878,16 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="fg"><label class="fl">Assigned To</label><select class="inp" id="fge-assign"></select></div>
   </div>
   <div class="fg"><label class="fl">Equipment (comma-separated)</label><input class="inp" id="fge-equip"></div>
+  <div class="fg">
+    <label class="fl">Sub-tasks</label>
+    <div id="fge-subtask-list" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:6px">
+      <input class="inp" id="fge-new-subtask" placeholder="New sub-task name" style="flex:1">
+      <input class="inp" id="fge-new-st-start" type="date" style="width:130px" title="Sub-task start">
+      <input class="inp" id="fge-new-st-end" type="date" style="width:130px" title="Sub-task end">
+      <button class="btn btns" onclick="addSubTaskInEdit()" style="flex-shrink:0"><i class="ti ti-plus"></i> Add</button>
+    </div>
+  </div>
   <input type="hidden" id="fge-act-id"><input type="hidden" id="fge-proj-id">
   <div class="fa" style="justify-content:space-between">
     <button class="btn" style="color:var(--er-tx);border-color:var(--er-tx)" onclick="deleteGanttActivity()"><i class="ti ti-trash"></i> Delete</button>
@@ -888,6 +927,10 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fr2">
     <div class="fg"><label class="fl">Start Date</label><input class="inp" id="fste-start" type="date"></div>
     <div class="fg"><label class="fl">End Date</label><input class="inp" id="fste-end" type="date"></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Actual Start</label><input class="inp" id="fste-actual-start" type="date"></div>
+    <div class="fg"><label class="fl">Actual End</label><input class="inp" id="fste-actual-end" type="date"></div>
   </div>
   <div class="fg"><label class="fl">Status</label>
     <select class="inp" id="fste-done">
@@ -1416,7 +1459,7 @@ function nowStr(){const d=new Date();return d.toLocaleDateString('en-PH',{month:
 function initials(n){return(n||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 function avC(n){return AVC[(n||'X').charCodeAt(0)%AVC.length]}
 function avEl(n,sz=26){const c=avC(n);return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.38)}px;background:${c.bg};color:${c.c}">${initials(n)}</div>`}
-function sbadge(s){const m={'on-track':['bk','On Track'],'at-risk':['bw','At Risk'],'delayed':['be','Delayed'],'completed':['bg_','Done']};const[cls,lbl]=m[s]||['bg_',s];return`<span class="badge ${cls}">${lbl}</span>`}
+function sbadge(s){const m={'on-track':['bk','On Track'],'at-risk':['bw','At Risk'],'delayed':['be','Delayed'],'critical':['be','Critical'],'completed':['bg_','Done']};const[cls,lbl]=m[s]||['bg_',s];return`<span class="badge ${cls}">${lbl}</span>`}
 function pribadge(p){return p==='high'?'<span class="badge be">High</span>':p==='medium'?'<span class="badge bw">Med</span>':'<span class="badge bg_">Low</span>'}
 function taskStatusBadge(t){const s=t.done?'done':(t.status||'pending');return s==='done'?'<span class="badge bk" style="font-size:9px">Done</span>':s==='in-progress'?'<span class="badge bi" style="font-size:9px">In Progress</span>':'<span class="badge bg_" style="font-size:9px">Pending</span>';}
 function setTaskStatus(taskId,newStatus){
@@ -1437,7 +1480,59 @@ function canSeeCosts(){return CU&&PERMS[CU.role].viewCosts}
 function hideCosts(val){return canSeeCosts()?val:'<span style="color:var(--tx3);font-size:11px">—</span>'}
 function docOk(d){if(!CU)return false;if(d.access==='admin')return CU.role==='admin';if(d.access==='management')return CU.role==='admin'||CU.role==='pm';return true}
 function myProjects(){if(!CU)return[];if(CU.role==='admin'||CU.projects.includes('ALL'))return projects;return projects.filter(p=>CU.projects.includes(p.name))}
-function calcProgress(pid){const acts=ganttActivities[pid]||[];if(!acts.length)return 0;const tw=acts.reduce((s,a)=>s+a.weight,0);return Math.round(tw?acts.reduce((s,a)=>s+a.weight*a.done/100,0)/tw*100:0)}
+function calcProgress(pid){const acts=ganttActivities[pid]||[];if(!acts.length)return 0;const tw=acts.reduce((s,a)=>s+(a.weight||10),0);return Math.round(tw?acts.reduce((s,a)=>s+(a.weight||10)*(a.done||0)/100,0)/tw*100:0)}
+
+function calcProjectStatus(pid){
+  const acts=ganttActivities[pid]||[];
+  const p=projects.find(x=>x.id===pid);
+  if(!p)return 'on-track';
+  const today=new Date();today.setHours(0,0,0,0);
+  // Completed: all activities 100% done OR project end date passed and overall progress >=95
+  const prog=calcProgress(pid);
+  const allDone=acts.length>0&&acts.every(a=>(a.done||0)>=100);
+  if(allDone||prog>=100)return 'completed';
+  if(!acts.length){
+    // Fall back to date check
+    if(p.end&&new Date(p.end)<today&&prog<95)return 'delayed';
+    return 'on-track';
+  }
+  // Check actual vs planned across all activities
+  let maxDelay=0;let overdueCount=0;let criticalCount=0;
+  acts.forEach(function(a){
+    const plannedEnd=new Date(a.end);
+    // Overdue: past planned end and not done
+    if((a.done||0)<100&&plannedEnd<today){
+      const d=Math.round((today-plannedEnd)/864e5);
+      if(d>maxDelay)maxDelay=d;
+      overdueCount++;
+    }
+    // Actual start late
+    if(a.actualStart){
+      const plannedStart=new Date(a.start);
+      const actualStart=new Date(a.actualStart);
+      const d=Math.round((actualStart-plannedStart)/864e5);
+      if(d>maxDelay)maxDelay=d;
+    }
+    if(a.riskLevel==='CRITICAL'||(a.riskLevel==='HIGH'&&(a.done||0)<50))criticalCount++;
+  });
+  if(criticalCount>0||maxDelay>14||overdueCount>Math.ceil(acts.length*0.4))return 'critical';
+  if(maxDelay>7||overdueCount>0)return 'delayed';
+  if(maxDelay>3||(prog<30&&p.start&&new Date(p.start)<new Date(today-30*864e5)))return 'at-risk';
+  return 'on-track';
+}
+
+function autoUpdateProjectStatuses(){
+  projects.forEach(function(p){
+    if(ganttActivities[p.id]&&ganttActivities[p.id].length){
+      const autoStatus=calcProjectStatus(p.id);
+      if(p.status!==autoStatus){
+        p.status=autoStatus;
+        // Persist silently
+        sb.from('projects').update({status:autoStatus}).eq('id',p.id).then(function(){});
+      }
+    }
+  });
+}
 function calcSpent(pn){return expenses.filter(e=>e.proj===pn).reduce((s,e)=>s+e.amount,0)}
 function prevMedia(input,tid){const p=document.getElementById(tid);if(!p)return;p.innerHTML='';Array.from(input.files).forEach(f=>{if(f.type.startsWith('image/')){const i=document.createElement('img');i.className='media-thumb';i.src=URL.createObjectURL(f);p.appendChild(i)}else{const d=document.createElement('div');d.className='media-vid';d.innerHTML=`<i class="ti ti-file" style="font-size:16px"></i><span style="font-size:9px">${f.name.slice(0,10)}</span>`;p.appendChild(d)}})}
 function toggleDaysWrap(){document.getElementById('fta-days-wrap').style.display=document.getElementById('fta-schedule').value==='specific'?'block':'none'}
@@ -1465,7 +1560,7 @@ if(document.getElementById('btn-new-mat'))document.getElementById('btn-new-mat')
 }
 
 // TABS
-function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorCal();renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='calendar')renderMyCalendar();}
+function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorCal();renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='calendar')renderMyCalendar();if(t==='reports')renderGlobalReports();}
 function setDTab(t){
   document.querySelectorAll('.dpg').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('on'));
@@ -1521,7 +1616,7 @@ function updateGanttSel(){const pn=document.getElementById('fta-proj')?.value;co
 function buildFuProj(){document.getElementById('fu-proj-cbs').innerHTML=projects.map(p=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:3px 8px;border:0.5px solid var(--bd2);border-radius:var(--r);cursor:pointer"><input type="checkbox" value="${p.name}" style="accent-color:var(--or)"> ${p.name}</label>`).join('');document.getElementById('fu-proj-wrap').style.display=document.getElementById('fu-role').value==='admin'?'none':'block'}
 
 // RENDER
-function render(){renderSidebar();renderMetrics();renderOverview();renderProjects();renderTasksGlobal();renderManpower();renderGlobalInventory();renderGlobalExpenses();renderBudgetOverview();renderUsers();renderActivity()}
+function render(){autoUpdateProjectStatuses();renderSidebar();renderMetrics();renderOverview();renderProjects();renderTasksGlobal();renderManpower();renderGlobalInventory();renderGlobalExpenses();renderBudgetOverview();renderUsers();renderActivity()}
 function renderSidebar(){const mp=myProjects();document.getElementById('sidebar').innerHTML=mp.map(p=>{const prog=calcProgress(p.id);return`<div class="si" onclick="openProjectDetail(${p.id})"><div style="width:7px;height:7px;border-radius:50%;background:${p.color};flex-shrink:0"></div><div style="min-width:0"><div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${p.name}</div><div style="font-size:10px;color:var(--tx2)">${prog}%</div></div></div>`;}).join('');document.getElementById('qs1').textContent=mp.filter(p=>p.status==='on-track').length;document.getElementById('qs2').textContent=mp.filter(p=>p.status==='at-risk'||p.status==='delayed').length;document.getElementById('qs3').textContent=tasks.filter(t=>!t.done&&mp.some(p=>p.name===t.project)).length;document.getElementById('qs4').textContent=inventory.filter(i=>mp.some(p=>p.name===i.project)&&i.qty<=i.min).length}
 function renderMetrics(){const mp=myProjects();
 const ongoing=mp.filter(p=>p.status!=='completed').length;
@@ -1604,7 +1699,7 @@ const dtDocs=document.getElementById('dt-docs');if(dtDocs)dtDocs.style.display=c
 // Foreman only sees gantt, tasks, attendance, daily logs
 const foremanTabs=['dt-budget','dt-dinv'];
 if(CU.role==='foreman')foremanTabs.forEach(t=>{const e=document.getElementById(t);if(e)e.style.display='none'});
-renderGanttDetail(id);renderDetailTasks(id);renderDetailBudget(id);renderDetailInventory(id);renderDetailDelivery(id);renderDocs(id);renderDetailAtt(id);renderDetailLogs(id);renderDetailReports(id);renderDetailMeetings(id);renderDetailVisitors(id);renderDetailBilling(id)}
+autoUpdateProjectStatuses();renderGanttDetail(id);renderDetailTasks(id);renderDetailBudget(id);renderDetailInventory(id);renderDetailDelivery(id);renderDocs(id);renderDetailAtt(id);renderDetailLogs(id);renderDetailReports(id);renderDetailMeetings(id);renderDetailVisitors(id);renderDetailBilling(id)}
 
 function renderDovContent(id){
 const p=projects.find(x=>x.id===id);const acts=ganttActivities[id]||[];
@@ -1656,7 +1751,7 @@ document.getElementById('d-ov-content').innerHTML=`
 // GANTT CHART
 function renderGanttDetail(id){const acts=ganttActivities[id]||[];const p=projects.find(x=>x.id===id);
 const PCOLS={Civil:'#185FA5',Structural:'#C05621',Architectural:'#534AB7',MEP:'#0F6E56',Electrical:'#854F0B',Plumbing:'#0F5F6E',Closeout:'#993C1D',Other:'#666'};
-document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Progress auto-calculated from weighted activities. Click edit to update %. Toggle sub-task checkboxes to auto-update. Equipment rows show predicted rental period.</div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`;
+document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font-size:10px;color:var(--tx2)"><span style="font-weight:600;color:var(--tx)">Legend:</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:18px;height:10px;border-radius:2px;border:2px dashed var(--or);background:rgba(192,86,33,.1)"></span> Planned</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:18px;height:10px;border-radius:2px;background:var(--or);opacity:.55"></span> Progress</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:18px;height:9px;border-radius:2px;background:var(--or);opacity:.75"></span> Actual</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:2px;height:14px;background:rgba(192,86,33,.7)"></span> Today</span><span style="color:var(--tx3)">Weight auto-calculated from timeline. Click <i class="ti ti-edit" style="font-size:10px"></i> to edit.</span></div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`;
 }
 
 // ─── EQUIPMENT DATE EDIT ──────────────────────────────────────────
@@ -1772,18 +1867,35 @@ function exportGanttPDF(projId){
         </td>
       </tr>`).join('');
 
+    // Actual bar in PDF
+    let actualBarPDF='';
+    if(a.actualStart){
+      const aS2=new Date(a.actualStart);
+      const aE2=a.actualEnd?new Date(a.actualEnd):new Date();
+      const aLeft2=Math.max(0,((aS2-minD)/totMs*100)).toFixed(1);
+      const aW2=Math.max(0.5,((aE2-aS2)/totMs*100)).toFixed(1);
+      const overrun=a.actualEnd?Math.round((new Date(a.actualEnd)-new Date(a.end))/(1000*60*60*24)):0;
+      const actFill=a.actualEnd&&overrun<=0?'#3B6D11':a.actualEnd?'#A32D2D':'#C05621';
+      actualBarPDF=`<div style="position:absolute;top:20px;left:${aLeft2}%;width:${aW2}%;height:7px;border-radius:2px;background:${actFill};opacity:.8;z-index:3" title="Actual"></div>`;
+    }
     return `
       <tr style="background:${i%2===0?'#fff':'#f9f9f7'}">
         <td style="padding:4px 6px;border-bottom:1px solid #eee;vertical-align:middle;min-width:180px;max-width:180px">
           <div style="font-size:8.5px;font-weight:700;color:#1a1a18">${a.name}</div>
-          <div style="font-size:7px;color:#999;margin-top:1px">${a.phase||''} · wt:${a.weight||10}% · ${(a.subTasks||[]).filter(s=>s.done).length}/${(a.subTasks||[]).length} sub-tasks${(a.equip||[]).length?' · '+a.equip.slice(0,2).join(','):''}${delayTag}</div>
-          <span style="font-size:6.5px;font-weight:700;padding:1px 4px;border-radius:8px;background:${RISK_BG[rl]};color:${RISK_COLORS[rl]}">${rl}</span>
+          <div style="font-size:7px;color:#999;margin-top:1px">${a.phase||''} · ${(a.subTasks||[]).filter(s=>s.done).length}/${(a.subTasks||[]).length} sub${(a.equip||[]).length?' · '+a.equip.slice(0,2).join(','):''}${delayTag}</div>
+          <div style="display:flex;gap:3px;margin-top:2px">
+            <span style="font-size:6.5px;font-weight:700;padding:1px 4px;border-radius:8px;background:${RISK_BG[rl]};color:${RISK_COLORS[rl]}">${rl}</span>
+            ${a.actualStart?`<span style="font-size:6.5px;font-weight:700;padding:1px 4px;border-radius:8px;background:#FAEEDA;color:#7A4A00">ACTUAL SET</span>`:''}
+          </div>
         </td>
-        <td style="position:relative;border-bottom:1px solid #eee;height:28px;padding:0">
+        <td style="position:relative;border-bottom:1px solid #eee;height:32px;padding:0">
           <div style="position:absolute;top:0;left:${todayPct}%;width:1px;height:100%;background:rgba(192,86,33,.5);z-index:2"></div>
-          <div style="position:absolute;top:6px;left:${left}%;width:${w}%;height:16px;border-radius:3px;background:${col}22;border:1.5px dashed ${col}"></div>
-          <div style="position:absolute;top:6px;left:${left}%;width:${doneW}%;height:16px;border-radius:3px 0 0 3px;background:${col};opacity:.5"></div>
-          <div style="position:absolute;top:7px;left:calc(${left}% + 3px);font-size:7px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;max-width:${w}%">${a.done}%</div>
+          <!-- Planned bar (top) -->
+          <div style="position:absolute;top:4px;left:${left}%;width:${w}%;height:11px;border-radius:2px;background:${col}22;border:1.5px dashed ${col}"></div>
+          <div style="position:absolute;top:4px;left:${left}%;width:${doneW}%;height:11px;border-radius:2px 0 0 2px;background:${col};opacity:.5"></div>
+          <div style="position:absolute;top:5px;left:calc(${left}% + 3px);font-size:7px;font-weight:700;color:${col};white-space:nowrap;overflow:hidden;max-width:calc(${w}% - 4px)">${a.done}%</div>
+          <!-- Actual bar (bottom) — only if actual dates set -->
+          ${actualBarPDF}
         </td>
       </tr>
       ${subTasksHTML}`;
@@ -1817,9 +1929,8 @@ function exportGanttPDF(projId){
   const weightedProg=Math.round(acts.reduce((s,a)=>s+((a.done||0)*(a.weight||10)),0)/(totalWeight||1));
   const doneCount=acts.filter(a=>a.done>=100).length;
 
-  const win=window.open('','_blank','width=1200,height=900');
-  if(!win){alert('Popup blocked! Please allow popups for this site, then click PDF again.');return;}
-  win.document.write(`<!DOCTYPE html>
+  // Use blob URL to avoid popup blockers
+  const _pdfHtml=`<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
 <title>Gantt Chart — ${p.name}</title>
@@ -1853,6 +1964,16 @@ function exportGanttPDF(projId){
   </div>
 </div>
 
+<!-- Legend -->
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap;font-size:7.5px;color:#666">
+  <strong style="font-size:8px;color:#1a1a18">Legend:</strong>
+  <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:16px;height:7px;border:1.5px dashed #185FA5;border-radius:2px;background:#185FA522"></span> Planned bar</span>
+  <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:16px;height:7px;border-radius:2px;background:#185FA5;opacity:.5"></span> Progress fill</span>
+  <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:16px;height:7px;border-radius:2px;background:#3B6D11;opacity:.8"></span> Actual (on time)</span>
+  <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:16px;height:7px;border-radius:2px;background:#A32D2D;opacity:.8"></span> Actual (overrun)</span>
+  <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:16px;height:7px;border-radius:2px;background:#C05621;opacity:.8"></span> Actual (ongoing)</span>
+  <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:1px;height:12px;background:rgba(192,86,33,.5)"></span> Today</span>
+</div>
 <!-- Summary row -->
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px">
   <div style="background:#f6f5f0;border-radius:6px;padding:8px;text-align:center">
@@ -1945,16 +2066,41 @@ function exportGanttPDF(projId){
   </div>
 </div>
 
-</body></html>`);
-  win.document.close();
-  win.onload=function(){setTimeout(function(){win.print();},400);};
+</body></html>`;
+  // Always use iframe injection — works in all browsers, no popup blocker issues
+  // Remove any existing PDF frame
+  const _existingFr=document.getElementById('_pdf_print_frame');
+  if(_existingFr)_existingFr.remove();
+  const _ifr=document.createElement('iframe');
+  _ifr.id='_pdf_print_frame';
+  _ifr.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;border:none;background:#fff;box-shadow:0 0 0 100vmax rgba(0,0,0,.5)';
+  document.body.appendChild(_ifr);
+  // Write the HTML into the iframe
+  _ifr.contentDocument.open();
+  _ifr.contentDocument.write(_pdfHtml);
+  _ifr.contentDocument.close();
+  // Wait for images/fonts then print
+  _ifr.contentWindow.onload=function(){
+    setTimeout(function(){
+      _ifr.contentWindow.focus();
+      _ifr.contentWindow.print();
+    },600);
+  };
+  // Add close button overlay
+  const _closeBtn=document.createElement('button');
+  _closeBtn.textContent='✕ Close Preview';
+  _closeBtn.style.cssText='position:fixed;top:12px;right:12px;z-index:100000;background:#C05621;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+  _closeBtn.onclick=function(){_ifr.remove();_closeBtn.remove();};
+  document.body.appendChild(_closeBtn);
+  // Auto-remove after print
+  _ifr.contentWindow.onafterprint=function(){_ifr.remove();_closeBtn.remove();};
 }
 
 function buildGanttHTML(acts,p,PCOLS){
 try{
 const PX=26;
 const LW=230;
-const ROW_H=38;
+const ROW_H=52;
 const SUB_H=28;
 const RC={'LOW':'#3B6D11','MEDIUM':'#7A4A00','HIGH':'#A32D2D','CRITICAL':'#5B0000'};
 const RB={'LOW':'#eaf3de','MEDIUM':'#FAEEDA','HIGH':'#FCEBEB','CRITICAL':'#FFD0D0'};
@@ -2061,26 +2207,78 @@ var rowsHTML=na.map(function(a){
   var bw=dW(a.start,a.end);
   var dw=Math.round(bw*(a.done||0)/100);
   var editBtn=isAPM?'<button class="btn btns" onclick="openGanttEditModal('+a.id+','+p.id+')" style="font-size:9px;padding:1px 5px;position:absolute;top:2px;right:4px;z-index:5;background:var(--bg)" title="Edit"><i class="ti ti-edit"></i></button>':'';
+  // Planned bar: rows 6→26 (20px tall)
+  // Actual bar:  rows 30→44 (14px tall) — clearly separate row
+  var PLAN_TOP=6; var PLAN_H=20;
+  var ACT_TOP=30; var ACT_H=14;
   var actualBar='';
   if(a.actualStart){
     var aS=safeDate(a.actualStart,new Date(a.start));
     var aE=a.actualEnd?safeDate(a.actualEnd,today):today;
-    var aL=dLeft(aS);var aW=Math.max(PX,Math.round((aE-aS)/864e5+1)*PX);
-    actualBar='<div style="position:absolute;top:'+(ROW_H-10)+'px;left:'+aL+'px;width:'+aW+'px;height:6px;border-radius:2px;background:'+col+';opacity:.7;z-index:3"></div>';
+    var aL=dLeft(aS);
+    var aW=Math.max(PX,Math.round((aE-aS)/864e5+1)*PX);
+    // Delay = difference between planned start and actual start
+    var delayDays=Math.round((aS-new Date(a.start))/864e5);
+    // Overrun = if actual end > planned end
+    var overrunDays=a.actualEnd?Math.round((new Date(a.actualEnd)-new Date(a.end))/864e5):0;
+    var totalSlip=Math.max(delayDays,overrunDays);
+    var delayCol=totalSlip>14?'#A32D2D':totalSlip>7?'#C05621':totalSlip>0?'#7A4A00':'#3B6D11';
+    var delayLbl=totalSlip>0?'+'+totalSlip+'d late':delayDays<0?Math.abs(delayDays)+'d early':'On time';
+    var ongoing=!a.actualEnd;
+    // Actual bar fill color: green if done, amber if ongoing, red if overrun
+    var actFill=a.actualEnd&&totalSlip<=0?'#3B6D11':a.actualEnd&&totalSlip>0?'#A32D2D':'#C05621';
+    actualBar=
+      // Connector line between planned and actual bars
+      '<div style="position:absolute;top:'+PLAN_TOP+'px;left:'+(bl+bw/2)+'px;width:1px;height:'+(ACT_TOP-PLAN_TOP)+'px;background:rgba(0,0,0,.12);z-index:1;pointer-events:none"></div>'+
+      // Actual bar background track
+      '<div style="position:absolute;top:'+ACT_TOP+'px;left:0;width:100%;height:'+ACT_H+'px;background:rgba(0,0,0,.03);pointer-events:none"></div>'+
+      // Actual bar
+      '<div style="position:absolute;top:'+ACT_TOP+'px;left:'+aL+'px;width:'+aW+'px;height:'+ACT_H+'px;'+
+        'border-radius:3px;background:'+actFill+';opacity:.75;z-index:4;'+
+        (ongoing?'border-right:3px dashed '+actFill+';':'')+
+        'box-shadow:0 1px 3px rgba(0,0,0,.2);" title="Actual: '+a.actualStart+(a.actualEnd?' → '+a.actualEnd:' → ongoing')+'"></div>'+
+      // Delay / status label inside actual bar
+      '<div style="position:absolute;top:'+(ACT_TOP+1)+'px;left:'+(aL+4)+'px;font-size:8px;font-weight:800;color:#fff;z-index:5;white-space:nowrap;pointer-events:none;line-height:'+ACT_H+'px;overflow:hidden;max-width:'+(aW-6)+'px">'+
+        (a.actualEnd?'✓ ':ongoing?'● ':'')+(ongoing?'Ongoing':'Done')+' '+delayLbl+
+      '</div>';
   }
+  // Override planned bar top and height for two-row layout
+  var PLAN_TOP=PLAN_TOP||6; var PLAN_H=PLAN_H||20;
   var subRows=(a.subTasks||[]).map(function(st){
     var stL=dLeft(st.start);var stW=dW(st.start,st.end);
     var stDur=Math.round((new Date(st.end)-new Date(st.start))/864e5)+1;
     var hasDates=!!(st.start&&st.end);
+    // Sub-task actual bar
+    var stActualBar='';
+    var stRowH=st.actualStart?38:SUB_H;
+    if(st.actualStart){
+      var stAS=safeDate(st.actualStart,new Date(st.start));
+      var stAE=st.actualEnd?safeDate(st.actualEnd,today):today;
+      var stAL=dLeft(stAS);var stAW=Math.max(PX,Math.round((stAE-stAS)/864e5+1)*PX);
+      var stDelay=Math.round((stAS-new Date(st.start))/864e5);
+      var stOverrun=st.actualEnd?Math.round((new Date(st.actualEnd)-new Date(st.end))/864e5):0;
+      var stSlip=Math.max(stDelay,stOverrun);
+      var stActFill=st.actualEnd&&stSlip<=0?'#3B6D11':st.actualEnd?'#A32D2D':'#C05621';
+      var stLbl=stSlip>0?'+'+stSlip+'d':(stDelay<0?Math.abs(stDelay)+'d early':'✓');
+      stActualBar=
+        '<div style="position:absolute;top:22px;left:'+stAL+'px;width:'+stAW+'px;height:10px;'+
+        'border-radius:2px;background:'+stActFill+';opacity:.8;z-index:4;'+
+        (!st.actualEnd?'border-right:2px dashed '+stActFill+';':'')+'" title="Actual: '+st.actualStart+(st.actualEnd?' → '+st.actualEnd:' → ongoing')+'"></div>'+
+        '<div style="position:absolute;top:23px;left:'+(stAL+3)+'px;font-size:7px;font-weight:700;color:#fff;z-index:5;white-space:nowrap;pointer-events:none;line-height:10px;overflow:hidden;max-width:'+(stAW-6)+'px">'+stLbl+'</div>';
+    }
     var editStBtn=isAPM?'<button class="btn btns" style="font-size:9px;padding:1px 4px;flex-shrink:0;margin-left:2px" onclick="openSubTaskEdit('+a.id+','+st.id+','+p.id+')" title="Edit sub-task"><i class="ti ti-edit"></i></button>':'';
     return '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;border-bottom:1px solid var(--bd);background:var(--bg2)">'+
       '<div style="display:flex;align-items:center;gap:5px;padding:3px 8px 3px 22px;border-right:1px solid var(--bd);background:var(--bg2);position:sticky;left:0;z-index:6">'+
       '<div class="sub-ck'+(st.done?' dn':'')+'" onclick="openSubTaskReport('+a.id+','+st.id+','+p.id+')" style="flex-shrink:0">'+(st.done?'<i class="ti ti-check" style="font-size:8px;color:#fff"></i>':'')+
       '</div><div style="flex:1;min-width:0"><div style="font-size:10px;color:var(--tx2);'+(st.done?'text-decoration:line-through;color:var(--tx3);':'')+' overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+st.name+'</div>'+
-      '<div style="font-size:8px;color:var(--in-tx)">'+fmtD(st.start)+' → '+fmtD(st.end)+' · '+stDur+'d</div></div>'+editStBtn+'</div>'+
-      '<div style="position:relative;height:'+SUB_H+'px;overflow:hidden;min-width:'+totalPx+'px">'+gridBg+
-      '<div style="position:absolute;top:6px;left:'+stL+'px;width:'+stW+'px;height:'+(SUB_H-14)+'px;border-radius:3px;background:'+col+(hasDates?'55':'22')+';border:1.5px '+(hasDates?'solid':'dashed')+' '+col+';box-sizing:border-box;z-index:2"></div>'+
-      (st.done?'<div style="position:absolute;top:6px;left:'+stL+'px;width:'+stW+'px;height:'+(SUB_H-14)+'px;border-radius:3px;background:'+col+';opacity:.35;z-index:2;pointer-events:none"></div>':'')+
+      '<div style="font-size:8px;color:var(--in-tx)">'+fmtD(st.start)+' → '+fmtD(st.end)+' · '+stDur+'d</div>'+
+      (st.actualStart?'<div style="font-size:7px;color:#C05621;font-weight:600">Actual: '+fmtD(st.actualStart)+(st.actualEnd?' → '+fmtD(st.actualEnd):' →')+'</div>':'')+
+      '</div>'+editStBtn+'</div>'+
+      '<div style="position:relative;height:'+stRowH+'px;overflow:hidden;min-width:'+totalPx+'px">'+gridBg+
+      // Planned bar
+      '<div style="position:absolute;top:4px;left:'+stL+'px;width:'+stW+'px;height:13px;border-radius:3px;background:'+col+(hasDates?'40':'18')+';border:1.5px '+(hasDates?'solid':'dashed')+' '+col+';box-sizing:border-box;z-index:2"></div>'+
+      (st.done?'<div style="position:absolute;top:4px;left:'+stL+'px;width:'+stW+'px;height:13px;border-radius:3px;background:'+col+';opacity:.4;z-index:2;pointer-events:none"></div>':'')+
+      stActualBar+
       todayLine+'</div></div>';
   }).join('');
   return '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;border-bottom:1.5px solid var(--bd);background:var(--bg)">'+
@@ -2090,13 +2288,18 @@ var rowsHTML=na.map(function(a){
     '<span style="font-size:7.5px;font-weight:700;padding:1px 5px;border-radius:8px;background:'+RB[rl]+';color:'+RC[rl]+'">'+rl+'</span></div>'+
     '<div style="font-size:8.5px;color:var(--tx2);margin-top:2px">'+a.phase+' · '+(a.weight||10)+'% · '+sdone+'/'+stot+' done · '+dur+'d'+(a.assign?' · '+a.assign:'')+
     '</div><div style="font-size:8px;color:var(--in-tx);font-weight:500">'+fmtD(a.start)+' → '+fmtD(a.end)+'</div>'+
-    (a.actualStart?'<div style="font-size:7.5px;color:var(--tx3)">Actual: '+fmtD(a.actualStart)+(a.actualEnd?' → '+fmtD(a.actualEnd):'→')+'</div>':'')+
+    (a.actualStart?'<div style="font-size:7.5px;margin-top:1px"><span style="background:rgba(192,86,33,.12);color:#C05621;border-radius:3px;padding:1px 4px;font-size:7px;font-weight:700">ACTUAL</span> '+fmtD(a.actualStart)+(a.actualEnd?' → '+fmtD(a.actualEnd):' → ongoing')+'</div>':'')+
     '</div>'+
     '<div style="position:relative;height:'+ROW_H+'px;overflow:hidden;min-width:'+totalPx+'px">'+
     gridBg+
-    '<div style="position:absolute;top:8px;left:'+bl+'px;width:'+bw+'px;height:'+(ROW_H-18)+'px;border-radius:5px;background:'+col+'20;border:2px solid '+col+';box-sizing:border-box;z-index:2"></div>'+
-    '<div style="position:absolute;top:8px;left:'+bl+'px;width:'+dw+'px;height:'+(ROW_H-18)+'px;border-radius:5px 0 0 5px;background:'+col+';opacity:.55;z-index:2;pointer-events:none"></div>'+
-    '<div style="position:absolute;top:9px;left:'+(bl+5)+'px;font-size:9px;font-weight:700;color:'+col+';z-index:4;pointer-events:none;white-space:nowrap">'+(a.done||0)+'%</div>'+
+    // ── Planned bar (top half of row, 6→26) ──
+    '<div style="position:absolute;top:6px;left:'+bl+'px;width:'+bw+'px;height:20px;border-radius:4px;background:'+col+'18;border:2px dashed '+col+';box-sizing:border-box;z-index:2" title="Planned: '+a.start+' → '+a.end+'"></div>'+
+    // Progress fill inside planned bar
+    '<div style="position:absolute;top:6px;left:'+bl+'px;width:'+dw+'px;height:20px;border-radius:4px 0 0 4px;background:'+col+';opacity:.45;z-index:3;pointer-events:none"></div>'+
+    // % label
+    '<div style="position:absolute;top:8px;left:'+(bl+5)+'px;font-size:8.5px;font-weight:700;color:'+col+';z-index:5;pointer-events:none;white-space:nowrap">'+(a.done||0)+'%</div>'+
+    // "Planned" mini-label on right of bar
+    (bw>40?'<div style="position:absolute;top:8px;left:'+(bl+bw-36)+'px;font-size:7px;color:'+col+';opacity:.7;z-index:5;pointer-events:none;white-space:nowrap">Planned</div>':'')+
     actualBar+todayLine+editBtn+
     '</div></div>'+subRows;
 }).join('');
@@ -2221,6 +2424,50 @@ async function addGanttActivity(){
   renderMetrics();
   renderTasksGlobal();
 }
+function renderEditSubTasks(actId,projId){
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  const el=document.getElementById('fge-subtask-list');if(!el)return;
+  el.innerHTML=(act.subTasks||[]).map(st=>`
+    <div style="display:flex;align-items:center;gap:5px;padding:5px 8px;background:var(--bg2);border-radius:var(--r);margin-bottom:4px;flex-wrap:wrap">
+      <div class="sub-ck${st.done?' dn':''}" onclick="toggleEditSubTask(${actId},${projId},${st.id})" style="flex-shrink:0">${st.done?'<i class="ti ti-check" style="font-size:8px;color:#fff"></i>':''}</div>
+      <input class="inp" value="${(st.name||'').replace(/"/g,'&quot;')}" style="flex:1;min-width:100px;font-size:11px;padding:3px 6px" onchange="updateEditSubTaskName(${actId},${projId},${st.id},this.value)">
+      <input class="inp" type="date" value="${st.start||''}" style="width:120px;font-size:11px;padding:3px 6px" title="Start" onchange="updateEditSubTaskDate(${actId},${projId},${st.id},'start',this.value)">
+      <input class="inp" type="date" value="${st.end||''}" style="width:120px;font-size:11px;padding:3px 6px" title="End" onchange="updateEditSubTaskDate(${actId},${projId},${st.id},'end',this.value)">
+      <button class="btn btns" style="padding:2px 6px;color:var(--er-tx);flex-shrink:0" onclick="removeEditSubTask(${actId},${projId},${st.id})"><i class="ti ti-trash" style="font-size:10px"></i></button>
+    </div>`).join('')||'<div style="font-size:11px;color:var(--tx3);padding:4px 0">No sub-tasks yet.</div>';
+}
+function toggleEditSubTask(actId,projId,stId){
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  const st=(act.subTasks||[]).find(s=>s.id===stId);if(!st)return;
+  st.done=!st.done;renderEditSubTasks(actId,projId);
+}
+function updateEditSubTaskName(actId,projId,stId,val){
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  const st=(act.subTasks||[]).find(s=>s.id===stId);if(st)st.name=val;
+}
+function updateEditSubTaskDate(actId,projId,stId,field,val){
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  const st=(act.subTasks||[]).find(s=>s.id===stId);if(st)st[field]=val;
+}
+function removeEditSubTask(actId,projId,stId){
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  if(!confirm('Remove this sub-task?'))return;
+  act.subTasks=(act.subTasks||[]).filter(s=>s.id!==stId);
+  renderEditSubTasks(actId,projId);
+}
+function addSubTaskInEdit(){
+  const actId=parseInt(document.getElementById('fge-act-id').value);
+  const projId=parseInt(document.getElementById('fge-proj-id').value);
+  const nameEl=document.getElementById('fge-new-subtask');
+  const name=(nameEl.value||'').trim();if(!name){alert('Enter a sub-task name.');return;}
+  const start=document.getElementById('fge-new-st-start').value||document.getElementById('fge-start').value||TODAY;
+  const end=document.getElementById('fge-new-st-end').value||document.getElementById('fge-end').value||TODAY;
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
+  if(!act.subTasks)act.subTasks=[];
+  act.subTasks.push({id:Date.now(),name,start,end,done:false});
+  nameEl.value='';
+  renderEditSubTasks(actId,projId);
+}
 function openGanttEditModal(actId,projId){
   const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);if(!act)return;
   document.getElementById('fge-act-id').value=actId;
@@ -2235,9 +2482,11 @@ function openGanttEditModal(actId,projId){
   document.getElementById('fge-actual-end').value=act.actualEnd||'';
   document.getElementById('fge-done').value=act.done||0;
   document.getElementById('fge-done-val').textContent=(act.done||0)+'%';
-  document.getElementById('fge-weight').value=act.weight||10;
   document.getElementById('fge-assign').innerHTML=users.filter(u=>u.active).map(u=>`<option${u.name===act.assign?' selected':''}>${u.name}</option>`).join('');
   document.getElementById('fge-equip').value=(act.equip||[]).join(', ');
+  document.getElementById('fge-new-st-start').value=act.start||'';
+  document.getElementById('fge-new-st-end').value=act.end||'';
+  renderEditSubTasks(actId,projId);
   document.getElementById('fm-gantt-edit').classList.add('op');
 }
 async function saveGanttEdit(){
@@ -2287,6 +2536,8 @@ function openSubTaskEdit(actId,stId,projId){
   document.getElementById('fste-name').value=found.name;
   document.getElementById('fste-start').value=found.start||foundAct.start||'';
   document.getElementById('fste-end').value=found.end||foundAct.end||'';
+  document.getElementById('fste-actual-start').value=found.actualStart||'';
+  document.getElementById('fste-actual-end').value=found.actualEnd||'';
   document.getElementById('fste-done').value=found.done?'1':'0';
   document.getElementById('fm-subtask-edit').classList.add('op');
 }
@@ -2300,6 +2551,8 @@ async function saveSubTaskEdit(){
   foundSt.name=document.getElementById('fste-name').value.trim()||foundSt.name;
   foundSt.start=document.getElementById('fste-start').value||foundAct.start||'';
   foundSt.end=document.getElementById('fste-end').value||foundAct.end||'';
+  foundSt.actualStart=document.getElementById('fste-actual-start').value||'';
+  foundSt.actualEnd=document.getElementById('fste-actual-end').value||'';
   foundSt.done=document.getElementById('fste-done').value==='1';
   // Persist dates in the sub_tasks array stored to Supabase
   const stForSave=foundAct.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||foundAct.start||'',end:s.end||foundAct.end||''}));
@@ -2476,6 +2729,96 @@ sbLog(`Document uploaded: "${title}" by ${CU.name}`,'#534AB7','Documents',projec
 closeFm('fm-doc');renderDocs(pid)}
 function downloadDocFiles(docId,projId){const docs=documents[projId]||[];const d=docs.find(x=>x.id===docId);if(!d)return;if(!d.files||!d.files.length||d.files[0]==='(no file)'){alert('No files attached to this document. Files are stored on upload — download is only available when actual files were selected during upload.');return;}alert('Files listed: '+d.files.join(', ')+'\n\nNote: To enable actual file download, integrate cloud storage (e.g. Supabase Storage) in your deployment.');}
 
+// ─── GLOBAL REPORTS ──────────────────────────────────────────────
+function renderGlobalReports(){
+  // Populate project dropdown
+  const projSel=document.getElementById('grpt-proj');
+  if(projSel){
+    const mp=myProjects();
+    const cur=projSel.value;
+    projSel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option${cur===p.name?' selected':''}>${p.name}</option>`).join('');
+  }
+  const projF=document.getElementById('grpt-proj')?.value||'';
+  const fromF=document.getElementById('grpt-from')?.value||'';
+  const toF=document.getElementById('grpt-to')?.value||'';
+  const srcF=document.getElementById('grpt-source')?.value||'';
+  const srch=(document.getElementById('grpt-search')?.value||'').toLowerCase();
+
+  // Collect all reports from all accessible tasks
+  const mp=myProjects();
+  const allReports=[];
+  tasks.filter(t=>mp.some(p=>p.name===t.project)||(CU.role==='admin'||CU.role==='pm')).forEach(t=>{
+    const src=t.autoType||'manual';
+    (t.reports||[]).forEach(r=>{
+      allReports.push({
+        ...r,taskId:t.id,taskName:t.name,project:t.project,
+        assignee:t.assignee,source:src,priority:t.priority,
+        riskLevel:t.riskLevel||'LOW'
+      });
+    });
+  });
+  allReports.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+
+  // Apply filters
+  let list=allReports;
+  if(projF)list=list.filter(r=>r.project===projF);
+  if(fromF)list=list.filter(r=>r.date&&r.date>=fromF);
+  if(toF)list=list.filter(r=>r.date&&r.date<=toF);
+  if(srcF)list=list.filter(r=>r.source===srcF);
+  if(srch)list=list.filter(r=>(r.taskName+' '+(r.submittedBy||'')+' '+(r.work||'')+' '+(r.issues||'')+' '+r.project).toLowerCase().includes(srch));
+
+  // Summary row
+  const sumEl=document.getElementById('grpt-summary');
+  if(sumEl){
+    const totalReports=list.length;
+    const projects=[...new Set(list.map(r=>r.project))].length;
+    const withIssues=list.filter(r=>r.issues&&r.issues.trim()).length;
+    sumEl.innerHTML=
+      `<div class="card" style="padding:8px 14px;margin:0;flex:1;min-width:100px"><div style="font-size:10px;color:var(--tx2)">Total Reports</div><div style="font-size:22px;font-weight:800">${totalReports}</div></div>`+
+      `<div class="card" style="padding:8px 14px;margin:0;flex:1;min-width:100px"><div style="font-size:10px;color:var(--tx2)">Projects</div><div style="font-size:22px;font-weight:800">${projects}</div></div>`+
+      `<div class="card" style="padding:8px 14px;margin:0;flex:1;min-width:100px"><div style="font-size:10px;color:var(--wn-tx)">With Issues</div><div style="font-size:22px;font-weight:800;color:var(--wn-tx)">${withIssues}</div></div>`+
+      `<div class="card" style="padding:8px 14px;margin:0;flex:1;min-width:100px"><div style="font-size:10px;color:var(--tx2)">Workers Today</div><div style="font-size:22px;font-weight:800">${list.filter(r=>r.date===TODAY).reduce((s,r)=>s+parseInt(r.workers||0),0)}</div></div>`;
+  }
+
+  // Source badge helper
+  const srcMap={gantt:['#185FA5','#E6F1FB','Gantt'],meeting:['#534AB7','#EEEDFE','Meeting'],visitor:['#854F0B','#FFF3CD','Visitor'],delivery:['#0F6E56','#EAF3DE','Delivery'],pipeline:['#7B2D8B','#F3E8FF','Pipeline'],inventory_replenish:['#A32D2D','#FCEBEB','Low Stock'],manual:['#666','#f0efe8','Task']};
+  function srcBadge(src){const[col,bg,lbl]=srcMap[src]||srcMap.manual;return`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:${bg};color:${col}">${lbl}</span>`;}
+
+  const listEl=document.getElementById('global-reports-list');if(!listEl)return;
+  listEl.innerHTML=list.length?list.map(r=>`
+    <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="openTaskDetail(${r.taskId})">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        <div>
+          <div style="font-size:13px;font-weight:600">${r.taskName}</div>
+          <div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap">
+            <span style="color:var(--in-tx)">${r.project}</span>
+            <span>·</span><span>By ${r.submittedBy||'—'}</span>
+            <span>·</span><span>${r.date||'—'}</span>
+            <span>·</span><span>${r.time||''}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start">
+          ${srcBadge(r.source)}
+          <span class="badge bi">${r.weather||'—'}</span>
+          <span class="badge bg_"><i class="ti ti-users" style="font-size:9px"></i> ${r.workers||0}</span>
+          <span class="badge bg_"><i class="ti ti-clock" style="font-size:9px"></i> ${r.hours||8}h</span>
+          <span class="badge ${(r.pct||0)>=100?'bk':'bw'}">${r.pct||0}%</span>
+          ${r.type==='update'?'<span class="badge bi" style="font-size:9px">Update</span>':''}
+        </div>
+      </div>
+      <div style="font-size:12px;margin-bottom:5px"><strong>Work Done:</strong> ${r.work}</div>
+      ${r.equip?`<div style="font-size:11px;color:var(--tx2);margin-bottom:3px"><i class="ti ti-crane" style="font-size:10px"></i> ${r.equip}</div>`:''}
+      ${r.materials?`<div style="font-size:11px;color:var(--tx2);margin-bottom:3px"><i class="ti ti-package" style="font-size:10px"></i> ${r.materials}</div>`:''}
+      ${r.issues?`<div style="font-size:12px;padding:5px 8px;border-radius:var(--r);background:var(--wn-bg);color:var(--wn-tx)"><i class="ti ti-alert-triangle" style="font-size:10px"></i> ${r.issues}</div>`:''}
+      ${r.mediaCount>0?`<div style="font-size:11px;color:var(--in-tx);margin-top:4px"><i class="ti ti-photo"></i> ${r.mediaCount} media file(s)</div>`:''}
+    </div>`).join(''):'<div style="color:var(--tx2);font-size:12px;padding:20px;text-align:center;background:var(--bg);border-radius:var(--r)">No reports found matching your filters.</div>';
+}
+function clearGlobalReportFilters(){
+  ['grpt-proj','grpt-from','grpt-to','grpt-source','grpt-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderGlobalReports();
+}
+
+// ─────────────────────────────────────────────────────────────────
 function renderDetailReports(id){
   const p=projects.find(x=>x.id===id);
   const el=document.getElementById('d-reports-content');if(!el)return;
@@ -2526,10 +2869,27 @@ function renderDetailMeetings(id){
   const p=projects.find(x=>x.id===id);
   const el=document.getElementById('d-meeting-content');if(!el)return;
   const pMeetings=meetings.filter(m=>m.proj===p.name||m.proj==='General');
+  const isAdmin=CU&&CU.role==='admin';
+  const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
   el.innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-calendar-event"></i> Meetings — ${p.name}</div>
     <button class="btn btns btnp" onclick="openMeetingForProj('${p.id}')"><i class="ti ti-plus"></i> Add Meeting</button>
   </div>
-  ${pMeetings.length?pMeetings.map(m=>`<div class="meeting-card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">${m.title}</div><div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.location||''}</div></div></div>${m.attendees?`<div style="font-size:12px;margin-bottom:4px"><strong>Attendees:</strong> ${m.attendees}</div>`:''} ${m.minutes?`<div style="font-size:12px;margin-bottom:4px"><strong>Minutes:</strong> ${m.minutes.slice(0,120)}${m.minutes.length>120?'...':''}</div>`:''} ${m.actions?`<div style="font-size:12px;padding:5px 8px;border-radius:var(--r);background:var(--ok-bg);color:var(--ok-tx)"><strong>Actions:</strong> ${m.actions}</div>`:''}</div>`).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No meetings for this project yet.</div>'}`;
+  ${pMeetings.length?pMeetings.map(m=>`<div class="meeting-card">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <div style="flex:1;cursor:pointer" onclick="openMeetingDetail(${m.id})">
+        <div style="font-size:13px;font-weight:700">${m.title}</div>
+        <div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.location||''}</div>
+      </div>
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+        ${isPM?`<button class="btn btns" onclick="openEditMeeting(${m.id})" title="Edit meeting"><i class="ti ti-edit"></i></button>`:''}
+        ${isAdmin?`<button class="btn btns" style="color:var(--er-tx)" onclick="deleteMeeting(${m.id},${id})" title="Delete meeting"><i class="ti ti-trash"></i></button>`:''}
+      </div>
+    </div>
+    ${m.attendees?`<div style="font-size:12px;margin-bottom:4px"><strong>Attendees:</strong> ${m.attendees}</div>`:''}
+    ${m.agenda?`<div style="font-size:12px;margin-bottom:4px"><strong>Agenda:</strong> ${m.agenda}</div>`:''}
+    ${m.minutes?`<div style="font-size:12px;margin-bottom:4px"><strong>Minutes:</strong> ${m.minutes.slice(0,150)}${m.minutes.length>150?'...':''}</div>`:''}
+    ${m.actions?`<div style="font-size:12px;padding:5px 8px;border-radius:var(--r);background:var(--ok-bg);color:var(--ok-tx)"><strong>Actions:</strong> ${m.actions}</div>`:''}
+  </div>`).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No meetings for this project yet.</div>'}`;
 }
 function openMeetingForProj(projId){
   const p=projects.find(x=>x.id===parseInt(projId));
@@ -2873,7 +3233,7 @@ function submitTaskReport(){
     alert('Report submitted! Sub-task marked complete.');
     return;
   }
-  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const files=document.getElementById('ftd-files').files;t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:files.length,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name}`,color:'#534AB7'});closeFm('fm-task-detail');if(activeProjectId)renderDetailLogs(activeProjectId);alert('Report submitted!')}
+  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const files=document.getElementById('ftd-files').files;t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:files.length,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name}`,color:'#534AB7'});closeFm('fm-task-detail');if(activeProjectId){renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}renderGlobalReports();alert('Report submitted!')}
 
 function markTaskDone(){
   if(!CU||(CU.role!=='admin'&&CU.role!=='pm')){alert('Only Admin or Project Manager can mark tasks as complete.');closeFm('fm-task-detail');return}
@@ -2892,7 +3252,20 @@ async function deleteTaskFromReport(){
   if(activeProjectId){renderDetailTasks(activeProjectId);renderGanttDetail(activeProjectId);}
 }
 
-function toggleTask(i,projId){if(i<0||i>=tasks.length)return;const t=tasks[i];t.done=!t.done;if(t.subTaskId){Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{const st=a.subTasks?.find(s=>s.id===t.subTaskId);if(st){st.done=t.done;if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100)}}))}actLog.unshift({time:nowStr(),text:`Task ${t.done?'done':'reopened'}: "${t.name}"`,color:'#0F6E56'});renderTasksGlobal();renderMetrics();renderSidebar();if(projId||activeProjectId){const pid=projId||activeProjectId;renderDetailTasks(pid);renderGanttDetail(pid)}}
+function toggleTask(i,projId){
+  if(i<0||i>=tasks.length)return;
+  const t=tasks[i];
+  // Cannot check off unless a report has been submitted (or already done — to allow unchecking)
+  if(!t.done&&(!t.reports||t.reports.length===0)){
+    alert('Please submit a report for this task before marking it complete.\n\nClick the task card to open it and submit a report.');
+    return;
+  }
+  t.done=!t.done;
+  if(t.subTaskId){Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{const st=a.subTasks?.find(s=>s.id===t.subTaskId);if(st){st.done=t.done;if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100)}}))}
+  actLog.unshift({time:nowStr(),text:`Task ${t.done?'done':'reopened'}: "${t.name}"`,color:'#0F6E56'});
+  renderTasksGlobal();renderMetrics();renderSidebar();
+  if(projId||activeProjectId){const pid=projId||activeProjectId;renderDetailTasks(pid);renderGanttDetail(pid)}
+}
 
 async function addTask(){
   const name=document.getElementById('fta-name').value.trim();if(!name){alert('Activity name required');return}
@@ -3101,9 +3474,10 @@ function renderMeetings(){
           <div style="font-size:14px;font-weight:700">${m.title}</div>
           <div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.location||''} · ${m.proj}</div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:5px;align-items:center">
           ${m.attendees?`<span class="badge bg_"><i class="ti ti-users" style="font-size:10px"></i> ${m.attendees.split(',').length} attendee(s)</span>`:''}
           ${(CU.role==='admin'||CU.role==='pm')?`<button class="btn btns" onclick="openEditMeeting(${m.id})" title="Edit"><i class="ti ti-edit"></i></button>`:''}
+          ${CU.role==='admin'?`<button class="btn btns" style="color:var(--er-tx)" onclick="deleteMeeting(${m.id},null)" title="Delete"><i class="ti ti-trash"></i></button>`:''}
           <i class="ti ti-chevron-right" style="font-size:11px;color:var(--tx3);cursor:pointer" onclick="openMeetingDetail(${m.id})"></i>
         </div>
       </div>
@@ -3140,6 +3514,19 @@ async function saveEditMeeting(){
   if(m.id&&m.id<2000000000){await sb.from('meetings').update({title:m.title,date:m.datetime||null,project_name:m.proj,attendees:m.attendees||'',minutes:m.minutes||''}).eq('id',m.id);}
   sbLog(`Meeting updated: "${m.title}" by ${CU.name}`,'#534AB7','Meetings','');
   closeFm('fm-meeting-edit');renderMeetings();
+  if(activeProjectId)renderDetailMeetings(activeProjectId);
+}
+async function deleteMeeting(id,projId){
+  if(!CU||CU.role!=='admin'){alert('Only Admin can delete meetings.');return;}
+  const m=meetings.find(x=>x.id===id);if(!m)return;
+  if(!confirm(`Delete meeting "${m.title}"?\n\nThis cannot be undone.`))return;
+  if(m.id&&m.id<2000000000){await sb.from('meetings').delete().eq('id',m.id);}
+  meetings=meetings.filter(x=>x.id!==id);
+  tasks=tasks.filter(t=>!(t.autoType==='meeting'&&t.name&&t.name.includes(m.title)));
+  sbLog(`Meeting deleted: "${m.title}" by ${CU.name}`,'#993C1D','Meetings','');
+  renderMeetings();
+  if(projId)renderDetailMeetings(projId);
+  else if(activeProjectId)renderDetailMeetings(activeProjectId);
 }
 function openMeetingDetail(id){
   const m=meetings.find(x=>x.id===id);if(!m)return;
