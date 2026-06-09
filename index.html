@@ -1941,317 +1941,200 @@ function exportGanttPDF(projId){
 }
 
 function buildGanttHTML(acts,p,PCOLS){
-// ─────────────────────────────────────────────────────────────────
-// PROPER DATE-BASED GANTT: each column = 1 day, header shows dates
-// ─────────────────────────────────────────────────────────────────
-const PX_PER_DAY=28; // pixels per day column
-const ROW_H=40;      // activity row height px
-const SUB_H=30;      // sub-task row height px
-const HDR_LABEL_W=220; // frozen left column width
+try{
+const PX=26;
+const LW=230;
+const ROW_H=38;
+const SUB_H=28;
+const RC={'LOW':'#3B6D11','MEDIUM':'#7A4A00','HIGH':'#A32D2D','CRITICAL':'#5B0000'};
+const RB={'LOW':'#eaf3de','MEDIUM':'#FAEEDA','HIGH':'#FCEBEB','CRITICAL':'#FFD0D0'};
+const fmtD=function(s){try{var d=new Date(s);return isNaN(d)?'':d.toLocaleDateString('en-PH',{month:'short',day:'numeric'});}catch(e){return '';}};
 
-const PHASE_COLORS=PCOLS;
-const RISK_COLORS={'LOW':'#3B6D11','MEDIUM':'#7A4A00','HIGH':'#A32D2D','CRITICAL':'#5B0000'};
-const RISK_BG={'LOW':'#eaf3de','MEDIUM':'#FAEEDA','HIGH':'#FCEBEB','CRITICAL':'#FFD0D0'};
+// Safe date parse
+function safeDate(s,fallback){var d=new Date(s);return(s&&!isNaN(d))?d:(fallback||new Date());}
 
-// ── date range ────────────────────────────────────────────────────
-// Guard: filter activities with invalid dates, fallback TODAY
-const TODAY_DATE=new Date();TODAY_DATE.setHours(0,0,0,0);
-const safeActs=acts.map(a=>({
-  ...a,
-  start:(a.start&&!isNaN(new Date(a.start)))?a.start:a.start_date||(new Date().toISOString().slice(0,10)),
-  end:(a.end&&!isNaN(new Date(a.end)))?a.end:a.end_date||(new Date().toISOString().slice(0,10))
-}));
-const allDates=safeActs.flatMap(a=>{
-  const d=[new Date(a.start),new Date(a.end)];
-  (a.subTasks||[]).forEach(s=>{if(s.start&&!isNaN(new Date(s.start)))d.push(new Date(s.start));if(s.end&&!isNaN(new Date(s.end)))d.push(new Date(s.end));});
-  return d.filter(dd=>!isNaN(dd.getTime()));
+// Normalize acts — ensure start/end exist
+var na=acts.map(function(a){
+  var s=a.start||a.start_date||'';
+  var e=a.end||a.end_date||'';
+  var sd=safeDate(s,new Date());
+  var ed=safeDate(e,new Date(sd.getTime()+7*864e5));
+  return Object.assign({},a,{start:sd.toISOString().slice(0,10),end:ed.toISOString().slice(0,10),
+    subTasks:(a.subTasks||[]).map(function(st){
+      var ss=safeDate(st.start||s,sd);
+      var se=safeDate(st.end||e,ed);
+      return Object.assign({},st,{start:ss.toISOString().slice(0,10),end:se.toISOString().slice(0,10)});
+    })
+  });
 });
-if(!allDates.length)return '<div style="padding:20px;color:var(--tx2)">Activities found but dates are missing. Please edit each activity and set planned start/end dates.</div>';
 
-const minMs=Math.min(...allDates.map(d=>d.getTime()));
-const maxMs=Math.max(...allDates.map(d=>d.getTime()));
-// Floor to Monday of start week, ceil to Sunday of end week
-function floorWeek(d){const copy=new Date(d);const day=copy.getDay();copy.setDate(copy.getDate()-(day===0?6:day-1));copy.setHours(0,0,0,0);return copy;}
-function ceilSunday(d){const copy=new Date(d);const day=copy.getDay();copy.setDate(copy.getDate()+(day===0?0:7-day));copy.setHours(23,59,59,999);return copy;}
-const gStart=floorWeek(new Date(minMs));
-const gEnd=ceilSunday(new Date(maxMs));
-const totalDays=Math.round((gEnd-gStart)/(1000*60*60*24))+1;
-const totalPx=totalDays*PX_PER_DAY;
-const today=new Date();today.setHours(0,0,0,0);
+// Date range
+var allMs=na.flatMap(function(a){return[new Date(a.start).getTime(),new Date(a.end).getTime()];}).filter(function(n){return!isNaN(n);});
+if(!allMs.length)return '<div style="padding:20px;color:var(--tx2)">Could not read activity dates. Please edit activities and set start/end dates.</div>';
+var minMs=Math.min.apply(null,allMs);
+var maxMs=Math.max.apply(null,allMs);
 
-// Helper: day offset from gStart (0-based)
-function dayOffset(d){return Math.round((new Date(d)-gStart)/(1000*60*60*24));}
-function dayLeft(d){return dayOffset(d)*PX_PER_DAY;}
-function dayWidth(s,e){return Math.max(PX_PER_DAY,Math.round((new Date(e)-new Date(s))/(1000*60*60*24)+1)*PX_PER_DAY);}
+// Floor to Monday
+function toMonday(d){var c=new Date(d);var day=c.getDay();c.setDate(c.getDate()-(day===0?6:day-1));c.setHours(0,0,0,0);return c;}
+function toSunday(d){var c=new Date(d);var day=c.getDay();c.setDate(c.getDate()+(day===0?0:7-day));c.setHours(23,59,59,999);return c;}
+var gS=toMonday(new Date(minMs-2*864e5));
+var gE=toSunday(new Date(maxMs+2*864e5));
+var totalDays=Math.round((gE-gS)/864e5)+1;
+var totalPx=totalDays*PX;
 
-const fmtShort=d=>{const dd=new Date(d);return dd.toLocaleDateString('en-PH',{month:'short',day:'numeric'});};
+var today=new Date();today.setHours(0,0,0,0);
+function dOff(ds){return Math.max(0,Math.round((new Date(ds)-gS)/864e5));}
+function dLeft(ds){return dOff(ds)*PX;}
+function dW(ds,de){return Math.max(PX,Math.round(((new Date(de)-new Date(ds))/864e5+1))*PX);}
 
-// ── Build headers ─────────────────────────────────────────────────
-// Row 1: Month+Year bands
-// Row 2: Week numbers (Mon date of each week)
-// Row 3: Day numbers (every day, alternating shade by week)
+// Grid background
+var gridBg='';
+var c=new Date(gS);var wi=0;
+while(c<=gE){
+  var dow=c.getDay();
+  var isWE=dow===0||dow===6;
+  var isT=c.getTime()===today.getTime();
+  var lx=dOff(c)*PX;
+  gridBg+='<div style="position:absolute;top:0;left:'+lx+'px;width:'+PX+'px;height:100%;background:'+(isT?'rgba(192,86,33,.12)':isWE?'rgba(0,0,0,.04)':'transparent')+';border-left:1px solid '+(isT?'rgba(192,86,33,.4)':'rgba(0,0,0,.05)')+';box-sizing:border-box;pointer-events:none"></div>';
+  if(dow===0)wi++;
+  c=new Date(c.getTime()+864e5);
+}
+var todayX=dOff(today)*PX;
+var todayLine='<div style="position:absolute;top:0;left:'+todayX+'px;width:2px;height:100%;background:rgba(192,86,33,.7);z-index:10;pointer-events:none"></div>';
 
-let monthBands=[];
-{
-  let c=new Date(gStart);c.setDate(1);
-  while(c<=gEnd){
-    const mStart=new Date(Math.max(c,gStart));
-    const nxt=new Date(c.getFullYear(),c.getMonth()+1,1);
-    const mEnd=new Date(Math.min(nxt-1,gEnd));
-    const left=dayLeft(mStart);
-    const right=dayLeft(mEnd)+PX_PER_DAY;
-    monthBands.push({label:c.toLocaleDateString('en-PH',{month:'long',year:'numeric'}),left,width:right-left,
-      isCurrent:c.getFullYear()===today.getFullYear()&&c.getMonth()===today.getMonth()});
-    c=nxt;
-  }
+// Build month header
+var monthHTML='';
+var mc=new Date(gS.getFullYear(),gS.getMonth(),1);
+while(mc<=gE){
+  var mnxt=new Date(mc.getFullYear(),mc.getMonth()+1,1);
+  var ms2=new Date(Math.max(mc,gS));
+  var me2=new Date(Math.min(mnxt-1,gE));
+  var ml=(ms2-gS)/864e5*PX;
+  var mw=(me2-ms2)/864e5*PX+PX;
+  var isCurMon=mc.getFullYear()===today.getFullYear()&&mc.getMonth()===today.getMonth();
+  monthHTML+='<div style="position:absolute;left:'+ml+'px;width:'+mw+'px;height:100%;display:flex;align-items:center;justify-content:center;border-right:2px solid var(--bd2);font-size:9px;font-weight:800;color:'+(isCurMon?'var(--or)':'var(--tx)')+';background:'+(isCurMon?'var(--or2)':'var(--bg3)')+';overflow:hidden;white-space:nowrap;padding:0 4px;box-sizing:border-box">'+mc.toLocaleDateString('en-PH',{month:'short',year:'2-digit'})+'</div>';
+  mc=mnxt;
 }
 
-// Week rows: one cell per week (Mon→Sun)
-let weekCells=[];
-{
-  let c=new Date(gStart);
-  while(c<=gEnd){
-    const wLeft=dayLeft(c);
-    const label='W'+c.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
-    weekCells.push({label,left:wLeft,width:7*PX_PER_DAY});
-    c=new Date(c.getTime()+7*24*3600*1000);
-  }
+// Week header
+var weekHTML='';
+var wc=new Date(gS);
+while(wc<=gE){
+  var wl=dOff(wc)*PX;
+  var wlbl=wc.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
+  weekHTML+='<div style="position:absolute;left:'+wl+'px;width:'+(7*PX)+'px;height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--bd);font-size:8px;font-weight:600;color:var(--tx2);overflow:hidden;white-space:nowrap;padding:0 2px;box-sizing:border-box">'+wlbl+'</div>';
+  wc=new Date(wc.getTime()+7*864e5);
 }
 
-// Day cells
-let dayCells=[];
-{
-  let c=new Date(gStart);
-  let weekIdx=0;
-  while(c<=gEnd){
-    const dow=c.getDay();// 0=Sun,1=Mon...
-    const isWeekend=dow===0||dow===6;
-    const isToday=c.getTime()===today.getTime();
-    const weekShade=weekIdx%2===0;
-    dayCells.push({
-      day:c.getDate(),
-      left:dayLeft(c),
-      width:PX_PER_DAY,
-      isWeekend,isToday,weekShade,
-      label:c.toLocaleDateString('en-PH',{day:'numeric'})
-    });
-    if(dow===0)weekIdx++;
-    c=new Date(c.getTime()+24*3600*1000);
-  }
+// Day header
+var dayHTML='';
+var dc=new Date(gS);
+while(dc<=gE){
+  var ddow=dc.getDay();
+  var isWE2=ddow===0||ddow===6;
+  var isT2=dc.getTime()===today.getTime();
+  var dl=dOff(dc)*PX;
+  dayHTML+='<div style="position:absolute;left:'+dl+'px;width:'+PX+'px;height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(0,0,0,.06);font-size:7.5px;font-weight:'+(isT2?800:400)+';color:'+(isT2?'var(--or)':isWE2?'var(--tx3)':'var(--tx2)')+';background:'+(isT2?'rgba(192,86,33,.1)':isWE2?'var(--bg3)':'var(--bg2)')+';box-sizing:border-box">'+dc.getDate()+'</div>';
+  dc=new Date(dc.getTime()+864e5);
 }
 
-// ── SVG-style: build as pure HTML/CSS ────────────────────────────
-// We'll render as a scrollable table with sticky first column
+var isAPM=CU&&(CU.role==='admin'||CU.role==='pm');
 
-// Grid background: vertical lines per day, weekend shading
-const gridBg=dayCells.map(dc=>`
-  <div style="position:absolute;top:0;left:${dc.left}px;width:${dc.width}px;height:100%;
-    background:${dc.isToday?'rgba(192,86,33,.12)':dc.isWeekend?'rgba(0,0,0,.04)':dc.weekShade?'rgba(0,0,0,.015)':'transparent'};
-    border-left:${dc.isToday?'2px solid rgba(192,86,33,.5)':'1px solid rgba(0,0,0,.05)'};
-    box-sizing:border-box;pointer-events:none"></div>`).join('');
-
-// Today marker line (single full-height)
-const todayOff=dayOffset(today);
-const todayX=todayOff*PX_PER_DAY;
-const todayLine=todayOff>=0&&todayOff<totalDays?`<div style="position:absolute;top:0;left:${todayX}px;width:2px;height:100%;background:rgba(192,86,33,.7);z-index:10;pointer-events:none"></div>`:'';
-
-// ── Activity rows ─────────────────────────────────────────────────
-const rowsHTML=safeActs.map(a=>{
-  const col=PHASE_COLORS[a.phase]||p.color||'#185FA5';
-  const riskLvl=a.riskLevel||'LOW';
-  const riskCol=RISK_COLORS[riskLvl];
-  const riskBgCol=RISK_BG[riskLvl];
-  const sdone=(a.subTasks||[]).filter(s=>s.done).length;
-  const stot=(a.subTasks||[]).length;
-  const isAdminOrPM=CU&&(CU.role==='admin'||CU.role==='pm');
-  const durDays=Math.round((new Date(a.end)-new Date(a.start))/(1000*60*60*24))+1;
-
-  // Planned bar
-  const barLeft=dayLeft(a.start);
-  const barW=dayWidth(a.start,a.end);
-  const doneW=Math.round(barW*(a.done||0)/100);
-
-  // Actual bar
-  let actualBarHTML='';
+// Activity rows
+var rowsHTML=na.map(function(a){
+  var col=PCOLS[a.phase]||p.color||'#185FA5';
+  var rl=a.riskLevel||'LOW';
+  var sdone=(a.subTasks||[]).filter(function(s){return s.done;}).length;
+  var stot=(a.subTasks||[]).length;
+  var dur=Math.round((new Date(a.end)-new Date(a.start))/864e5)+1;
+  var bl=dLeft(a.start);
+  var bw=dW(a.start,a.end);
+  var dw=Math.round(bw*(a.done||0)/100);
+  var editBtn=isAPM?'<button class="btn btns" onclick="openGanttEditModal('+a.id+','+p.id+')" style="font-size:9px;padding:1px 5px;position:absolute;top:2px;right:4px;z-index:5;background:var(--bg)" title="Edit"><i class="ti ti-edit"></i></button>':'';
+  var actualBar='';
   if(a.actualStart){
-    const aS=new Date(a.actualStart);
-    const aE=a.actualEnd?new Date(a.actualEnd):today;
-    const aLeft=dayLeft(aS);
-    const aW=Math.max(PX_PER_DAY,Math.round((aE-aS)/(1000*60*60*24)+1)*PX_PER_DAY);
-    const delayDays=Math.round((aS-new Date(a.start))/(1000*60*60*24));
-    const delayTag=delayDays>0?` +${delayDays}d`:delayDays<0?` ${delayDays}d early`:'';
-    actualBarHTML=`<div style="position:absolute;top:${ROW_H-12}px;left:${aLeft}px;width:${aW}px;height:8px;
-      border-radius:2px;background:${col};opacity:.7;z-index:3" title="Actual: ${a.actualStart}→${a.actualEnd||'ongoing'}${delayTag}"></div>`;
+    var aS=safeDate(a.actualStart,new Date(a.start));
+    var aE=a.actualEnd?safeDate(a.actualEnd,today):today;
+    var aL=dLeft(aS);var aW=Math.max(PX,Math.round((aE-aS)/864e5+1)*PX);
+    actualBar='<div style="position:absolute;top:'+(ROW_H-10)+'px;left:'+aL+'px;width:'+aW+'px;height:6px;border-radius:2px;background:'+col+';opacity:.7;z-index:3"></div>';
   }
-
-  const editBtn=isAdminOrPM?`<button class="btn btns" onclick="openGanttEditModal(${a.id},${p.id})"
-    style="font-size:9px;padding:1px 5px;position:absolute;top:2px;right:4px;z-index:5;background:var(--bg);opacity:.9"
-    title="Edit"><i class="ti ti-edit"></i></button>`:'';
-
-  const barHTML=`
-    <!-- grid bg -->
-    ${gridBg}
-    <!-- planned bar outline -->
-    <div style="position:absolute;top:8px;left:${barLeft}px;width:${barW}px;height:${ROW_H-18}px;
-      border-radius:5px;background:${col}20;border:2px solid ${col};box-sizing:border-box;z-index:2"></div>
-    <!-- progress fill -->
-    <div style="position:absolute;top:8px;left:${barLeft}px;width:${doneW}px;height:${ROW_H-18}px;
-      border-radius:5px 0 0 5px;background:${col};opacity:.6;z-index:2;pointer-events:none"></div>
-    <!-- % label inside -->
-    <div style="position:absolute;top:10px;left:${barLeft+5}px;font-size:9px;font-weight:700;
-      color:${col};z-index:4;pointer-events:none;white-space:nowrap">${a.done||0}%</div>
-    <!-- dates shown in header -->
-    ${actualBarHTML}
-    ${todayLine}
-    ${editBtn}`;
-
-  // Sub-task rows
-  const subRowsHTML=(a.subTasks||[]).map((st,si)=>{
-    const stS=st.start||a.start;
-    const stE=st.end||a.end;
-    const stLeft=dayLeft(stS);
-    const stW=dayWidth(stS,stE);
-    const stDur=Math.round((new Date(stE)-new Date(stS))/(1000*60*60*24))+1;
-    const editStBtn=isAdminOrPM?`<button class="btn btns" style="font-size:9px;padding:1px 4px;flex-shrink:0;margin-left:2px"
-      onclick="openSubTaskEdit(${a.id},${st.id},${p.id})" title="Edit"><i class="ti ti-edit"></i></button>`:'';
-    const stBarHTML=`
-      ${gridBg}
-      <div style="position:absolute;top:7px;left:${stLeft}px;width:${stW}px;height:${SUB_H-16}px;
-        border-radius:3px;background:${col}${st.start&&st.end?'40':'18'};
-        border:1.5px ${st.start&&st.end?'solid':'dashed'} ${col};box-sizing:border-box;z-index:2"></div>
-      ${st.done?`<div style="position:absolute;top:7px;left:${stLeft}px;width:${stW}px;height:${SUB_H-16}px;
-        border-radius:3px;background:${col};opacity:.35;z-index:2;pointer-events:none"></div>`:''}
-      <!-- dates shown in header -->
-      ${todayLine}`;
-    return `<div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;border-bottom:1px solid var(--bd);background:var(--bg2)">
-      <div style="display:flex;align-items:center;gap:5px;padding:3px 8px 3px 22px;border-right:1px solid var(--bd);background:var(--bg2);position:sticky;left:0;z-index:6">
-        <div class="sub-ck${st.done?' dn':''}" onclick="openSubTaskReport(${a.id},${st.id},${p.id})" style="flex-shrink:0">${st.done?'<i class="ti ti-check" style="font-size:8px;color:#fff"></i>':''}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:10px;color:var(--tx2);${st.done?'text-decoration:line-through;color:var(--tx3)':''}overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${st.name}</div>
-          <div style="font-size:8px;color:var(--in-tx)">${fmtShort(stS)} → ${fmtShort(stE)} · ${stDur}d</div>
-        </div>
-        ${editStBtn}
-      </div>
-      <div style="position:relative;height:${SUB_H}px;overflow:hidden;min-width:${totalPx}px">${stBarHTML}</div>
-    </div>`;
+  var subRows=(a.subTasks||[]).map(function(st){
+    var stL=dLeft(st.start);var stW=dW(st.start,st.end);
+    var stDur=Math.round((new Date(st.end)-new Date(st.start))/864e5)+1;
+    var hasDates=!!(st.start&&st.end);
+    var editStBtn=isAPM?'<button class="btn btns" style="font-size:9px;padding:1px 4px;flex-shrink:0;margin-left:2px" onclick="openSubTaskEdit('+a.id+','+st.id+','+p.id+')" title="Edit sub-task"><i class="ti ti-edit"></i></button>':'';
+    return '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;border-bottom:1px solid var(--bd);background:var(--bg2)">'+
+      '<div style="display:flex;align-items:center;gap:5px;padding:3px 8px 3px 22px;border-right:1px solid var(--bd);background:var(--bg2);position:sticky;left:0;z-index:6">'+
+      '<div class="sub-ck'+(st.done?' dn':'')+'" onclick="openSubTaskReport('+a.id+','+st.id+','+p.id+')" style="flex-shrink:0">'+(st.done?'<i class="ti ti-check" style="font-size:8px;color:#fff"></i>':'')+
+      '</div><div style="flex:1;min-width:0"><div style="font-size:10px;color:var(--tx2);'+(st.done?'text-decoration:line-through;color:var(--tx3);':'')+' overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+st.name+'</div>'+
+      '<div style="font-size:8px;color:var(--in-tx)">'+fmtD(st.start)+' → '+fmtD(st.end)+' · '+stDur+'d</div></div>'+editStBtn+'</div>'+
+      '<div style="position:relative;height:'+SUB_H+'px;overflow:hidden;min-width:'+totalPx+'px">'+gridBg+
+      '<div style="position:absolute;top:6px;left:'+stL+'px;width:'+stW+'px;height:'+(SUB_H-14)+'px;border-radius:3px;background:'+col+(hasDates?'55':'22')+';border:1.5px '+(hasDates?'solid':'dashed')+' '+col+';box-sizing:border-box;z-index:2"></div>'+
+      (st.done?'<div style="position:absolute;top:6px;left:'+stL+'px;width:'+stW+'px;height:'+(SUB_H-14)+'px;border-radius:3px;background:'+col+';opacity:.35;z-index:2;pointer-events:none"></div>':'')+
+      todayLine+'</div></div>';
   }).join('');
-
-  return `<div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;border-bottom:1.5px solid var(--bd);background:var(--bg)">
-    <div style="padding:5px 8px;border-right:1px solid var(--bd);background:var(--bg);position:sticky;left:0;z-index:6;display:flex;flex-direction:column;justify-content:center">
-      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-        <span style="font-size:11px;font-weight:700;color:var(--tx)">${a.name}</span>
-        <span style="font-size:7.5px;font-weight:700;padding:1px 5px;border-radius:8px;background:${riskBgCol};color:${riskCol}">${riskLvl}</span>
-      </div>
-      <div style="font-size:8.5px;color:var(--tx2);margin-top:2px">${a.phase} · ${a.weight||10}% · ${sdone}/${stot} done · ${durDays}d${a.assign?' · '+a.assign:''}</div>
-      <div style="font-size:8px;color:var(--in-tx);margin-top:1px;font-weight:500">${fmtShort(a.start)} → ${fmtShort(a.end)}</div>
-      ${a.actualStart?`<div style="font-size:7.5px;color:var(--tx3)">Actual: ${fmtShort(a.actualStart)}${a.actualEnd?' → '+fmtShort(a.actualEnd):'→'}</div>`:''}
-    </div>
-    <div style="position:relative;height:${ROW_H}px;overflow:hidden;min-width:${totalPx}px">${barHTML}</div>
-  </div>${subRowsHTML}`;
+  return '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;border-bottom:1.5px solid var(--bd);background:var(--bg)">'+
+    '<div style="padding:5px 8px;border-right:1px solid var(--bd);background:var(--bg);position:sticky;left:0;z-index:6;display:flex;flex-direction:column;justify-content:center">'+
+    '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">'+
+    '<span style="font-size:11px;font-weight:700;color:var(--tx)">'+a.name+'</span>'+
+    '<span style="font-size:7.5px;font-weight:700;padding:1px 5px;border-radius:8px;background:'+RB[rl]+';color:'+RC[rl]+'">'+rl+'</span></div>'+
+    '<div style="font-size:8.5px;color:var(--tx2);margin-top:2px">'+a.phase+' · '+(a.weight||10)+'% · '+sdone+'/'+stot+' done · '+dur+'d'+(a.assign?' · '+a.assign:'')+
+    '</div><div style="font-size:8px;color:var(--in-tx);font-weight:500">'+fmtD(a.start)+' → '+fmtD(a.end)+'</div>'+
+    (a.actualStart?'<div style="font-size:7.5px;color:var(--tx3)">Actual: '+fmtD(a.actualStart)+(a.actualEnd?' → '+fmtD(a.actualEnd):'→')+'</div>':'')+
+    '</div>'+
+    '<div style="position:relative;height:'+ROW_H+'px;overflow:hidden;min-width:'+totalPx+'px">'+
+    gridBg+
+    '<div style="position:absolute;top:8px;left:'+bl+'px;width:'+bw+'px;height:'+(ROW_H-18)+'px;border-radius:5px;background:'+col+'20;border:2px solid '+col+';box-sizing:border-box;z-index:2"></div>'+
+    '<div style="position:absolute;top:8px;left:'+bl+'px;width:'+dw+'px;height:'+(ROW_H-18)+'px;border-radius:5px 0 0 5px;background:'+col+';opacity:.55;z-index:2;pointer-events:none"></div>'+
+    '<div style="position:absolute;top:9px;left:'+(bl+5)+'px;font-size:9px;font-weight:700;color:'+col+';z-index:4;pointer-events:none;white-space:nowrap">'+(a.done||0)+'%</div>'+
+    actualBar+todayLine+editBtn+
+    '</div></div>'+subRows;
 }).join('');
 
 // Equipment rows
-const allEquip=[...new Set(safeActs.flatMap(a=>a.equip||[]))];;
-const equipRowsHTML=allEquip.length?`
-  <div style="padding:4px 10px;background:var(--or2);font-size:9px;font-weight:700;color:var(--or);text-transform:uppercase;border-top:2px solid var(--bd2);letter-spacing:.07em;position:sticky;left:0">
-    Equipment / Heavy Equipment Schedule
-  </div>`+allEquip.map(eq=>{
-  const aa=acts.filter(a=>(a.equip||[]).includes(eq));
-  const eS=new Date(Math.min(...aa.map(a=>new Date(a.start))));
-  const eE=new Date(Math.max(...aa.map(a=>new Date(a.end))));
-  const eLeft=dayLeft(eS);
-  const eW=dayWidth(eS,eE);
-  const days=Math.round((eE-eS)/(1000*60*60*24))+1;
-  // Find equipment-level custom dates if stored
-  const eqKey='eq_'+p.id+'_'+eq.replace(/[^a-z0-9]/gi,'_');
-  const eqCustom=(p.equipDates&&p.equipDates[eq])||null;
-  const dispS=eqCustom?new Date(eqCustom.start):eS;
-  const dispE=eqCustom?new Date(eqCustom.end):eE;
-  const dispLeft=dayLeft(dispS);const dispW=dayWidth(dispS,dispE);
-  const dispDays=Math.round((dispE-dispS)/(1000*60*60*24))+1;
-  const editEqBtn=isAdminOrPM?`<button class="btn btns" style="font-size:9px;padding:1px 4px;flex-shrink:0;margin-left:4px" onclick="openEquipEdit('${eq.replace(/'/g,"\\'")}',${p.id})" title="Set custom dates"><i class="ti ti-edit"></i></button>`:'';
-  return`<div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;border-bottom:1px solid var(--bd);background:var(--or2)">
-    <div style="display:flex;align-items:center;gap:6px;padding:4px 8px 4px 12px;border-right:1px solid var(--bd);background:var(--or2);position:sticky;left:0;z-index:6">
-      <i class="ti ti-crane" style="color:#C05621;font-size:12px;flex-shrink:0"></i>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:10px;font-weight:700;color:#C05621">${eq}</div>
-        <div style="font-size:8px;color:var(--tx2)">${fmtShort(dispS)} → ${fmtShort(dispE)} · ${dispDays}d${eqCustom?' <span style="color:var(--ok-tx);font-weight:700">custom</span>':''}</div>
-      </div>
-      ${editEqBtn}
-    </div>
-    <div style="position:relative;height:32px;overflow:hidden;min-width:${totalPx}px">
-      ${gridBg}
-      <div style="position:absolute;top:8px;left:${dispLeft}px;width:${dispW}px;height:16px;border-radius:3px;
-        background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(192,86,33,.15) 3px,rgba(192,86,33,.15) 6px);
-        border:1.5px solid #C05621;display:flex;align-items:center;padding:0 6px;overflow:hidden;z-index:2">
-        <span style="font-size:8px;font-weight:700;color:#C05621;white-space:nowrap">${eq}</span>
-      </div>
-      ${todayLine}
-    </div>
-  </div>`;
-}).join(''):'';
+var allEquip=[...new Set(na.flatMap(function(a){return a.equip||[];}))];
+var equipRowsHTML='';
+if(allEquip.length){
+  equipRowsHTML='<div style="padding:4px 10px;background:var(--or2);font-size:9px;font-weight:700;color:var(--or);text-transform:uppercase;border-top:2px solid var(--bd2);letter-spacing:.07em">Equipment / Heavy Equipment Schedule</div>';
+  equipRowsHTML+=allEquip.map(function(eq){
+    var aa=na.filter(function(a){return(a.equip||[]).includes(eq);});
+    var eqCustom=(p.equipDates&&p.equipDates[eq])||null;
+    var eS=eqCustom?new Date(eqCustom.start):new Date(Math.min.apply(null,aa.map(function(a){return new Date(a.start);})));
+    var eE=eqCustom?new Date(eqCustom.end):new Date(Math.max.apply(null,aa.map(function(a){return new Date(a.end);})));
+    var eL=dLeft(eS);var eW=dW(eS,eE);
+    var days=Math.round((eE-eS)/864e5)+1;
+    var editEqBtn=isAPM?'<button class="btn btns" style="font-size:9px;padding:1px 4px;flex-shrink:0;margin-left:4px" onclick="openEquipEdit(\''+eq.replace(/'/g,"\\'")+"',"+p.id+')" title="Set dates"><i class="ti ti-edit"></i></button>':'';
+    return '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;border-bottom:1px solid var(--bd);background:var(--or2)">'+
+      '<div style="display:flex;align-items:center;gap:6px;padding:4px 8px 4px 12px;border-right:1px solid var(--bd);background:var(--or2);position:sticky;left:0;z-index:6">'+
+      '<i class="ti ti-crane" style="color:#C05621;font-size:12px;flex-shrink:0"></i>'+
+      '<div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;color:#C05621">'+eq+(eqCustom?' <span style="font-size:7.5px;color:var(--ok-tx);font-weight:700">custom</span>':'')+'</div>'+
+      '<div style="font-size:8px;color:var(--tx2)">'+fmtD(eS)+' → '+fmtD(eE)+' · '+days+'d</div></div>'+
+      editEqBtn+'</div>'+
+      '<div style="position:relative;height:32px;overflow:hidden;min-width:'+totalPx+'px">'+
+      gridBg+
+      '<div style="position:absolute;top:8px;left:'+eL+'px;width:'+eW+'px;height:16px;border-radius:3px;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(192,86,33,.15) 3px,rgba(192,86,33,.15) 6px);border:1.5px solid #C05621;display:flex;align-items:center;padding:0 6px;overflow:hidden;z-index:2">'+
+      '<span style="font-size:8px;font-weight:700;color:#C05621;white-space:nowrap">'+eq+'</span></div>'+
+      todayLine+'</div></div>';
+  }).join('');
+}
 
-// ── Header HTML ───────────────────────────────────────────────────
-// Month row
-const monthRowHTML=monthBands.map(m=>`
-  <div style="position:absolute;left:${m.left}px;width:${m.width}px;height:100%;
-    display:flex;align-items:center;justify-content:center;
-    border-right:2px solid var(--bd2);
-    font-size:10px;font-weight:800;
-    color:${m.isCurrent?'var(--or)':'var(--tx)'};
-    background:${m.isCurrent?'var(--or2)':'var(--bg3)'};
-    overflow:hidden;white-space:nowrap;padding:0 6px;
-    box-sizing:border-box">${m.label}</div>`).join('');
-
-// Week row
-const weekRowHTML=weekCells.map(w=>`
-  <div style="position:absolute;left:${w.left}px;width:${w.width}px;height:100%;
-    display:flex;align-items:center;justify-content:center;
-    border-right:1px solid var(--bd);
-    font-size:8.5px;font-weight:600;color:var(--tx2);
-    background:var(--bg2);overflow:hidden;white-space:nowrap;padding:0 3px;
-    box-sizing:border-box">${w.label}</div>`).join('');
-
-// Day row — only show number, highlight today
-const dayRowHTML=dayCells.map(dc=>`
-  <div style="position:absolute;left:${dc.left}px;width:${dc.width}px;height:100%;
-    display:flex;align-items:center;justify-content:center;
-    border-right:1px solid ${dc.isToday?'rgba(192,86,33,.5)':'rgba(0,0,0,.06)'};
-    font-size:8px;font-weight:${dc.isToday?800:400};
-    color:${dc.isToday?'var(--or)':dc.isWeekend?'var(--tx3)':'var(--tx2)'};
-    background:${dc.isToday?'rgba(192,86,33,.1)':dc.isWeekend?'var(--bg3)':'var(--bg2)'};
-    box-sizing:border-box;
-    ${dc.isToday?'outline:1px solid rgba(192,86,33,.4);z-index:1;':''}">${dc.day}</div>`).join('');
-
-return`<div style="overflow-x:auto;overflow-y:visible;border:1px solid var(--bd2);border-radius:var(--rl);position:relative;background:var(--bg)">
-  <div style="min-width:${HDR_LABEL_W+totalPx}px">
-
-    <!-- MONTH HEADER -->
-    <div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--bd2)">
-      <div style="padding:5px 8px;font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;background:var(--bg3);border-right:2px solid var(--bd2);position:sticky;left:0;z-index:11">Month</div>
-      <div style="position:relative;height:22px;background:var(--bg3)"><div style="position:relative;width:${totalPx}px;height:22px">${monthRowHTML}</div></div>
-    </div>
-
-    <!-- WEEK HEADER -->
-    <div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;position:sticky;top:22px;z-index:9;border-bottom:1px solid var(--bd)">
-      <div style="padding:3px 8px;font-size:8.5px;font-weight:600;color:var(--tx3);background:var(--bg2);border-right:2px solid var(--bd2);position:sticky;left:0;z-index:11">Week</div>
-      <div style="position:relative;height:18px;background:var(--bg2)"><div style="position:relative;width:${totalPx}px;height:18px">${weekRowHTML}</div></div>
-    </div>
-
-    <!-- DAY HEADER -->
-    <div style="display:grid;grid-template-columns:${HDR_LABEL_W}px 1fr;position:sticky;top:40px;z-index:8;border-bottom:2px solid var(--bd2)">
-      <div style="padding:2px 8px;font-size:8px;color:var(--tx3);background:var(--bg2);border-right:2px solid var(--bd2);position:sticky;left:0;z-index:11">Day</div>
-      <div style="position:relative;height:16px;background:var(--bg2)"><div style="position:relative;width:${totalPx}px;height:16px">${dayRowHTML}</div></div>
-    </div>
-
-    <!-- ACTIVITY ROWS -->
-    ${rowsHTML}
-
-    <!-- EQUIPMENT -->
-    ${equipRowsHTML}
-
-  </div>
-</div>`;
+return '<div style="overflow-x:auto;border:1px solid var(--bd2);border-radius:var(--rl);background:var(--bg)">'+
+  '<div style="min-width:'+(LW+totalPx)+'px">'+
+  '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--bd2)">'+
+  '<div style="padding:5px 8px;font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;background:var(--bg3);border-right:2px solid var(--bd2);position:sticky;left:0;z-index:11">Activity</div>'+
+  '<div style="position:relative;height:22px;background:var(--bg3)"><div style="position:relative;width:'+totalPx+'px;height:22px">'+monthHTML+'</div></div></div>'+
+  '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;position:sticky;top:22px;z-index:9;border-bottom:1px solid var(--bd)">'+
+  '<div style="padding:3px 8px;font-size:8.5px;font-weight:600;color:var(--tx3);background:var(--bg2);border-right:2px solid var(--bd2);position:sticky;left:0;z-index:11">Week of</div>'+
+  '<div style="position:relative;height:18px;background:var(--bg2)"><div style="position:relative;width:'+totalPx+'px;height:18px">'+weekHTML+'</div></div></div>'+
+  '<div style="display:grid;grid-template-columns:'+LW+'px 1fr;position:sticky;top:40px;z-index:8;border-bottom:2px solid var(--bd2)">'+
+  '<div style="padding:2px 8px;font-size:8px;color:var(--tx3);background:var(--bg2);border-right:2px solid var(--bd2);position:sticky;left:0;z-index:11">Day</div>'+
+  '<div style="position:relative;height:16px;background:var(--bg2)"><div style="position:relative;width:'+totalPx+'px;height:16px">'+dayHTML+'</div></div></div>'+
+  rowsHTML+
+  equipRowsHTML+
+  '</div></div>';
+}catch(err){
+  return '<div style="padding:20px;color:var(--er-tx);font-size:12px;background:var(--er-bg);border-radius:8px;margin:8px"><b>Gantt Error:</b> '+err.message+'<br><small>Check browser console for details.</small></div>';
+}
 }
 
 function openGanttFm(projId){document.getElementById('fg-proj-id').value=projId;openFm('fm-gantt')}
