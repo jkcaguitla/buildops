@@ -795,7 +795,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fg"><label class="fl">Activity Name *</label><input class="inp" id="fg-name" placeholder="e.g. Foundation Works"></div>
   <div class="fr2">
     <div class="fg"><label class="fl">Phase</label><select class="inp" id="fg-phase"><option>Civil</option><option>Structural</option><option>Architectural</option><option>MEP</option><option>Electrical</option><option>Plumbing</option><option>Closeout</option><option>Other</option></select></div>
-    <div class="fg"><label class="fl">Weight % (of total project)</label><input class="inp" id="fg-weight" type="number" min="1" max="100" value="10"></div>
+    <!-- weight auto-calculated from timeline -->
   </div>
   <div class="fg"><label class="fl">Safety Risk Level</label>
     <select class="inp" id="fg-risk" style="font-weight:600">
@@ -845,7 +845,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <input type="range" min="0" max="100" step="1" id="fge-done" style="width:100%;accent-color:var(--or)" oninput="document.getElementById('fge-done-val').textContent=this.value+'%'">
   </div>
   <div class="fr2">
-    <div class="fg"><label class="fl">Weight % (of project)</label><input class="inp" id="fge-weight" type="number" min="1" max="100"></div>
+    <!-- weight auto-calculated from timeline -->
     <div class="fg"><label class="fl">Assigned To</label><select class="inp" id="fge-assign"></select></div>
   </div>
   <div class="fg"><label class="fl">Equipment (comma-separated)</label><input class="inp" id="fge-equip"></div>
@@ -1150,6 +1150,14 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fr2"><div class="fg"><label class="fl">Source</label><input class="inp" id="fpl-source" placeholder="Referral, Bidding, Direct, Online..."></div><div class="fg"><label class="fl">Expected Close Date</label><input class="inp" id="fpl-closedate" type="date"></div></div>
   <div class="fg"><label class="fl">Contact Person</label><input class="inp" id="fpl-contact" placeholder="Name & phone"></div>
   <div class="fg"><label class="fl">Notes / Details</label><textarea class="inp" id="fpl-notes" placeholder="Scope, requirements, competition, strategy..."></textarea></div>
+  <div class="fg"><label class="fl">Attach Files (Proposals, Drawings, Specs...)</label>
+    <div class="upload-zone" onclick="document.getElementById('fpl-files').click()">
+      <input type="file" id="fpl-files" multiple onchange="prevMedia(this,'fpl-prev')">
+      <i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Attach proposals, drawings, specs, or any docs</div>
+    </div>
+    <div class="media-prev" id="fpl-prev"></div>
+  </div>
   <div class="fa"><button class="btn" onclick="closeFm('fm-pipeline')">Cancel</button><button class="btn btnp" onclick="addPipelineLead()">Save Lead</button></div>
 </div></div>
 
@@ -1583,7 +1591,7 @@ function renderDetailAll(id){const p=projects.find(x=>x.id===id);if(!p)return;co
   const billColor=billPct>=90?'var(--ok-tx)':'var(--in-tx)';
   const collectColor=collectPct>=90?'var(--ok-tx)':collectPct>=50?'var(--wn-tx)':'var(--er-tx)';
 
-document.getElementById('detail-header').innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px"><div style="display:flex;align-items:center;gap:12px"><div style="width:5px;height:60px;border-radius:4px;background:${p.color}"></div><div><div style="font-size:20px;font-weight:700">${p.name}</div><div style="font-size:12px;color:var(--tx2)">${p.client} - ${p.location}</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">${p.desc||''}</div>${p.paymentTerms?`<div style="font-size:11px;margin-top:3px"><span style="background:var(--in-bg);color:var(--in-tx);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">Payment Terms: ${p.paymentTerms}</span></div>`:''}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${sbadge(p.status)}${canDo('editProject')?`<button class="btn btns" onclick="openEdit(${p.id})"><i class="ti ti-edit"></i> Edit</button>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:14px"><div><div style="font-size:10px;color:var(--tx3)">Contract Price</div><div style="font-weight:700">${hideCosts(fmt(p.contractPrice))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Contingency</div><div style="font-weight:700">${hideCosts(fmt(p.contingency||0))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Spent</div><div style="font-weight:700;color:${bc}">${hideCosts(fmt(spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Remaining</div><div style="font-weight:700;color:var(--ok-tx)">${hideCosts(fmt(p.contractPrice-spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Start</div><div style="font-weight:700">${p.start}</div></div><div><div style="font-size:10px;color:var(--tx3)">End</div><div style="font-weight:700">${p.end}</div></div></div><div style="margin-top:12px">
+document.getElementById('detail-header').innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px"><div style="display:flex;align-items:center;gap:12px"><div style="width:5px;height:60px;border-radius:4px;background:${p.color}"></div><div><div style="font-size:20px;font-weight:700">${p.name}</div><div style="font-size:12px;color:var(--tx2)">${p.client} - ${p.location}</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">${p.desc||''}</div>${p.paymentTerms?`<div style="font-size:11px;margin-top:3px"><span style="background:var(--in-bg);color:var(--in-tx);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">Payment Terms: ${p.paymentTerms}</span></div>`:''}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${sbadge(p.status)}${canDo('editProject')?`<button class="btn btns" onclick="openEdit(${p.id})"><i class="ti ti-edit"></i> Edit</button>`:''} ${CU&&CU.role==='admin'?`<button class="btn btns" style="color:var(--er-tx);border-color:var(--er-tx)" onclick="deleteProject(${p.id})" title="Delete Project"><i class="ti ti-trash"></i> Delete Project</button>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:14px"><div><div style="font-size:10px;color:var(--tx3)">Contract Price</div><div style="font-weight:700">${hideCosts(fmt(p.contractPrice))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Contingency</div><div style="font-weight:700">${hideCosts(fmt(p.contingency||0))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Spent</div><div style="font-weight:700;color:${bc}">${hideCosts(fmt(spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Remaining</div><div style="font-weight:700;color:var(--ok-tx)">${hideCosts(fmt(p.contractPrice-spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Start</div><div style="font-weight:700">${p.start}</div></div><div><div style="font-size:10px;color:var(--tx3)">End</div><div style="font-weight:700">${p.end}</div></div></div><div style="margin-top:12px">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px"><span style="font-size:11px;color:var(--tx2);width:80px">Progress</span><div class="pb" style="flex:1;height:7px"><div class="pf" style="width:${prog}%;background:${p.color};height:7px"></div></div><span style="font-weight:700;color:${p.color};min-width:34px">${prog}%</span><span style="font-size:10px;color:var(--tx3)">Gantt-based</span></div>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px"><span style="font-size:11px;color:var(--tx2);width:80px">Budget Used</span><div class="pb" style="flex:1;height:7px"><div class="pf" style="width:${canSeeCosts()?bpct:0}%;background:${bc};height:7px"></div></div><span style="font-weight:700;color:${bc};min-width:34px">${hideCosts(bpct+'%')}</span></div>
   ${canSeeCosts()&&billing.length?`
@@ -1648,7 +1656,7 @@ document.getElementById('d-ov-content').innerHTML=`
 // GANTT CHART
 function renderGanttDetail(id){const acts=ganttActivities[id]||[];const p=projects.find(x=>x.id===id);
 const PCOLS={Civil:'#185FA5',Structural:'#C05621',Architectural:'#534AB7',MEP:'#0F6E56',Electrical:'#854F0B',Plumbing:'#0F5F6E',Closeout:'#993C1D',Other:'#666'};
-document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttCSV(${id})" title="Export CSV"><i class="ti ti-file-spreadsheet"></i> Export CSV</button><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Progress auto-calculated from weighted activities. Click edit to update %. Toggle sub-task checkboxes to auto-update. Equipment rows show predicted rental period.</div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`;
+document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Progress auto-calculated from weighted activities. Click edit to update %. Toggle sub-task checkboxes to auto-update. Equipment rows show predicted rental period.</div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`;
 }
 
 // ─── EQUIPMENT DATE EDIT ──────────────────────────────────────────
@@ -1810,6 +1818,7 @@ function exportGanttPDF(projId){
   const doneCount=acts.filter(a=>a.done>=100).length;
 
   const win=window.open('','_blank','width=1200,height=900');
+  if(!win){alert('Popup blocked! Please allow popups for this site, then click PDF again.');return;}
   win.document.write(`<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
@@ -1938,6 +1947,7 @@ function exportGanttPDF(projId){
 
 </body></html>`);
   win.document.close();
+  win.onload=function(){setTimeout(function(){win.print();},400);};
 }
 
 function buildGanttHTML(acts,p,PCOLS){
@@ -2156,7 +2166,7 @@ async function addGanttActivity(){
     end:document.getElementById('fg-end').value||TODAY,
     actualStart:document.getElementById('fg-actual-start').value||'',
     actualEnd:document.getElementById('fg-actual-end').value||'',
-    weight:parseInt(document.getElementById('fg-weight').value)||10,
+    weight:(function(){const allA=ganttActivities[projId]||[];const allMs=[...allA.flatMap(a=>[new Date(a.start),new Date(a.end)]),new Date(actStart),new Date(actEnd)].filter(d=>!isNaN(d));const tot=allMs.length>1?Math.max(...allMs.map(d=>d.getTime()))-Math.min(...allMs.map(d=>d.getTime())):1;return Math.max(1,Math.round((new Date(actEnd)-new Date(actStart))/tot*100));})(),
     done:parseInt(document.getElementById('fg-done').value)||0,
     assign:document.getElementById('fg-assign').value,
     equip,subTasks,
@@ -2243,7 +2253,12 @@ async function saveGanttEdit(){
   act.actualStart=document.getElementById('fge-actual-start').value||'';
   act.actualEnd=document.getElementById('fge-actual-end').value||'';
   act.done=parseInt(document.getElementById('fge-done').value)||0;
-  act.weight=parseInt(document.getElementById('fge-weight').value)||act.weight||10;
+  // Recalculate weight from updated dates
+  const allActsE=ganttActivities[projId]||[];
+  const allMsE=[...allActsE.flatMap(a=>[new Date(a.start),new Date(a.end)])].filter(d=>!isNaN(d));
+  const totSpanE=allMsE.length>1?Math.max(...allMsE.map(d=>d.getTime()))-Math.min(...allMsE.map(d=>d.getTime())):1;
+  const thisDurE=Math.max(1,new Date(act.end)-new Date(act.start));
+  act.weight=Math.max(1,Math.round(thisDurE/totSpanE*100));
   act.assign=document.getElementById('fge-assign').value;
   act.equip=document.getElementById('fge-equip').value.split(',').map(s=>s.trim()).filter(Boolean);
   // Save to Supabase
@@ -2394,7 +2409,7 @@ function renderDetailTasks(id){
   const addBtn=canDo('newTask')?'<button class="btn btns btnp" onclick="openTaskForProjById('+id+')"><i class="ti ti-plus"></i> Add Task</button>':'';
   document.getElementById('d-tasks-content').innerHTML='<div class="ch"><div class="ct"><i class="ti ti-checklist"></i> Project Tasks</div>'+addBtn+'</div>'
     +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:11px;color:var(--tx2);align-self:center">Filter:</span>'
-    +['All','Today','Pending','Overdue','Done','High','Mine'].map(function(f){return '<button class="btn btns" style="font-size:10px;padding:3px 7px" onclick="filterDetailTasks('+id+',\''+f+'\')" >'+f+'</button>';}).join('')+'</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px"><span style="font-size:11px;color:var(--tx2)">Due From:</span><input class="inp" type="date" id="dtask-from-'+id+'" style="width:130px;font-size:10px"><span style="font-size:11px;color:var(--tx2)">To:</span><input class="inp" type="date" id="dtask-to-'+id+'" style="width:130px;font-size:10px"><button class="btn btns" style="font-size:10px" onclick="filterDetailTasks('+id+')">Apply</button><button class="btn btns" style="font-size:10px" onclick="clearDTaskDates('+id+')">Clear</button>'
+    +['All','Today','Pending','Overdue','Done','High','Mine','Gantt','Meeting','Visitor','Delivery','Pipeline'].map(function(f){return '<button class="btn btns" style="font-size:10px;padding:3px 7px" onclick="filterDetailTasks('+id+',\''+f+'\')" >'+f+'</button>';}).join('')+'</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px"><span style="font-size:11px;color:var(--tx2)">Due From:</span><input class="inp" type="date" id="dtask-from-'+id+'" style="width:130px;font-size:10px"><span style="font-size:11px;color:var(--tx2)">To:</span><input class="inp" type="date" id="dtask-to-'+id+'" style="width:130px;font-size:10px"><button class="btn btns" style="font-size:10px" onclick="filterDetailTasks('+id+')">Apply</button><button class="btn btns" style="font-size:10px" onclick="clearDTaskDates('+id+')">Clear</button>'
     +'<input class="inp" id="dtask-search-'+id+'" style="max-width:280px;font-size:11px;margin-bottom:8px" placeholder="Search tasks..." oninput="filterDetailTasks('+id+',null)">'
     +'<div id="d-tasks-list-'+id+'"></div>';
   filterDetailTasks(id,'All');
@@ -2763,8 +2778,13 @@ function filterDetailTasks(id,statusFilter){
   else if(sf==='Done')list=list.filter(t=>t.done);
   else if(sf==='High')list=list.filter(t=>t.priority==='high');
   else if(sf==='Mine')list=list.filter(t=>t.assignee===CU.name);
+  else if(sf==='Gantt')list=list.filter(t=>t.autoType==='gantt');
+  else if(sf==='Meeting')list=list.filter(t=>t.autoType==='meeting');
+  else if(sf==='Visitor')list=list.filter(t=>t.autoType==='visitor');
+  else if(sf==='Delivery')list=list.filter(t=>t.autoType==='delivery');
+  else if(sf==='Pipeline')list=list.filter(t=>t.autoType==='pipeline');
   if(srch)list=list.filter(t=>(t.name+' '+(t.assignee||'')).toLowerCase().includes(srch));
-  const dateFrom=document.getElementById('dtask-from-'+id)?.value||'';const dateTo=document.getElementById('dtask-to-'+id)?.value||'';if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);el.innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);const act=t.ganttId?(ganttActivities[id]||[]).find(a=>a.id===t.ganttId):null;return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},${id})">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span>${act?`<span style="color:var(--in-tx)"><i class="ti ti-link" style="font-size:9px"></i> ${act.name}</span>`:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskStatusBadge(t)}${pribadge(t.priority)}</div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No tasks match.</div>';
+  const dateFrom=document.getElementById('dtask-from-'+id)?.value||'';const dateTo=document.getElementById('dtask-to-'+id)?.value||'';if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);el.innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);const act=t.ganttId?(ganttActivities[id]||[]).find(a=>a.id===t.ganttId):null;return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},${id})">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span>${act?`<span style="color:var(--in-tx)"><i class="ti ti-link" style="font-size:9px"></i> ${act.name}</span>`:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskSourceBadge(t)}${taskStatusBadge(t)}${pribadge(t.priority)}</div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No tasks match.</div>';
 }
 function renderDetailAtt(id){const p=projects.find(x=>x.id===id);document.getElementById('d-att-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-clock"></i> Site Attendance</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input class="inp" type="date" id="datt-date-${id}" value="${TODAY}" style="width:155px" onchange="refreshDetailAtt(${id})"><input class="inp" id="datt-search-${id}" style="width:150px" placeholder="Search worker..." oninput="refreshDetailAtt(${id})"></div></div><div id="datt-table-${id}"></div>`;renderDetailAttTable(id,TODAY)}
 function refreshDetailAtt(id){renderDetailAttTable(id,document.getElementById('datt-date-'+id).value)}
@@ -2785,14 +2805,34 @@ function buildTaskFilterBar(){
     +'<span style="font-size:11px;color:var(--tx2);flex-shrink:0">Project:</span>'
     +'<select class="inp" style="width:220px" onchange="setTPF(this.value)">'+projOptions+'</select>'
     +'<span style="font-size:11px;color:var(--tx2);flex-shrink:0;margin-left:8px">Filter:</span>'
-    +['All','Today','Pending','Overdue','Done','High','Mine'].map(f2=>'<button class="btn btns'+(taskStatusFilter===f2?' btnp':'')+'" onclick="setTSF(\'' +f2+ '\')">'+f2+'</button>').join('')
+    +['All','Today','Pending','Overdue','Done','High','Mine','Gantt','Meeting','Visitor','Delivery','Pipeline'].map(f2=>'<button class="btn btns'+(taskStatusFilter===f2?' btnp':'')+'" onclick="setTSF(\'' +f2+ '\')">'+f2+'</button>').join('')
     +'</div>';
 }
 function setTPF(n){taskProjFilter=n;buildTaskFilterBar();renderTasksGlobal()}
 function setTSF(f){taskStatusFilter=f;buildTaskFilterBar();renderTasksGlobal()}
 function clearDTaskDates(id){const f=document.getElementById('dtask-from-'+id);const t=document.getElementById('dtask-to-'+id);if(f)f.value='';if(t)t.value='';window['_taskDateFrom_'+id]='';window['_taskDateTo_'+id]='';filterDetailTasks(id);}
 function clearTaskDateFilter(){const f=document.getElementById('task-date-from');const t2=document.getElementById('task-date-to');if(f)f.value='';if(t2)t2.value='';renderTasksGlobal();}
-function renderTasksGlobal(){const mp=myProjects();const taskSrch=(document.getElementById('task-search')?.value||'').toLowerCase();const dateFrom=document.getElementById('task-date-from')?.value||'';const dateTo=document.getElementById('task-date-to')?.value||'';let list=tasks.filter(t=>mp.some(p=>p.name===t.project)&&(canDo('viewAll')||CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name));if(taskSrch)list=list.filter(t=>(t.name+' '+(t.assignee||'')+' '+(t.project||'')).toLowerCase().includes(taskSrch));if(taskProjFilter!=='All')list=list.filter(t=>t.project===taskProjFilter);if(taskStatusFilter==='Today')list=list.filter(t=>t.due===TODAY&&!t.done);else if(taskStatusFilter==='Pending')list=list.filter(t=>!t.done&&(t.status||'pending')==='pending');else if(taskStatusFilter==='Done')list=list.filter(t=>t.done);else if(taskStatusFilter==='High')list=list.filter(t=>t.priority==='high');else if(taskStatusFilter==='Overdue')list=list.filter(t=>!t.done&&t.due&&t.due<TODAY);else if(taskStatusFilter==='Mine')list=list.filter(t=>t.assignee===CU.name);if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);document.getElementById('task-list').innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},null)">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span style="color:var(--in-tx)">${t.project}</span><span>·</span><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span></div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskStatusBadge(t)}${pribadge(t.priority)}<span style="font-size:10px;color:var(--tx2)">${(t.reports||[]).length} report(s)</span></div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No tasks match this filter.</div>'}
+
+function taskSourceBadge(t){
+  const src=t.autoType||'manual';
+  const map={
+    'gantt':      ['#185FA5','#E6F1FB','Gantt'],
+    'meeting':    ['#534AB7','#EEEDFE','Meeting'],
+    'visitor':    ['#854F0B','#FFF3CD','Visitor'],
+    'delivery':   ['#0F6E56','#EAF3DE','Delivery'],
+    'pipeline':   ['#7B2D8B','#F3E8FF','Pipeline'],
+    'inventory_replenish':['#A32D2D','#FCEBEB','Low Stock'],
+    'manual':     ['#666','#f0efe8','Task'],
+  };
+  const [col,bg,lbl]=map[src]||map['manual'];
+  return '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:'+bg+';color:'+col+';white-space:nowrap">'+lbl+'</span>';
+}
+function renderTasksGlobal(){const mp=myProjects();const taskSrch=(document.getElementById('task-search')?.value||'').toLowerCase();const dateFrom=document.getElementById('task-date-from')?.value||'';const dateTo=document.getElementById('task-date-to')?.value||'';let list=tasks.filter(t=>mp.some(p=>p.name===t.project)&&(canDo('viewAll')||CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name));if(taskSrch)list=list.filter(t=>(t.name+' '+(t.assignee||'')+' '+(t.project||'')).toLowerCase().includes(taskSrch));if(taskProjFilter!=='All')list=list.filter(t=>t.project===taskProjFilter);if(taskStatusFilter==='Today')list=list.filter(t=>t.due===TODAY&&!t.done);else if(taskStatusFilter==='Pending')list=list.filter(t=>!t.done&&(t.status||'pending')==='pending');else if(taskStatusFilter==='Done')list=list.filter(t=>t.done);else if(taskStatusFilter==='High')list=list.filter(t=>t.priority==='high');else if(taskStatusFilter==='Overdue')list=list.filter(t=>!t.done&&t.due&&t.due<TODAY);else if(taskStatusFilter==='Mine')list=list.filter(t=>t.assignee===CU.name);
+  else if(taskStatusFilter==='Gantt')list=list.filter(t=>t.autoType==='gantt');
+  else if(taskStatusFilter==='Meeting')list=list.filter(t=>t.autoType==='meeting');
+  else if(taskStatusFilter==='Visitor')list=list.filter(t=>t.autoType==='visitor');
+  else if(taskStatusFilter==='Delivery')list=list.filter(t=>t.autoType==='delivery');
+  else if(taskStatusFilter==='Pipeline')list=list.filter(t=>t.autoType==='pipeline');if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);document.getElementById('task-list').innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},null)">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span style="color:var(--in-tx)">${t.project}</span><span>·</span><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span></div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskSourceBadge(t)}${taskStatusBadge(t)}${pribadge(t.priority)}<span style="font-size:10px;color:var(--tx2)">${(t.reports||[]).length} report(s)</span></div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No tasks match this filter.</div>'}
 
 function openTaskDetail(taskId){const t=tasks.find(x=>x.id===taskId);if(!t)return;document.getElementById('ftd-title').textContent=t.name;document.getElementById('ftd-task-id').value=taskId;document.getElementById('ftd-date').value=TODAY;document.getElementById('ftd-pct').value=0;document.getElementById('ftd-pct-val').textContent='0%';['ftd-work','ftd-issues','ftd-equip','ftd-materials'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const wEl=document.getElementById('ftd-workers');if(wEl)wEl.value='';const hEl=document.getElementById('ftd-hours');if(hEl)hEl.value='8';const pEl=document.getElementById('ftd-prev');if(pEl)pEl.innerHTML='';
 const proj=projects.find(p=>p.name===t.project);const acts=proj?ganttActivities[proj.id]||[]:[];const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
@@ -3492,6 +3532,33 @@ async function addProject(){
   closeFm('fm-proj');
   render();
 }
+async function deleteProject(id){
+  if(!CU||CU.role!=='admin'){alert('Only Admin can delete projects.');return;}
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  if(!confirm('DELETE project "'+p.name+'"?\n\nThis will permanently remove the project and ALL associated data (tasks, expenses, deliveries, documents, gantt activities).\n\nType OK to confirm — this CANNOT be undone.')){return;}
+  // Delete from Supabase
+  await Promise.all([
+    sb.from('projects').delete().eq('id',id),
+    sb.from('tasks').delete().eq('project_name',p.name),
+    sb.from('expenses').delete().eq('project_name',p.name),
+    sb.from('deliveries').delete().eq('project_name',p.name),
+    sb.from('gantt_activities').delete().eq('project_id',id),
+    sb.from('meetings').delete().eq('project_name',p.name),
+    sb.from('visitors').delete().eq('project_name',p.name),
+    sb.from('documents').delete().eq('project_id',id),
+  ]);
+  // Remove local data
+  projects=projects.filter(x=>x.id!==id);
+  tasks=tasks.filter(t=>t.project!==p.name);
+  expenses=expenses.filter(e=>e.proj!==p.name);
+  deliveries=deliveries.filter(d=>d.proj!==p.name);
+  delete ganttActivities[id];
+  delete documents[id];
+  sbLog('Project deleted: "'+p.name+'" by '+CU.name,'#993C1D','Projects','');
+  activeProjectId=null;
+  document.getElementById('detail-view').style.display='none';
+  setTab('dashboard');renderMetrics();renderSidebar();
+}
 function openEdit(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('fe-id').value=id;document.getElementById('fe-name').value=p.name;document.getElementById('fe-status').value=p.status;document.getElementById('fe-contract').value=p.contractPrice;document.getElementById('fe-notes').value=p.notes||'';document.getElementById('fm-edit').classList.add('op')}
 function saveEdit(){const id=parseInt(document.getElementById('fe-id').value);const p=projects.find(x=>x.id===id);if(!p)return;const os=p.status;p.name=document.getElementById('fe-name').value||p.name;p.status=document.getElementById('fe-status').value;p.contractPrice=parseFloat(document.getElementById('fe-contract').value)||p.contractPrice;p.notes=document.getElementById('fe-notes').value;sbSaveProject(p);if(p.status!==os){sbLog(`${p.name}: status changed to ${p.status}`,p.color,'Projects',p.name);}closeFm('fm-edit');render();if(activeProjectId===id)renderDetailAll(id)}
 
@@ -3504,16 +3571,23 @@ async function deleteUser(id){if(!CU||CU.role!=='admin'){alert('Only Admin can d
 function addUser(){const name=document.getElementById('fu-name').value.trim();const pin=document.getElementById('fu-pin').value;if(!name){alert('Name required');return}if(!pin||pin.length<4){alert('PIN must be 4+ digits');return}const role=document.getElementById('fu-role').value;let projs=role==='admin'?['ALL']:[];if(role!=='admin')document.querySelectorAll('#fu-proj-cbs input:checked').forEach(cb=>projs.push(cb.value));const u={_isNew:true,name,role,projects:projs,pin,active:true};users.push(u);sbSaveUser(u).then(()=>sbLog(`User added: ${name} (${RLBL[role]})`,'#534AB7','Users',''));closeFm('fm-user');renderUsers();initAuth()}
 
 // ACTIVITY
-function addPipelineLead(){
+async function addPipelineLead(){
   const name=document.getElementById('fpl-name').value.trim();
   const client=document.getElementById('fpl-client').value.trim();
   if(!name||!client){alert('Name and client required');return;}
   const stage=document.getElementById('fpl-stage').value;
-  const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,notes:document.getElementById('fpl-notes').value,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
+  const files=Array.from(document.getElementById('fpl-files')?.files||[]).map(f=>f.name);
+  const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,notes:document.getElementById('fpl-notes').value,files:files,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
   pipeline.push(lead);
-  sbSavePipeline(lead).then(()=>sbLog(`Pipeline lead added: "${name}" — ${stage}`,'#7B2D8B','Pipeline',''));
+  await sbSavePipeline(lead);
+  sbLog('Pipeline lead added: "'+name+'" — '+stage,'#7B2D8B','Pipeline','');
+  // Create task in Supabase for follow-up
+  const closeDate=lead.closedate||TODAY;
+  const pipTask={_isNew:true,name:'Follow up: '+name+' ('+stage+')',project:name,assignee:CU.name,due:closeDate,priority:stage==='Closing'||stage==='Negotiation'?'high':'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Pipeline lead: '+name+' | Client: '+client+' | Stage: '+stage+' | Value: ₱'+(lead.value||0)+' | Source: '+(lead.source||'—'),riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead.id};
+  tasks.push(pipTask);
+  await sbSaveTask(pipTask);
   if(stage==='Awarded')promotePipelineToProject(lead);
-  closeFm('fm-pipeline');renderPipeline();
+  closeFm('fm-pipeline');renderPipeline();renderTasksGlobal();renderSidebar();
 }
 function openPipelineEdit(id){
   const l=pipeline.find(x=>x.id===id);if(!l)return;
@@ -3551,6 +3625,11 @@ function promotePipelineToProject(lead){
   actLog.unshift({time:nowStr(),text:`Project created from pipeline: "${lead.name}"`,color:'#0F6E56'});
   render();
   alert(`"${lead.name}" has been added to Projects!`);
+}
+function downloadPipelineFile(filename, leadId){
+  const l=pipeline.find(x=>x.id===leadId);
+  if(!l)return;
+  alert('File: '+filename+'\n\nNote: File binary storage requires Supabase Storage integration. File names are recorded: '+( l.files||[]).join(', '));
 }
 async function deletePipelineLead(id){
   if(!CU||CU.role!=='admin'){alert('Only Admin can delete pipeline leads.');return;}
@@ -3610,6 +3689,7 @@ function pipelineCard(l,STAGE_COLS,STAGE_BG){
       <div style="font-size:10px;color:var(--tx2)">Close: ${l.closedate||'TBD'} · ${l.source||'—'}</div>
       ${l.notes?`<div style="font-size:10px;color:var(--tx3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.notes}</div>`:''}
       ${l.history&&l.history.length>1?`<div style="font-size:9px;color:var(--in-tx);margin-top:4px"><i class="ti ti-history" style="font-size:9px"></i> ${l.history.length} updates</div>`:''}
+      ${l.files&&l.files.length?`<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${l.files.map(f=>`<span style="background:var(--in-bg);color:var(--in-tx);border-radius:4px;padding:2px 7px;font-size:9px;font-weight:600;cursor:pointer" onclick="event.stopPropagation();downloadPipelineFile('${f.replace(/'/g,"\'")}',${l.id})" title="Download ${f}"><i class="ti ti-download" style="font-size:9px"></i> ${f}</span>`).join('')}</div>`:''}
     </div>
   </div>`;
 }
