@@ -1648,8 +1648,8 @@ document.getElementById('d-ov-content').innerHTML=`
 // GANTT CHART
 function renderGanttDetail(id){const acts=ganttActivities[id]||[];const p=projects.find(x=>x.id===id);
 const PCOLS={Civil:'#185FA5',Structural:'#C05621',Architectural:'#534AB7',MEP:'#0F6E56',Electrical:'#854F0B',Plumbing:'#0F5F6E',Closeout:'#993C1D',Other:'#666'};
-document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttCSV(${id})" title="Export CSV"><i class="ti ti-file-spreadsheet"></i> Export CSV</button><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Progress auto-calculated from weighted activities. Click edit to update %. Toggle sub-task checkboxes to auto-update. Equipment rows show predicted rental period.</div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`}
-
+document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttCSV(${id})" title="Export CSV"><i class="ti ti-file-spreadsheet"></i> Export CSV</button><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:10px">Progress auto-calculated from weighted activities. Click edit to update %. Toggle sub-task checkboxes to auto-update. Equipment rows show predicted rental period.</div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`;
+}
 
 // ─── EQUIPMENT DATE EDIT ──────────────────────────────────────────
 function openEquipEdit(eqName, projId){
@@ -1782,7 +1782,7 @@ function exportGanttPDF(projId){
   }).join('');
 
   // Equipment rows
-  const allEquip=[...new Set(acts.flatMap(a=>a.equip||[]))];
+  const allEquip=[...new Set(actsR.flatMap(a=>a.equip||[]))];
   const equipRowsHTML=allEquip.map(eq=>{
     const aa=acts.filter(a=>(a.equip||[]).includes(eq));
     const eS=new Date(Math.min(...aa.map(a=>new Date(a.start))));
@@ -1954,12 +1954,20 @@ const RISK_COLORS={'LOW':'#3B6D11','MEDIUM':'#7A4A00','HIGH':'#A32D2D','CRITICAL
 const RISK_BG={'LOW':'#eaf3de','MEDIUM':'#FAEEDA','HIGH':'#FCEBEB','CRITICAL':'#FFD0D0'};
 
 // ── date range ────────────────────────────────────────────────────
-const allDates=acts.flatMap(a=>{
+// Guard: filter activities with invalid dates, fallback TODAY
+const TODAY_DATE=new Date();TODAY_DATE.setHours(0,0,0,0);
+const safeActs=acts.map(a=>({
+  ...a,
+  start:(a.start&&!isNaN(new Date(a.start)))?a.start:a.start_date||(new Date().toISOString().slice(0,10)),
+  end:(a.end&&!isNaN(new Date(a.end)))?a.end:a.end_date||(new Date().toISOString().slice(0,10))
+}));
+const allDates=safeActs.flatMap(a=>{
   const d=[new Date(a.start),new Date(a.end)];
-  (a.subTasks||[]).forEach(s=>{if(s.start)d.push(new Date(s.start));if(s.end)d.push(new Date(s.end));});
-  return d;
-}).filter(d=>!isNaN(d));
-if(!allDates.length)return '<div style="padding:20px;color:var(--tx2)">No activities yet.</div>';
+  (a.subTasks||[]).forEach(s=>{if(s.start&&!isNaN(new Date(s.start)))d.push(new Date(s.start));if(s.end&&!isNaN(new Date(s.end)))d.push(new Date(s.end));});
+  return d.filter(dd=>!isNaN(dd.getTime()));
+});
+if(!allDates.length)return '<div style="padding:20px;color:var(--tx2)">Activities found but dates are missing. Please edit each activity and set planned start/end dates.</div>';
+
 const minMs=Math.min(...allDates.map(d=>d.getTime()));
 const maxMs=Math.max(...allDates.map(d=>d.getTime()));
 // Floor to Monday of start week, ceil to Sunday of end week
@@ -2048,7 +2056,7 @@ const todayX=todayOff*PX_PER_DAY;
 const todayLine=todayOff>=0&&todayOff<totalDays?`<div style="position:absolute;top:0;left:${todayX}px;width:2px;height:100%;background:rgba(192,86,33,.7);z-index:10;pointer-events:none"></div>`:'';
 
 // ── Activity rows ─────────────────────────────────────────────────
-const rowsHTML=acts.map(a=>{
+const rowsHTML=safeActs.map(a=>{
   const col=PHASE_COLORS[a.phase]||p.color||'#185FA5';
   const riskLvl=a.riskLevel||'LOW';
   const riskCol=RISK_COLORS[riskLvl];
@@ -2143,7 +2151,7 @@ const rowsHTML=acts.map(a=>{
 }).join('');
 
 // Equipment rows
-const allEquip=[...new Set(acts.flatMap(a=>a.equip||[]))];
+const allEquip=[...new Set(safeActs.flatMap(a=>a.equip||[]))];;
 const equipRowsHTML=allEquip.length?`
   <div style="padding:4px 10px;background:var(--or2);font-size:9px;font-weight:700;color:var(--or);text-transform:uppercase;border-top:2px solid var(--bd2);letter-spacing:.07em;position:sticky;left:0">
     Equipment / Heavy Equipment Schedule
