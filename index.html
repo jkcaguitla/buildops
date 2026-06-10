@@ -1283,9 +1283,48 @@ async function loadAllData(){
     ]);
     if(uRes.data)users=uRes.data.map(u=>({...u,projects:u.project_access||[],active:u.active!==false}));
     if(pRes.data)projects=pRes.data.map(p=>({...p,contractPrice:p.budget||0,contingency:p.contingency||0,color:p.color||COLS[0],status:p.status||'on-track',start:p.start_date,end:p.end_date,paymentTerms:p.payment_terms||'',billing:p.billing||[]}));
-    if(tRes.data)tasks=tRes.data.map(t=>({...t,project:t.project_name||'',name:t.name||'',assignee:t.assigned_to||'',due:t.due_date||'',done:t.status==='done',status:t.status||'pending',priority:t.priority||'medium',riskLevel:'LOW',autoType:null,ganttId:null,schedule:'once',details:t.description||'',reports:[],scheduleDays:[],subTasks:[]}));
+    if(tRes.data)tasks=tRes.data.map(t=>{
+      // Try to recover autoType from description field (it was stored there as "Type: gantt" etc.)
+      let autoType=null;
+      const desc=t.description||'';
+      const typeMatch=desc.match(/Type: (gantt|meeting|visitor|delivery|pipeline|inventory_replenish)/);
+      if(typeMatch)autoType=typeMatch[1];
+      // Also check dedicated column if it exists
+      if(t.auto_type)autoType=t.auto_type;
+      let ganttId=null;
+      const ganttMatch=desc.match(/GanttID: (\d+)/);
+      if(ganttMatch)ganttId=parseInt(ganttMatch[1]);
+      if(t.gantt_activity_id)ganttId=t.gantt_activity_id;
+      return {
+        ...t,
+        project:(t.project_name||'').trim(),
+        name:t.name||'',
+        assignee:t.assigned_to||'',
+        due:t.due_date||'',
+        done:t.status==='done',
+        status:t.status||'pending',
+        priority:t.priority||'medium',
+        riskLevel:'LOW',
+        autoType:autoType,
+        ganttId:ganttId,
+        schedule:'once',
+        details:desc,
+        reports:Array.isArray(t.reports)?t.reports:[],
+        scheduleDays:[],
+        subTasks:[]
+      };
+    });
     if(mpRes.data)manpower=mpRes.data.map(w=>({...w,project:w.project_name,rate:w.rate_per_day||0,emergency:w.emergency_contact||''}));
-    if(invRes.data)inventory=invRes.data.map(i=>({...i,name:i.material,qty:i.qty_on_hand||0,min:i.reorder_point||0,project:i.project_name,unitCost:i.unit_cost||0}));
+    if(invRes.data)inventory=invRes.data.map(i=>({
+      ...i,
+      id:i.id,
+      name:i.material||i.material_name||i.name||'Unknown',
+      unit:i.unit||i.unit_of_measure||'pcs',
+      qty:parseFloat(i.qty_on_hand||i.quantity||i.qty||0),
+      min:parseFloat(i.reorder_point||i.min_qty||i.minimum||i.min||0),
+      project:(i.project_name||i.project||'').trim(),
+      unitCost:parseFloat(i.unit_cost||i.cost||0)
+    }));
     if(delRes.data)deliveries=delRes.data.map(d=>({...d,proj:d.project_name,date:d.scheduled_date,items:d.items||'',mediaCount:0}));
     if(expRes.data)expenses=expRes.data.map(e=>({...e,proj:e.project_name,amount:e.amount||0,by:e.recorded_by||'',cat:e.category||''}));
     if(meetRes.data)meetings=meetRes.data.map(m=>({...m,proj:m.project_name,datetime:m.date}));
@@ -1473,9 +1512,11 @@ function setTaskStatus(taskId,newStatus){
 }
 function schbadge(t){return t.schedule==='daily'?'<span class="badge bi" style="font-size:9px">Daily</span>':t.schedule==='weekly'?'<span class="badge bg_" style="font-size:9px">Weekly</span>':t.schedule==='specific'?`<span class="badge bg_" style="font-size:9px">${(t.scheduleDays||[]).join(',')}</span>`:''}
 function riskBadge(r){const m={'LOW':'<span class="badge bk" style="font-size:9px"><i class="ti ti-shield-check" style="font-size:9px"></i> LOW RISK</span>','MEDIUM':'<span class="badge bw" style="font-size:9px"><i class="ti ti-shield-half" style="font-size:9px"></i> MEDIUM RISK</span>','HIGH':'<span class="badge be" style="font-size:9px"><i class="ti ti-shield-exclamation" style="font-size:9px"></i> HIGH RISK</span>','CRITICAL':'<span class="badge be" style="font-size:9px;background:#7B0000;color:#FFD0D0"><i class="ti ti-skull" style="font-size:9px"></i> CRITICAL RISK</span>'};return m[r]||''}
-function stockBadge(i){const r=i.qty/i.min;return r<=0.5?'<span class="badge be">Critical</span>':r<=1?'<span class="badge bw">Low</span>':'<span class="badge bk">OK</span>'}
-function stockStyle(i){const r=i.qty/i.min;return r<=0.5?'color:var(--er-tx)':r<=1?'color:var(--wn-tx)':'color:var(--ok-tx)'}
+function stockBadge(i){if(!i.min||i.min<=0)return'<span class="badge bk">OK</span>';const r=i.qty/i.min;return r<=0.5?'<span class="badge be">Critical</span>':r<=1?'<span class="badge bw">Low</span>':'<span class="badge bk">OK</span>'}
+function stockStyle(i){if(!i.min||i.min<=0)return'color:var(--ok-tx)';const r=i.qty/i.min;return r<=0.5?'color:var(--er-tx)':r<=1?'color:var(--wn-tx)':'color:var(--ok-tx)'}
 function canDo(a){return CU&&PERMS[CU.role][a]}
+function findProject(id){const n=parseInt(id);return projects.find(x=>x.id===n||x.id===id||String(x.id)===String(id));}
+function findTask(id){const n=parseInt(id);return tasks.find(x=>x.id===n||x.id===id||String(x.id)===String(id));}
 function canSeeCosts(){return CU&&PERMS[CU.role].viewCosts}
 function hideCosts(val){return canSeeCosts()?val:'<span style="color:var(--tx3);font-size:11px">—</span>'}
 function docOk(d){if(!CU)return false;if(d.access==='admin')return CU.role==='admin';if(d.access==='management')return CU.role==='admin'||CU.role==='pm';return true}
@@ -1617,7 +1658,7 @@ function buildFuProj(){document.getElementById('fu-proj-cbs').innerHTML=projects
 
 // RENDER
 function render(){autoUpdateProjectStatuses();renderSidebar();renderMetrics();renderOverview();renderProjects();renderTasksGlobal();renderManpower();renderGlobalInventory();renderGlobalExpenses();renderBudgetOverview();renderUsers();renderActivity()}
-function renderSidebar(){const mp=myProjects();document.getElementById('sidebar').innerHTML=mp.map(p=>{const prog=calcProgress(p.id);return`<div class="si" onclick="openProjectDetail(${p.id})"><div style="width:7px;height:7px;border-radius:50%;background:${p.color};flex-shrink:0"></div><div style="min-width:0"><div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${p.name}</div><div style="font-size:10px;color:var(--tx2)">${prog}%</div></div></div>`;}).join('');document.getElementById('qs1').textContent=mp.filter(p=>p.status==='on-track').length;document.getElementById('qs2').textContent=mp.filter(p=>p.status==='at-risk'||p.status==='delayed').length;document.getElementById('qs3').textContent=tasks.filter(t=>!t.done&&mp.some(p=>p.name===t.project)).length;document.getElementById('qs4').textContent=inventory.filter(i=>mp.some(p=>p.name===i.project)&&i.qty<=i.min).length}
+function renderSidebar(){const mp=myProjects();document.getElementById('sidebar').innerHTML=mp.map(p=>{const prog=calcProgress(p.id);return`<div class="si" onclick="openProjectDetail(${p.id})"><div style="width:7px;height:7px;border-radius:50%;background:${p.color};flex-shrink:0"></div><div style="min-width:0"><div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${p.name}</div><div style="font-size:10px;color:var(--tx2)">${prog}%</div></div></div>`;}).join('');document.getElementById('qs1').textContent=mp.filter(p=>p.status==='on-track').length;document.getElementById('qs2').textContent=mp.filter(p=>p.status==='at-risk'||p.status==='delayed').length;document.getElementById('qs3').textContent=tasks.filter(t=>!t.done&&mp.some(p=>p.name===t.project)).length;const mpNames2=new Set(mp.map(p=>(p.name||'').trim()));document.getElementById('qs4').textContent=inventory.filter(i=>i&&mpNames2.has((i.project||'').trim())&&i.qty<=(i.min||0)).length}
 function renderMetrics(){const mp=myProjects();
 const ongoing=mp.filter(p=>p.status!=='completed').length;
 const finished=mp.filter(p=>p.status==='completed').length;
@@ -1674,7 +1715,7 @@ function renderOverview(){
 function renderProjects(){const mp=myProjects();document.getElementById('proj-cards').innerHTML=mp.map(p=>{const prog=calcProgress(p.id);const spent=calcSpent(p.name);const bpct=Math.min(100,Math.round(spent/p.contractPrice*100));const bc=bpct>90?'var(--er-tx)':bpct>70?'var(--wn-tx)':'var(--ok-tx)';return`<div class="card" style="cursor:pointer" onclick="openProjectDetail(${p.id})" onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px"><div style="display:flex;align-items:center;gap:10px"><div style="width:11px;height:11px;border-radius:50%;background:${p.color};flex-shrink:0;margin-top:3px"></div><div><div style="font-size:15px;font-weight:700">${p.name}</div><div style="font-size:11px;color:var(--tx2)">${p.client} - ${p.location}</div></div></div>${sbadge(p.status)}</div><div style="font-size:12px;color:var(--tx2);margin-bottom:12px">${p.desc||''}</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"><div><div style="font-size:10px;color:var(--tx3)">Contract Price</div><div style="font-size:13px;font-weight:700">${hideCosts(fmt(p.contractPrice))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Spent</div><div style="font-size:13px;font-weight:700;color:${bc}">${hideCosts(fmt(spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Remaining</div><div style="font-size:13px;font-weight:700">${hideCosts(fmt(p.contractPrice-spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">End Date</div><div style="font-size:13px;font-weight:700">${p.end}</div></div></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:11px;color:var(--tx2);width:70px">Progress</span><div class="pb" style="flex:1"><div class="pf" style="width:${prog}%;background:${p.color}"></div></div><span style="font-size:13px;font-weight:700;color:${p.color}">${prog}%</span><span style="font-size:10px;color:var(--tx3)">Gantt-based</span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--tx2);width:70px">Budget</span><div class="pb" style="flex:1"><div class="pf" style="width:${canSeeCosts()?bpct:0}%;background:${bc}"></div></div><span style="font-size:13px;font-weight:700;color:${bc}">${hideCosts(bpct+'%')}</span></div></div>`;}).join('')}
 
 // PROJECT DETAIL
-function openProjectDetail(id){if(!myProjects().find(p=>p.id===id)){alert('Access denied.');return}activeProjectId=id;setTab('projects');document.getElementById('proj-list-view').style.display='none';document.getElementById('proj-detail-view').style.display='block';setDTab('gantt');renderDetailAll(id)}
+function openProjectDetail(id){const pid=parseInt(id)||id;if(!myProjects().find(p=>p.id===pid||String(p.id)===String(id))){alert('Access denied.');return}activeProjectId=pid;id=pid;setTab('projects');document.getElementById('proj-list-view').style.display='none';document.getElementById('proj-detail-view').style.display='block';setDTab('gantt');renderDetailAll(id)}
 function closeDetail(){document.getElementById('proj-list-view').style.display='block';document.getElementById('proj-detail-view').style.display='none';activeProjectId=null}
 function renderDetailAll(id){const p=projects.find(x=>x.id===id);if(!p)return;const prog=calcProgress(id);const spent=calcSpent(p.name);const bpct=Math.min(100,Math.round(spent/p.contractPrice*100));const bc=bpct>90?'var(--er-tx)':bpct>70?'var(--wn-tx)':'var(--ok-tx)';
 // Billing summary for header
@@ -1708,7 +1749,7 @@ const totalRpts=tasks.filter(t=>t.project===p.name).reduce((s,t)=>s+(t.reports||
 const now=new Date();
 const activeActs=acts.filter(a=>a.done>0&&a.done<100&&new Date(a.start)<=now&&new Date(a.end)>=now);
 const upcomingActs=acts.filter(a=>a.done===0&&new Date(a.start)>now).slice(0,3);
-const pInv=inventory.filter(i=>i.project===p.name);
+const pInv=inventory.filter(i=>i&&i.name&&(i.project||'').trim()===(p.name||'').trim());
 const lowInv=pInv.filter(i=>i.qty<=i.min);
 const prog=calcProgress(id);
 document.getElementById('d-ov-content').innerHTML=`
@@ -2658,14 +2699,28 @@ function toggleSubTask(actId,stId,projId){
 
 // DETAIL TABS
 function renderDetailTasks(id){
-  const p=projects.find(x=>x.id===id);if(!p)return;
-  const addBtn=canDo('newTask')?'<button class="btn btns btnp" onclick="openTaskForProjById('+id+')"><i class="ti ti-plus"></i> Add Task</button>':'';
-  document.getElementById('d-tasks-content').innerHTML='<div class="ch"><div class="ct"><i class="ti ti-checklist"></i> Project Tasks</div>'+addBtn+'</div>'
+  const pid=parseInt(id);
+  const p=findProject(pid);
+  if(!p){console.error('[renderDetailTasks] project not found for id:',id);return;}
+  const addBtn=canDo('newTask')?'<button class="btn btns btnp" onclick="openTaskForProjById('+pid+')"><i class="ti ti-plus"></i> Add Task</button>':'';
+  const filters=['All','Today','Pending','Overdue','Done','High','Mine','Gantt','Meeting','Visitor','Delivery','Pipeline'];
+  const filterBtns=filters.map(f=>'<button class="btn btns" style="font-size:10px;padding:3px 7px" onclick="filterDetailTasks('+pid+',\''+f+'\')">' +f+'</button>').join('');
+  document.getElementById('d-tasks-content').innerHTML=
+    '<div class="ch"><div class="ct"><i class="ti ti-checklist"></i> Project Tasks</div>'+addBtn+'</div>'
     +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:11px;color:var(--tx2);align-self:center">Filter:</span>'
-    +['All','Today','Pending','Overdue','Done','High','Mine','Gantt','Meeting','Visitor','Delivery','Pipeline'].map(function(f){return '<button class="btn btns" style="font-size:10px;padding:3px 7px" onclick="filterDetailTasks('+id+',\''+f+'\')" >'+f+'</button>';}).join('')+'</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px"><span style="font-size:11px;color:var(--tx2)">Due From:</span><input class="inp" type="date" id="dtask-from-'+id+'" style="width:130px;font-size:10px"><span style="font-size:11px;color:var(--tx2)">To:</span><input class="inp" type="date" id="dtask-to-'+id+'" style="width:130px;font-size:10px"><button class="btn btns" style="font-size:10px" onclick="filterDetailTasks('+id+')">Apply</button><button class="btn btns" style="font-size:10px" onclick="clearDTaskDates('+id+')">Clear</button>'
-    +'<input class="inp" id="dtask-search-'+id+'" style="max-width:280px;font-size:11px;margin-bottom:8px" placeholder="Search tasks..." oninput="filterDetailTasks('+id+',null)">'
-    +'<div id="d-tasks-list-'+id+'"></div>';
-  filterDetailTasks(id,'All');
+    +filterBtns
+    +'</div>'
+    +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0">'
+    +'<span style="font-size:11px;color:var(--tx2)">Due From:</span>'
+    +'<input class="inp" type="date" id="dtask-from-'+pid+'" style="width:130px;font-size:10px">'
+    +'<span style="font-size:11px;color:var(--tx2)">To:</span>'
+    +'<input class="inp" type="date" id="dtask-to-'+pid+'" style="width:130px;font-size:10px">'
+    +'<button class="btn btns" style="font-size:10px" onclick="filterDetailTasks('+pid+')">Apply</button>'
+    +'<button class="btn btns" style="font-size:10px" onclick="clearDTaskDates('+pid+')">Clear</button>'
+    +'<input class="inp" id="dtask-search-'+pid+'" style="max-width:280px;font-size:11px" placeholder="Search tasks..." oninput="filterDetailTasks('+pid+',null)">'
+    +'</div>'
+    +'<div id="d-tasks-list-'+pid+'"></div>';
+  filterDetailTasks(pid,'All');
 }
 
 function renderDetailBudget(id){
@@ -2707,7 +2762,57 @@ function renderDetailBudget(id){
     +'</div>';
 }
 
-function renderDetailInventory(id){const p=projects.find(x=>x.id===id);const pInv=inventory.filter(i=>i.project===p.name);document.getElementById('d-inv-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-package"></i> Inventory</div>${canDo('inventory')?`<button class="btn btns btnp" onclick="openInvForProj('${p.name}')"><i class="ti ti-plus"></i> Add Material</button>`:''}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><input class="inp" id="dinv-search-${id}" style="max-width:220px" placeholder="Search material..." oninput="filterDetailInventory(${id})"><button class="btn btns" id="dinv-f-all-${id}" onclick="setDInvFilter(${id},'all')" style="font-weight:700">All</button><button class="btn btns" id="dinv-f-critical-${id}" onclick="setDInvFilter(${id},'critical')" style="color:var(--er-tx)">Critical</button><button class="btn btns" id="dinv-f-low-${id}" onclick="setDInvFilter(${id},'low')" style="color:var(--wn-tx)">Low</button><button class="btn btns" id="dinv-f-ok-${id}" onclick="setDInvFilter(${id},'ok')" style="color:var(--ok-tx)">OK</button></div><div id="dinv-grid-${id}" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px">${pInv.map(i=>`<div class="inv-card" style="cursor:pointer" onclick="jumpToInventoryItem(${i.id})"><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:22px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw"><i class="ti ti-arrow-up"></i></button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish"><i class="ti ti-arrow-down"></i></button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' - P'+i.unitCost+'/'+i.unit:''}</div></div>`).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials yet.</div>'}</div><div class="card"><div class="ch"><div class="ct"><i class="ti ti-arrow-up-down"></i> Transactions</div></div><div>${invLog.filter(l=>l.proj===p.name).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><i class="ti ${l.type==='replenish'?'ti-arrow-down':'ti-arrow-up'}" style="font-size:11px;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}"></i></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} - ${l.type==='replenish'?'+':'-'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.note||''} - ${l.user}</div></div><div class="log-time">${l.time}</div></div>`).join('')||'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}</div></div>`}
+function renderDetailInventory(id){
+  var pid=parseInt(id);
+  var p=findProject(pid);
+  if(!p){console.error('[renderDetailInventory] project not found:',id);return;}
+  var pName=(p.name||'').trim().toLowerCase();
+  var pInv=inventory.filter(function(i){
+    if(!i||!i.name)return false;
+    return (i.project||'').trim().toLowerCase()===pName;
+  });
+  console.log('[renderDetailInventory]',p.name,'total inventory:',inventory.length,'matched:',pInv.length);
+  var el=document.getElementById('d-inv-content');if(!el)return;
+  el.innerHTML='<div class="ch"><div class="ct"><i class="ti ti-package"></i> Inventory</div>'
+    +(canDo('inventory')?'<button class="btn btns btnp" onclick="openInvForProj(\''+p.name+'\')"><i class="ti ti-plus"></i> Add Material</button>':'')
+    +'</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+    +'<input class="inp" id="dinv-search-'+pid+'" style="max-width:220px" placeholder="Search material..." oninput="filterDetailInventory('+pid+')">'
+    +'<button class="btn btns" id="dinv-f-all-'+pid+'" onclick="setDInvFilter('+pid+',\'all\')" style="font-weight:700">All</button>'
+    +'<button class="btn btns" id="dinv-f-critical-'+pid+'" onclick="setDInvFilter('+pid+',\'critical\')" style="color:var(--er-tx)">Critical</button>'
+    +'<button class="btn btns" id="dinv-f-low-'+pid+'" onclick="setDInvFilter('+pid+',\'low\')" style="color:var(--wn-tx)">Low</button>'
+    +'<button class="btn btns" id="dinv-f-ok-'+pid+'" onclick="setDInvFilter('+pid+',\'ok\')" style="color:var(--ok-tx)">OK</button>'
+    +'</div>'
+    +'<div id="dinv-grid-'+pid+'" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px">'
+    +(pInv.length?pInv.map(function(i){
+      return '<div class="inv-card" style="cursor:pointer" onclick="jumpToInventoryItem('+i.id+')">'
+        +'<div style="font-size:12px;font-weight:600;margin-bottom:2px">'+i.name+'</div>'
+        +'<div style="font-size:22px;font-weight:700;'+stockStyle(i)+'">'+i.qty
+        +' <span style="font-size:11px;font-weight:400;color:var(--tx2)">'+i.unit+'</span></div>'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">'
+        +stockBadge(i)
+        +(canDo('inventory')?'<div style="display:flex;gap:4px" onclick="event.stopPropagation()">'
+          +'<button class="btn btns" onclick="openTxn('+i.id+',\'withdraw\')" title="Withdraw"><i class="ti ti-arrow-up"></i></button>'
+          +'<button class="btn btns" onclick="openTxn('+i.id+',\'replenish\')" title="Replenish"><i class="ti ti-arrow-down"></i></button>'
+          +'</div>':'')
+        +'</div>'
+        +'<div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: '+i.min+' '+i.unit+(i.unitCost?' - P'+i.unitCost+'/'+i.unit:'')+'</div>'
+        +'</div>';
+    }).join(''):'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials for this project yet.</div>')
+    +'</div>'
+    +'<div class="card"><div class="ch"><div class="ct"><i class="ti ti-arrow-up-down"></i> Transactions</div></div>'
+    +'<div>'
+    +(invLog.filter(function(l){return (l.proj||'').trim().toLowerCase()===pName;}).length
+      ?invLog.filter(function(l){return (l.proj||'').trim().toLowerCase()===pName;}).map(function(l){
+        return '<div class="log-row">'
+          +'<div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+(l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)')+'"><i class="ti '+(l.type==='replenish'?'ti-arrow-down':'ti-arrow-up')+'" style="font-size:11px;color:'+(l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)')+'"></i></div>'
+          +'<div style="flex:1"><div style="font-size:12px;font-weight:500">'+l.mat+' '+(l.type==='replenish'?'+':'-')+l.qty+' '+l.unit+'</div>'
+          +'<div style="font-size:10px;color:var(--tx2)">'+(l.note||'')+' - '+l.user+'</div></div>'
+          +'<div class="log-time">'+l.time+'</div></div>';
+      }).join('')
+      :'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>')
+    +'</div></div>';
+}
 
 let _dInvFilter={};
 function setDInvFilter(id,f){
@@ -3114,37 +3219,84 @@ function openDeliveryForProj(projName){
 }
 let _dinvFilter={};let currentDTaskFilter={};
 function filterDetailInventory(id,stockF){
-  if(stockF!==null&&stockF!==undefined)_dinvFilter[id]=stockF;
-  const sf=_dinvFilter[id]||'all';
-  ['all','critical','low','ok'].forEach(x=>{const el=document.getElementById('dinvf-'+x+'-'+id);if(el)el.style.fontWeight=x===sf?'700':'400';});
-  const p=projects.find(x=>x.id===id);if(!p)return;
-  const srch=(document.getElementById('dinv-search-'+id)?.value||'').toLowerCase();
-  let pInv=inventory.filter(i=>i.project===p.name&&(!srch||i.name.toLowerCase().includes(srch)));
+  const pid=parseInt(id);
+  if(stockF!==null&&stockF!==undefined)_dinvFilter[pid]=stockF;
+  const sf=_dinvFilter[pid]||'all';
+  ['all','critical','low','ok'].forEach(x=>{const el=document.getElementById('dinv-f-'+x+'-'+pid)||document.getElementById('dinvf-'+x+'-'+pid);if(el)el.style.fontWeight=x===sf?'700':'400';});
+  const p=findProject(pid);if(!p)return;
+  const pName=(p.name||'').trim().toLowerCase();
+  const srch=(document.getElementById('dinv-search-'+pid)?.value||'').toLowerCase();
+  let pInv=inventory.filter(i=>i&&i.name&&(i.project||'').trim().toLowerCase()===pName&&(!srch||i.name.toLowerCase().includes(srch)));
   if(sf==='critical')pInv=pInv.filter(i=>i.qty<=i.min*0.5);
   else if(sf==='low')pInv=pInv.filter(i=>i.qty<=i.min&&i.qty>i.min*0.5);
   else if(sf==='ok')pInv=pInv.filter(i=>i.qty>i.min);
-  const el=document.getElementById('dinv-grid-'+id);if(!el)return;
+  const el=document.getElementById('dinv-grid-'+pid);if(!el)return;
   el.innerHTML=pInv.map(i=>`<div class="inv-card" style="cursor:pointer" onclick="jumpToInventoryItem(${i.id})"><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:22px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw"><i class="ti ti-arrow-up"></i></button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish"><i class="ti ti-arrow-down"></i></button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' - P'+i.unitCost+'/'+i.unit:''}</div></div>`).join('')||`<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials match.</div>`;
 }
 function filterDetailTasks(id,statusFilter){
-  const p=projects.find(x=>x.id===id);if(!p)return;
-  const srch=(document.getElementById('dtask-search-'+id)?.value||'').toLowerCase();
-  const sf=(!statusFilter||statusFilter==='null')?currentDTaskFilter[id]||'All':statusFilter;if(statusFilter&&statusFilter!=='null')currentDTaskFilter[id]=sf;
-  const el=document.getElementById('d-tasks-list-'+id);if(!el)return;
-  let list=tasks.filter(t=>t.project===p.name&&(CU.role==='admin'||CU.role==='pm'||t.assignee===CU.name));
-  if(sf==='Today')list=list.filter(t=>t.due===TODAY&&!t.done);
-  else if(sf==='Overdue')list=list.filter(t=>!t.done&&t.due&&t.due<TODAY);
-  else if(sf==='Pending')list=list.filter(t=>(t.status||'pending')==='pending'&&!t.done);
-  else if(sf==='Done')list=list.filter(t=>t.done);
-  else if(sf==='High')list=list.filter(t=>t.priority==='high');
-  else if(sf==='Mine')list=list.filter(t=>t.assignee===CU.name);
-  else if(sf==='Gantt')list=list.filter(t=>t.autoType==='gantt');
-  else if(sf==='Meeting')list=list.filter(t=>t.autoType==='meeting');
-  else if(sf==='Visitor')list=list.filter(t=>t.autoType==='visitor');
-  else if(sf==='Delivery')list=list.filter(t=>t.autoType==='delivery');
-  else if(sf==='Pipeline')list=list.filter(t=>t.autoType==='pipeline');
-  if(srch)list=list.filter(t=>(t.name+' '+(t.assignee||'')).toLowerCase().includes(srch));
-  const dateFrom=document.getElementById('dtask-from-'+id)?.value||'';const dateTo=document.getElementById('dtask-to-'+id)?.value||'';if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);el.innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);const act=t.ganttId?(ganttActivities[id]||[]).find(a=>a.id===t.ganttId):null;return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},${id})">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span>${act?`<span style="color:var(--in-tx)"><i class="ti ti-link" style="font-size:9px"></i> ${act.name}</span>`:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskSourceBadge(t)}${taskStatusBadge(t)}${pribadge(t.priority)}</div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No tasks match.</div>';
+  var pid=parseInt(id);
+  var p=findProject(pid);
+  if(!p){console.error('[filterDetailTasks] project not found:',id);return;}
+  var pName=(p.name||'').trim().toLowerCase();
+  var elFinal=document.getElementById('d-tasks-list-'+pid);
+  if(!elFinal){console.error('[filterDetailTasks] element not found: d-tasks-list-'+pid);return;}
+  var srch=(document.getElementById('dtask-search-'+pid)||{value:''}).value.toLowerCase();
+  var sf=(!statusFilter||statusFilter==='null')?currentDTaskFilter[pid]||'All':statusFilter;
+  if(statusFilter&&statusFilter!=='null')currentDTaskFilter[pid]=sf;
+  var list=tasks.filter(function(t){
+    if(!t||!t.name)return false;
+    if((t.project||'').trim().toLowerCase()!==pName)return false;
+    return(CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name);
+  });
+  console.log('[filterDetailTasks]',p.name,'pid:',pid,'total tasks:',tasks.length,'matched:',list.length,'filter:',sf);
+  if(sf==='Today')list=list.filter(function(t){return t.due===TODAY&&!t.done;});
+  else if(sf==='Overdue')list=list.filter(function(t){return !t.done&&t.due&&t.due<TODAY;});
+  else if(sf==='Pending')list=list.filter(function(t){return (t.status||'pending')==='pending'&&!t.done;});
+  else if(sf==='Done')list=list.filter(function(t){return t.done;});
+  else if(sf==='High')list=list.filter(function(t){return t.priority==='high';});
+  else if(sf==='Mine')list=list.filter(function(t){return t.assignee===CU.name;});
+  else if(sf==='Gantt')list=list.filter(function(t){return (t.autoType||'')==='gantt';});
+  else if(sf==='Meeting')list=list.filter(function(t){return (t.autoType||'')==='meeting';});
+  else if(sf==='Visitor')list=list.filter(function(t){return (t.autoType||'')==='visitor';});
+  else if(sf==='Delivery')list=list.filter(function(t){return (t.autoType||'')==='delivery';});
+  else if(sf==='Pipeline')list=list.filter(function(t){return (t.autoType||'')==='pipeline';});
+  if(srch)list=list.filter(function(t){return (t.name+' '+(t.assignee||'')).toLowerCase().includes(srch);});
+  var dateFrom=(document.getElementById('dtask-from-'+pid)||{value:''}).value;
+  var dateTo=(document.getElementById('dtask-to-'+pid)||{value:''}).value;
+  if(dateFrom)list=list.filter(function(t){return t.due&&t.due>=dateFrom;});
+  if(dateTo)list=list.filter(function(t){return t.due&&t.due<=dateTo;});
+  if(!list.length){
+    elFinal.innerHTML='<div style="color:var(--tx2);font-size:12px;padding:8px 0">No tasks found. '+
+      (tasks.filter(function(t){return t&&t.name;}).length===0?'Tasks not loaded yet — refresh.':'Try a different filter or add tasks.')+'</div>';
+    return;
+  }
+  elFinal.innerHTML=list.map(function(t){
+    var ri=tasks.indexOf(t);
+    var act=t.ganttId?(ganttActivities[pid]||[]).find(function(a){return a.id===t.ganttId;}):null;
+    var hasReports=(t.reports||[]).length>0;
+    var srcBadge=taskSourceBadge(t);
+    var stBadge=taskStatusBadge(t);
+    var priBadge=pribadge(t.priority);
+    return '<div class="task-card" onclick="openTaskDetail('+t.id+')">'
+      +'<div style="display:flex;align-items:flex-start;gap:8px">'
+      +'<div class="ck'+(t.done?' dn':'')+'" onclick="event.stopPropagation();toggleTask('+ri+','+pid+')"'
+      +' title="'+(hasReports?'Click to toggle':'Submit a report first')+'"'
+      +' style="opacity:'+(hasReports||t.done?1:0.4)+'">'
+      +(t.done?'<i class="ti ti-check" style="font-size:10px"></i>':'')
+      +'</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-size:12px;font-weight:500'+(t.done?';text-decoration:line-through;color:var(--tx2)':'')+'">'+(t.name||'')+'</div>'
+      +'<div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap">'
+      +'<span>'+(t.assignee||'—')+'</span><span>·</span>'
+      +'<span>Due '+(t.due||'—')+'</span>'
+      +(act?'<span style="color:var(--in-tx)"><i class="ti ti-link" style="font-size:9px"></i> '+act.name+'</span>':'')
+      +'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">'
+      +srcBadge+stBadge+priBadge
+      +'<span style="font-size:10px;color:'+(hasReports?'var(--ok-tx)':'var(--tx3)')+';">'
+      +(hasReports?t.reports.length+' rpt':'No rpt')
+      +'</span></div></div></div>';
+  }).join('');
 }
 function renderDetailAtt(id){const p=projects.find(x=>x.id===id);document.getElementById('d-att-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-clock"></i> Site Attendance</div><div style="display:flex;gap:6px;flex-wrap:wrap"><input class="inp" type="date" id="datt-date-${id}" value="${TODAY}" style="width:155px" onchange="refreshDetailAtt(${id})"><input class="inp" id="datt-search-${id}" style="width:150px" placeholder="Search worker..." oninput="refreshDetailAtt(${id})"></div></div><div id="datt-table-${id}"></div>`;renderDetailAttTable(id,TODAY)}
 function refreshDetailAtt(id){renderDetailAttTable(id,document.getElementById('datt-date-'+id).value)}
@@ -3174,25 +3326,78 @@ function clearDTaskDates(id){const f=document.getElementById('dtask-from-'+id);c
 function clearTaskDateFilter(){const f=document.getElementById('task-date-from');const t2=document.getElementById('task-date-to');if(f)f.value='';if(t2)t2.value='';renderTasksGlobal();}
 
 function taskSourceBadge(t){
-  const src=t.autoType||'manual';
+  if(!t)return '';
+  const src=(t.autoType||'manual').toLowerCase();
   const map={
-    'gantt':      ['#185FA5','#E6F1FB','Gantt'],
-    'meeting':    ['#534AB7','#EEEDFE','Meeting'],
-    'visitor':    ['#854F0B','#FFF3CD','Visitor'],
-    'delivery':   ['#0F6E56','#EAF3DE','Delivery'],
-    'pipeline':   ['#7B2D8B','#F3E8FF','Pipeline'],
+    'gantt':['#185FA5','#E6F1FB','Gantt'],
+    'meeting':['#534AB7','#EEEDFE','Meeting'],
+    'visitor':['#854F0B','#FFF3CD','Visitor'],
+    'delivery':['#0F6E56','#EAF3DE','Delivery'],
+    'pipeline':['#7B2D8B','#F3E8FF','Pipeline'],
     'inventory_replenish':['#A32D2D','#FCEBEB','Low Stock'],
-    'manual':     ['#666','#f0efe8','Task'],
+    'manual':['#666','#f0efe8','Task'],
   };
   const [col,bg,lbl]=map[src]||map['manual'];
   return '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:'+bg+';color:'+col+';white-space:nowrap">'+lbl+'</span>';
 }
-function renderTasksGlobal(){const mp=myProjects();const taskSrch=(document.getElementById('task-search')?.value||'').toLowerCase();const dateFrom=document.getElementById('task-date-from')?.value||'';const dateTo=document.getElementById('task-date-to')?.value||'';let list=tasks.filter(t=>mp.some(p=>p.name===t.project)&&(canDo('viewAll')||CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name));if(taskSrch)list=list.filter(t=>(t.name+' '+(t.assignee||'')+' '+(t.project||'')).toLowerCase().includes(taskSrch));if(taskProjFilter!=='All')list=list.filter(t=>t.project===taskProjFilter);if(taskStatusFilter==='Today')list=list.filter(t=>t.due===TODAY&&!t.done);else if(taskStatusFilter==='Pending')list=list.filter(t=>!t.done&&(t.status||'pending')==='pending');else if(taskStatusFilter==='Done')list=list.filter(t=>t.done);else if(taskStatusFilter==='High')list=list.filter(t=>t.priority==='high');else if(taskStatusFilter==='Overdue')list=list.filter(t=>!t.done&&t.due&&t.due<TODAY);else if(taskStatusFilter==='Mine')list=list.filter(t=>t.assignee===CU.name);
-  else if(taskStatusFilter==='Gantt')list=list.filter(t=>t.autoType==='gantt');
-  else if(taskStatusFilter==='Meeting')list=list.filter(t=>t.autoType==='meeting');
-  else if(taskStatusFilter==='Visitor')list=list.filter(t=>t.autoType==='visitor');
-  else if(taskStatusFilter==='Delivery')list=list.filter(t=>t.autoType==='delivery');
-  else if(taskStatusFilter==='Pipeline')list=list.filter(t=>t.autoType==='pipeline');if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);document.getElementById('task-list').innerHTML=list.length?list.map(t=>{const ri=tasks.indexOf(t);return`<div class="task-card" onclick="openTaskDetail(${t.id})"><div style="display:flex;align-items:flex-start;gap:8px"><div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},null)">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div style="flex:1"><div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div><div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap"><span style="color:var(--in-tx)">${t.project}</span><span>·</span><span>${t.assignee}</span><span>·</span><span>Due ${t.due}</span></div></div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${taskSourceBadge(t)}${taskStatusBadge(t)}${pribadge(t.priority)}<span style="font-size:10px;color:var(--tx2)">${(t.reports||[]).length} report(s)</span></div></div></div>`;}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No tasks match this filter.</div>'}
+function renderTasksGlobal(){
+  const mp=myProjects();
+  const taskSrch=(document.getElementById('task-search')?.value||'').toLowerCase();
+  const dateFrom=document.getElementById('task-date-from')?.value||'';
+  const dateTo=document.getElementById('task-date-to')?.value||'';
+  const mpNames=new Set(mp.map(p=>p.name));
+  const isManager=CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer';
+  let list=tasks.filter(t=>{
+    if(!t||!t.name)return false;
+    const proj=(t.project||'').trim();
+    // Admin/PM/Engineer see all tasks in their projects; workers only see assigned tasks
+    const inMyProjects=mpNames.has(proj)||(CU.role==='admin'&&proj);
+    const canView=isManager||t.assignee===CU.name;
+    return inMyProjects&&canView;
+  });
+  if(taskSrch)list=list.filter(t=>(t.name+' '+(t.assignee||'')+' '+(t.project||'')).toLowerCase().includes(taskSrch));
+  if(taskProjFilter!=='All')list=list.filter(t=>t.project===taskProjFilter);
+  const sf=taskStatusFilter||'All';
+  if(sf==='Today')list=list.filter(t=>t.due===TODAY&&!t.done);
+  else if(sf==='Pending')list=list.filter(t=>!t.done&&(t.status||'pending')==='pending');
+  else if(sf==='Done')list=list.filter(t=>t.done);
+  else if(sf==='High')list=list.filter(t=>t.priority==='high');
+  else if(sf==='Overdue')list=list.filter(t=>!t.done&&t.due&&t.due<TODAY);
+  else if(sf==='Mine')list=list.filter(t=>t.assignee===CU.name);
+  else if(sf==='Gantt')list=list.filter(t=>(t.autoType||'')==='gantt');
+  else if(sf==='Meeting')list=list.filter(t=>(t.autoType||'')==='meeting');
+  else if(sf==='Visitor')list=list.filter(t=>(t.autoType||'')==='visitor');
+  else if(sf==='Delivery')list=list.filter(t=>(t.autoType||'')==='delivery');
+  else if(sf==='Pipeline')list=list.filter(t=>(t.autoType||'')==='pipeline');
+  if(dateFrom)list=list.filter(t=>t.due&&t.due>=dateFrom);
+  if(dateTo)list=list.filter(t=>t.due&&t.due<=dateTo);
+  const el=document.getElementById('task-list');if(!el)return;
+  el.innerHTML=list.length?list.map(t=>{
+    const ri=tasks.indexOf(t);
+    const hasReports=(t.reports||[]).length>0;
+    return `<div class="task-card" onclick="openTaskDetail(${t.id})">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <div class="ck${t.done?' dn':''}" onclick="event.stopPropagation();toggleTask(${ri},null)" title="${hasReports?'Click to toggle':'Submit a report first'}" style="opacity:${hasReports||t.done?1:0.4}">
+          ${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500${t.done?';text-decoration:line-through;color:var(--tx2)':''}">${t.name}</div>
+          <div style="font-size:10px;color:var(--tx2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap">
+            <span style="color:var(--in-tx)">${t.project}</span><span>·</span>
+            <span>${t.assignee||'—'}</span><span>·</span>
+            <span>Due ${t.due||'—'}</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+          ${taskSourceBadge(t)}${taskStatusBadge(t)}${pribadge(t.priority)}
+          <span style="font-size:10px;color:${hasReports?'var(--ok-tx)':'var(--tx3)'}">
+            ${hasReports?(t.reports.length+' rpt'):'No report'}
+          </span>
+        </div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No tasks match this filter.</div>';
+}
 
 function openTaskDetail(taskId){const t=tasks.find(x=>x.id===taskId);if(!t)return;document.getElementById('ftd-title').textContent=t.name;document.getElementById('ftd-task-id').value=taskId;document.getElementById('ftd-date').value=TODAY;document.getElementById('ftd-pct').value=0;document.getElementById('ftd-pct-val').textContent='0%';['ftd-work','ftd-issues','ftd-equip','ftd-materials'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const wEl=document.getElementById('ftd-workers');if(wEl)wEl.value='';const hEl=document.getElementById('ftd-hours');if(hEl)hEl.value='8';const pEl=document.getElementById('ftd-prev');if(pEl)pEl.innerHTML='';
 const proj=projects.find(p=>p.name===t.project);const acts=proj?ganttActivities[proj.id]||[]:[];const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
@@ -3591,7 +3796,7 @@ function setInvFilter(f){
   ['all','critical','low','ok'].forEach(x=>{const el=document.getElementById('inv-f-'+x);if(el)el.style.fontWeight=x===f?'700':'400';});
   renderGlobalInventory();
 }
-function renderGlobalInventory(){const mp=myProjects();const sel=document.getElementById('inv-proj-filter');if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const f=sel.value;const invSrch=(document.getElementById('inv-search')?.value||'').toLowerCase();let inv=inventory.filter(i=>mp.some(p=>p.name===i.project));if(f)inv=inv.filter(i=>i.project===f);if(invSrch)inv=inv.filter(i=>i.name.toLowerCase().includes(invSrch));if(_invStockFilter==='critical')inv=inv.filter(i=>i.qty<=i.min*0.5);else if(_invStockFilter==='low')inv=inv.filter(i=>i.qty<=i.min&&i.qty>i.min*0.5);else if(_invStockFilter==='ok')inv=inv.filter(i=>i.qty>i.min);document.getElementById('inv-grid-global').innerHTML=inv.map(i=>`<div class="inv-card" id="inv-item-${i.id}" style="cursor:pointer;scroll-margin-top:12px" onclick="highlightInventoryItem(${i.id})"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div></div>${CU&&CU.role==='admin'?`<button class="btn btns" onclick="event.stopPropagation();deleteInventoryItem(${i.id})" title="Delete" style="padding:2px 5px;flex-shrink:0"><i class="ti ti-trash" style="font-size:10px;color:var(--er-tx)"></i></button>`:''}</div><div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw" style="font-weight:700;font-size:13px;padding:2px 8px">−</button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish" style="font-weight:700;font-size:13px;padding:2px 8px;color:var(--ok-tx)">+</button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' · ₱'+i.unitCost+'/'+i.unit:''}</div></div>`).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials found.</div>';document.getElementById('inv-log-global').innerHTML=invLog.length?invLog.filter(l=>!f||l.proj===f).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><span style="font-size:13px;font-weight:700;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}">${l.type==='replenish'?'+':'−'}</span></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} ${l.type==='replenish'?'+':'−'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.proj} · ${l.note||''} · by ${l.user}${l.requestor?' · Requestor: <strong>'+l.requestor+'</strong>':''}</div></div><div class="log-time">${l.time}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
+function renderGlobalInventory(){const mp=myProjects();const sel=document.getElementById('inv-proj-filter');if(!sel)return;if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const f=sel.value;const invSrch=(document.getElementById('inv-search')?.value||'').toLowerCase();const mpSet=new Set(mp.map(p=>(p.name||'').trim()));let inv=inventory.filter(i=>i&&i.name&&(mpSet.has((i.project||'').trim())||(CU.role==='admin'&&i.project)));if(f)inv=inv.filter(i=>i.project===f);if(invSrch)inv=inv.filter(i=>i.name.toLowerCase().includes(invSrch));if(_invStockFilter==='critical')inv=inv.filter(i=>i.qty<=i.min*0.5);else if(_invStockFilter==='low')inv=inv.filter(i=>i.qty<=i.min&&i.qty>i.min*0.5);else if(_invStockFilter==='ok')inv=inv.filter(i=>i.qty>i.min);document.getElementById('inv-grid-global').innerHTML=inv.map(i=>`<div class="inv-card" id="inv-item-${i.id}" style="cursor:pointer;scroll-margin-top:12px" onclick="highlightInventoryItem(${i.id})"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div></div>${CU&&CU.role==='admin'?`<button class="btn btns" onclick="event.stopPropagation();deleteInventoryItem(${i.id})" title="Delete" style="padding:2px 5px;flex-shrink:0"><i class="ti ti-trash" style="font-size:10px;color:var(--er-tx)"></i></button>`:''}</div><div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw" style="font-weight:700;font-size:13px;padding:2px 8px">−</button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish" style="font-weight:700;font-size:13px;padding:2px 8px;color:var(--ok-tx)">+</button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' · ₱'+i.unitCost+'/'+i.unit:''}</div></div>`).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials found.</div>';document.getElementById('inv-log-global').innerHTML=invLog.length?invLog.filter(l=>!f||l.proj===f).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><span style="font-size:13px;font-weight:700;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}">${l.type==='replenish'?'+':'−'}</span></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} ${l.type==='replenish'?'+':'−'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.proj} · ${l.note||''} · by ${l.user}${l.requestor?' · Requestor: <strong>'+l.requestor+'</strong>':''}</div></div><div class="log-time">${l.time}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
 function addMaterial(){const name=document.getElementById('fi-name').value.trim();if(!name){alert('Name required');return}const qty=parseInt(document.getElementById('fi-qty').value)||0;const proj=document.getElementById('fi-proj').value;const minVal=parseInt(document.getElementById('fi-min').value)||0;const i={_isNew:true,name,qty,unit:document.getElementById('fi-unit').value||'pcs',min:minVal,project:proj,unitCost:parseFloat(document.getElementById('fi-cost').value)||0};inventory.push(i);invLog.unshift({time:nowStr(),mat:name,type:'replenish',qty,unit:i.unit,note:'Initial stock',user:CU.name,proj});sbSaveInventory(i).then(()=>{sbLog(`Material added: ${name} to ${proj}`,'#185FA5','Inventory',proj);if(minVal>0&&qty<=minVal){const isCritical=qty<=minVal*0.5;const invTask={_isNew:true,name:(isCritical?'🔴 CRITICAL':'🟡 LOW')+' Stock — Replenish: '+name,project:proj,assignee:CU.name,due:TODAY,priority:isCritical?'high':'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Stock alert: '+name+' added at '+qty+' '+i.unit+' (min: '+minVal+')',riskLevel:isCritical?'HIGH':'MEDIUM',reports:[],autoType:'inventory_replenish'};tasks.push(invTask);sbSaveTask(invTask);renderTasksGlobal();}});closeFm('fm-inv-add');renderGlobalInventory();renderSidebar();if(activeProjectId)renderDetailInventory(activeProjectId)}
 function jumpToInventoryFilter(f){
   setTab('inventory');
@@ -4116,8 +4321,9 @@ function renderActivity(){
   let log=actLog;
   if(srch)log=log.filter(l=>(l.text+' '+(l.user||'')+' '+(l.proj||'')+' '+(l.note||'')).toLowerCase().includes(srch));
   if(catF)log=log.filter(l=>(l.cat||'').toLowerCase().includes(catF.toLowerCase()));
-  document.getElementById('act-log').innerHTML=log.length?log.map((l,i)=>
-    '<div class="log-row" style="cursor:pointer;flex-wrap:wrap;gap:4px;align-items:flex-start" onclick="goToActivity('+i+')">'
+  document.getElementById('act-log').innerHTML=log.length?log.map((l,i)=>{
+    const realIdx=actLog.indexOf(l);
+    return '<div class="log-row" style="cursor:pointer;flex-wrap:wrap;gap:4px;align-items:flex-start" onclick="goToActivity('+realIdx+')">'
     +'<div class="log-dot" style="background:'+l.color+';margin-top:3px;flex-shrink:0"></div>'
     +'<div style="flex:1;min-width:200px">'
     +'<div style="font-size:12px;font-weight:500">'+l.text+'</div>'
@@ -4128,28 +4334,66 @@ function renderActivity(){
     +(l.note?'<span style="font-size:10px;color:var(--tx2);font-style:italic">'+l.note+'</span>':'')
     +'</div></div>'
     +'<div class="log-time" style="flex-shrink:0;padding-top:2px">'+l.time+'</div>'
-    +'</div>'
-  ).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No activity matches your filter.</div>';
+    +'</div>';
+  }).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No activity matches your filter.</div>';
 }
 function goToActivity(idx){
   const l=actLog[idx];if(!l)return;
-  const text=l.text||'';
-  // Try to match to a project
-  const proj=projects.find(p=>text.includes(p.name));
-  if(proj){openProjectDetail(proj.id);return;}
-  // Try task match
-  const task=tasks.find(t=>text.includes(t.name));
-  if(task){const p=projects.find(x=>x.name===task.project);if(p){openProjectDetail(p.id);setTimeout(()=>{setDTab('dtasks');},200);}return;}
-  // Delivery
-  if(text.toLowerCase().includes('delivery')){setTab('delivery');return;}
-  // Visitor
-  if(text.toLowerCase().includes('visitor')){setTab('visitors');return;}
-  // Meeting
-  if(text.toLowerCase().includes('meeting')){setTab('meetings');return;}
-  // Inventory
-  if(text.toLowerCase().includes('inventory')||text.toLowerCase().includes('material')||text.toLowerCase().includes('stock')){setTab('inventory');return;}
-  // User/manpower
-  if(text.toLowerCase().includes('worker')||text.toLowerCase().includes('manpower')){setTab('manpower');return;}
+  const text=(l.text||'').toLowerCase();
+  const cat=(l.cat||'').toLowerCase();
+  const proj=l.proj;
+
+  // 1. Navigate to specific project if proj is stored on log entry
+  const projObj=proj?projects.find(p=>p.name===proj):projects.find(p=>(l.text||'').includes(p.name));
+
+  // 2. Determine target tab from category
+  const catMap={
+    'tasks':'tasks','task':'tasks',
+    'gantt':'tasks','gantt chart':'tasks',
+    'delivery':'delivery','deliveries':'delivery',
+    'visitors':'visitors','visitor':'visitors',
+    'meetings':'meetings','meeting':'meetings',
+    'inventory':'inventory','low stock':'inventory','stock':'inventory','material':'inventory',
+    'manpower':'manpower','worker':'manpower','workers':'manpower',
+    'sop':'sop',
+    'pipeline':'pipeline',
+    'documents':'projects','document':'projects','docs':'projects',
+    'budget':'projects','expense':'projects','billing':'projects',
+    'reports':'reports','report':'reports',
+    'users':'users',
+    'projects':'projects',
+  };
+  let targetTab=catMap[cat]||null;
+  if(!targetTab){
+    // Guess from text keywords
+    if(text.includes('delivery')||text.includes('delivered'))targetTab='delivery';
+    else if(text.includes('visitor'))targetTab='visitors';
+    else if(text.includes('meeting'))targetTab='meetings';
+    else if(text.includes('inventory')||text.includes('stock')||text.includes('material'))targetTab='inventory';
+    else if(text.includes('worker')||text.includes('manpower')||text.includes('attendance'))targetTab='manpower';
+    else if(text.includes('sop'))targetTab='sop';
+    else if(text.includes('pipeline')||text.includes('lead'))targetTab='pipeline';
+    else if(text.includes('task')||text.includes('report')||text.includes('gantt'))targetTab='tasks';
+    else if(text.includes('project')||text.includes('budget')||text.includes('expense')||text.includes('document'))targetTab='projects';
+    else if(projObj)targetTab='projects';
+  }
+
+  // 3. Navigate
+  if(projObj){
+    openProjectDetail(projObj.id);
+    // After opening project, switch to relevant sub-tab
+    const dtabMap={
+      'tasks':'dtasks','gantt':'dgantt',
+      'delivery':'ddelivery','meeting':'dmeeting','visitor':'dvisitors',
+      'budget':'dbudget','expense':'dbudget','billing':'dbilling',
+      'document':'ddocs','inventory':'dinventory','report':'dreports',
+    };
+    let dtab=null;
+    for(const [k,v] of Object.entries(dtabMap)){if(text.includes(k)||cat.includes(k)){dtab=v;break;}}
+    if(dtab)setTimeout(()=>setDTab(dtab),300);
+  } else if(targetTab){
+    setTab(targetTab);
+  }
 }
 
 // INIT
