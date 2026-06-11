@@ -1287,7 +1287,7 @@ async function loadAllData(){
       sb.from('contacts').select('id,name,position,title,department,dept,phone,mobile,email,type,contact_type,notes').order('name'),
     ]);
     if(uRes.data)users=uRes.data.map(u=>({...u,projects:u.project_access||[],active:u.active!==false}));
-    if(pRes.data)projects=pRes.data.map(p=>({...p,id:parseInt(p.id),contractPrice:p.budget||0,contingency:p.contingency||0,color:p.color||COLS[0],status:p.status||'on-track',start:p.start_date,end:p.end_date,paymentTerms:p.payment_terms||'',billing:p.billing||[]}));
+    if(pRes.data)projects=pRes.data.map(p=>({...p,id:parseInt(p.id),contractPrice:p.budget||0,contingency:p.contingency||0,color:p.color||COLS[0],status:p.status||'on-track',start:p.start_date,end:p.end_date,desc:p.description||p.desc||'',paymentTerms:p.payment_terms||'',billing:p.billing||[]}));
     if(tRes.data)tasks=tRes.data.map(t=>{
       // Try to recover autoType from description field (it was stored there as "Type: gantt" etc.)
       let autoType=null;
@@ -1392,9 +1392,9 @@ async function sbLog(text,color,cat,proj){
 
 // ─── SUPABASE SAVE FUNCTIONS ──────────────────────────────────────
 async function sbSaveProject(p){
-  const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,pm:p.pm||'',progress:p.progress||0,description:p.desc||'',color:p.color};
-  if(p._isNew){const{data}=await sb.from('projects').insert([row]).select();if(data&&data[0])p.id=data[0].id;}
-  else await sb.from('projects').update(row).eq('id',p.id);
+  const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,description:p.desc||'',color:p.color,payment_terms:p.paymentTerms||''};
+  if(p._isNew){const{data,error}=await sb.from('projects').insert([row]).select();if(error)console.error('sbSaveProject insert error:',error);if(data&&data[0])p.id=data[0].id;}
+  else{const{error}=await sb.from('projects').update(row).eq('id',p.id);if(error)console.error('sbSaveProject update error:',error);}
 }
 async function sbSaveTask(t){
   // Build description with all metadata so it always saves even if extra columns don't exist
@@ -1924,7 +1924,7 @@ function downloadGanttTemplate(){
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='Gantt_'+p.name.replace(/[^a-z0-9]/gi,'_')+'_'+TODAY+'.csv';
+  a.download='Gantt_Import_Template_'+TODAY+'.csv';
   a.click();URL.revokeObjectURL(a.href);
 }
 
@@ -4039,7 +4039,7 @@ async function addProject(){
     _isNew:true
   };
   // Save to Supabase first so we get the real ID back
-  const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,pm:'',progress:0,description:p.desc||'',color:p.color,payment_terms:p.paymentTerms||''};
+  const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,description:p.desc||'',color:p.color,payment_terms:p.paymentTerms||''};
   const {data,error}=await sb.from('projects').insert([row]).select();
   if(error||!data||!data[0]){
     alert('Failed to save project to database. Check console for details.');
