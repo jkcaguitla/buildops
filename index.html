@@ -94,9 +94,13 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 .log-time{font-size:10px;color:var(--tx2);white-space:nowrap;flex-shrink:0}
 .upload-zone{border:1.5px dashed var(--bd2);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;background:var(--bg2)}
 .upload-zone:hover{border-color:var(--or)}.upload-zone input{display:none}
-.media-prev{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.media-prev{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .media-thumb{width:56px;height:56px;border-radius:6px;object-fit:cover;border:0.5px solid var(--bd)}
 .media-vid{width:56px;height:56px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;border:0.5px solid var(--bd);font-size:9px;color:var(--tx2);flex-direction:column;gap:2px}
+.media-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;width:80px}
+.media-item .media-remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--er-tx);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;padding:0;line-height:1}
+.media-rename{width:100%;font-size:9px;padding:2px 4px;border:0.5px solid var(--bd);border-radius:4px;background:var(--bg);color:var(--tx);text-align:center}
+.media-rename:focus{outline:1.5px solid var(--or);border-color:var(--or)}
 .doc-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--r);padding:10px;cursor:pointer;text-align:center}
 .doc-card:hover{border-color:var(--bd2)}
 .att-btn{padding:4px 9px;border-radius:var(--r);border:0.5px solid var(--bd2);background:var(--bg2);cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;white-space:nowrap}
@@ -1597,7 +1601,43 @@ function autoUpdateProjectStatuses(){
   });
 }
 function calcSpent(pn){return expenses.filter(e=>projMatch(e.proj,pn)).reduce((s,e)=>s+e.amount,0)}
-function prevMedia(input,tid){const p=document.getElementById(tid);if(!p)return;p.innerHTML='';Array.from(input.files).forEach(f=>{if(f.type.startsWith('image/')){const i=document.createElement('img');i.className='media-thumb';i.src=URL.createObjectURL(f);p.appendChild(i)}else{const d=document.createElement('div');d.className='media-vid';d.innerHTML=`<i class="ti ti-file" style="font-size:16px"></i><span style="font-size:9px">${f.name.slice(0,10)}</span>`;p.appendChild(d)}})}
+window._fileStore={};
+function prevMedia(input,tid){
+  const p=document.getElementById(tid);if(!p)return;
+  const newFiles=Array.from(input.files);
+  const ext=f=>{const i=f.name.lastIndexOf('.');return i>=0?f.name.slice(i):'';};
+  window._fileStore[tid]=newFiles.map(f=>({file:f,name:f.name,ext:ext(f),isImage:f.type.startsWith('image/')}));
+  renderFilePreview(tid);
+}
+function renderFilePreview(tid){
+  const p=document.getElementById(tid);if(!p)return;
+  const items=window._fileStore[tid]||[];
+  p.innerHTML='';
+  items.forEach((item,idx)=>{
+    const wrap=document.createElement('div');wrap.className='media-item';
+    if(item.isImage){
+      const i=document.createElement('img');i.className='media-thumb';i.src=URL.createObjectURL(item.file);wrap.appendChild(i);
+    }else{
+      const d=document.createElement('div');d.className='media-vid';d.innerHTML='<i class="ti ti-file" style="font-size:18px"></i>';wrap.appendChild(d);
+    }
+    const nameInput=document.createElement('input');
+    nameInput.className='inp media-rename';
+    nameInput.value=item.name;
+    nameInput.title='Rename file';
+    nameInput.oninput=function(){item.name=this.value;};
+    nameInput.onclick=function(e){e.stopPropagation();};
+    wrap.appendChild(nameInput);
+    const rm=document.createElement('button');
+    rm.className='media-remove';rm.type='button';rm.title='Remove file';
+    rm.innerHTML='<i class="ti ti-x"></i>';
+    rm.onclick=function(e){e.stopPropagation();items.splice(idx,1);renderFilePreview(tid);};
+    wrap.appendChild(rm);
+    p.appendChild(wrap);
+  });
+}
+function getFileNames(tid){return (window._fileStore[tid]||[]).map(it=>it.name);}
+function getFileCount(tid){return (window._fileStore[tid]||[]).length;}
+function clearFileStore(tid){window._fileStore[tid]=[];const p=document.getElementById(tid);if(p)p.innerHTML='';}
 function toggleDaysWrap(){document.getElementById('fta-days-wrap').style.display=document.getElementById('fta-schedule').value==='specific'?'block':'none'}
 
 // AUTH
@@ -1662,17 +1702,23 @@ if(id==='fm-task'){
   document.getElementById('fta-equip').value='';document.getElementById('fta-subtasks').value='';
   document.getElementById('fta-weight').value=10;
   updateGanttSel()}
-if(id==='fm-delivery'){document.getElementById('fdel-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fdel-date').value=TODAY;document.getElementById('fdel-prev').innerHTML=''}
+if(id==='fm-delivery'){document.getElementById('fdel-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fdel-date').value=TODAY;clearFileStore('fdel-prev')}
 if(id==='fm-visitor'){document.getElementById('fv-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fv-timein').value=new Date().toISOString().slice(0,16)}
 if(id==='fm-meeting'){document.getElementById('fm2-proj').innerHTML=['General',...mp.map(p=>p.name)].map(n=>`<option>${n}</option>`).join('');document.getElementById('fm2-datetime').value=new Date().toISOString().slice(0,16)}
 if(id==='fm-inv-add'){document.getElementById('fi-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('')}
 if(id==='fm-manpower'){document.getElementById('fmp-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fmp-started').value=TODAY}
 if(id==='fm-user'){buildFuProj()}
-if(id==='fm-expense'){document.getElementById('fex-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fex-date').value=TODAY;document.getElementById('fex-by').value=CU.name}
+if(id==='fm-expense'){document.getElementById('fex-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fex-date').value=TODAY;document.getElementById('fex-by').value=CU.name;clearFileStore('fex-prev')}
+if(id==='fm-pipeline'){clearFileStore('fpl-prev')}
+if(id==='fm-sop'){clearFileStore('fs-prev')}
+if(id==='fm-template-upload'){clearFileStore('ftpl-prev')}
 if(id==='fm-gantt'){document.getElementById('fg-assign').innerHTML=users.filter(u=>u.active).map(u=>`<option>${u.name}</option>`).join('');document.getElementById('fg-done').value=0;document.getElementById('fg-done-val').textContent='0%';document.getElementById('fg-name').value='';document.getElementById('fg-equip').value='';document.getElementById('fg-subtasks').value='';document.getElementById('fg-start').value=TODAY;document.getElementById('fg-end').value=TODAY;document.getElementById('fg-actual-start').value='';document.getElementById('fg-actual-end').value=''}
 document.getElementById(id).classList.add('op')}
 function closeFm(id){document.getElementById(id).classList.remove('op');
   if(id==='fm-task-detail'){const taskIdEl=document.getElementById('ftd-task-id');if(taskIdEl)taskIdEl.dataset.isSubtask='';}
+  // Clear any file previews/stores within this modal
+  document.getElementById(id).querySelectorAll('.media-prev').forEach(el=>{clearFileStore(el.id);});
+  document.getElementById(id).querySelectorAll('input[type=file]').forEach(el=>{el.value='';});
 }
 document.querySelectorAll('.fm').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('op')}));
 function updateGanttSel(){const pn=document.getElementById('fta-proj')?.value;const p=projects.find(x=>projMatch(x.name,pn));const acts=p?ganttActivities[p.id]||[]:[];document.getElementById('fta-gantt').innerHTML='<option value="">- None -</option>'+acts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}
@@ -2541,7 +2587,7 @@ function openSubTaskReport(actId,stId,projId){
   ['ftd-work','ftd-issues','ftd-equip','ftd-materials'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
   const wEl=document.getElementById('ftd-workers');if(wEl)wEl.value='';
   const hEl=document.getElementById('ftd-hours');if(hEl)hEl.value='8';
-  const pEl=document.getElementById('ftd-prev');if(pEl)pEl.innerHTML='';
+  clearFileStore('ftd-prev');
   const infoEl=document.getElementById('ftd-info');
   if(infoEl)infoEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><div style="font-size:10px;color:var(--tx2)">Activity</div><div style="font-weight:600">${act.name}</div></div><div><div style="font-size:10px;color:var(--tx2)">Sub-task</div><div style="font-weight:600">${stName}</div></div><div><div style="font-size:10px;color:var(--tx2)">Project</div><div style="font-weight:600">${projects.find(p=>p.id===projId)?.name||''}</div></div><div><div style="font-size:10px;color:var(--tx2)">Assigned To</div><div style="font-weight:600">${act.assign}</div></div></div>`;
   const rEl=document.getElementById('ftd-reports-section');if(rEl)rEl.innerHTML='';
@@ -2692,8 +2738,8 @@ function renderDocs(id){const docs=(documents[id]||[]).filter(d=>docOk(d));const
 const currentDocFilter={};
 function filterDocsBySearch(id){filterDocs(id,currentDocFilter[id]||'All');}
 function filterDocs(id,cat){currentDocFilter[id]=cat;const srch=(document.getElementById('doc-search-'+id)?.value||'').toLowerCase();const docs=(documents[id]||[]).filter(d=>docOk(d)&&(cat==='All'||d.cat===cat)&&(!srch||d.title.toLowerCase().includes(srch)));const iMap={'Architectural Drawing':['ti-vector-triangle','#185FA5'],'Structural Drawing':['ti-ruler','#C05621'],'MEP Drawing':['ti-bolt','#0F6E56'],'Photo':['ti-photo','#534AB7'],'Report':['ti-report','#854F0B'],'Permit / Legal':['ti-certificate','#0F5F6E']};const el=document.getElementById('doc-grid-'+id);if(!el)return;el.innerHTML=docs.length?docs.map(d=>{const[ic,col]=iMap[d.cat]||['ti-file','#6b6a65'];return`<div class="doc-card"><div style="width:44px;height:44px;border-radius:8px;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:20px"><i class="ti ${ic}"></i></div><div style="font-size:11px;font-weight:600;word-break:break-word">${d.title}</div><div style="font-size:10px;color:var(--tx2)">${d.cat}</div></div>`}).join(''):'<div style="color:var(--tx2);font-size:12px;">None in this category.</div>'}
-function openDocModal(pid){document.getElementById('fd-proj-id').value=pid;document.getElementById('fd-title').value='';document.getElementById('fd-notes').value='';document.getElementById('doc-prev').innerHTML='';document.getElementById('fm-doc').classList.add('op')}
-async function uploadDoc(){const title=document.getElementById('fd-title').value.trim();if(!title){alert('Title required');return}const pid=parseInt(document.getElementById('fd-proj-id').value);const files=Array.from(document.getElementById('fd-files').files).map(f=>f.name);if(!documents[pid])documents[pid]=[];const doc={title,cat:document.getElementById('fd-cat').value,access:document.getElementById('fd-access').value,notes:document.getElementById('fd-notes').value,files:files.length?files:['(no file)'],uploader:CU.name,date:TODAY,project_id:pid};
+function openDocModal(pid){document.getElementById('fd-proj-id').value=pid;document.getElementById('fd-title').value='';document.getElementById('fd-notes').value='';clearFileStore('doc-prev');document.getElementById('fm-doc').classList.add('op')}
+async function uploadDoc(){const title=document.getElementById('fd-title').value.trim();if(!title){alert('Title required');return}const pid=parseInt(document.getElementById('fd-proj-id').value);const files=getFileNames('doc-prev');if(!documents[pid])documents[pid]=[];const doc={title,cat:document.getElementById('fd-cat').value,access:document.getElementById('fd-access').value,notes:document.getElementById('fd-notes').value,files:files.length?files:['(no file)'],uploader:CU.name,date:TODAY,project_id:pid};
 const row={project_id:pid,title:doc.title,cat:doc.cat,access:doc.access,notes:doc.notes||'',files:doc.files,uploader:CU.name,date:TODAY};
 const{data}=await sb.from('documents').insert([row]).select();if(data&&data[0])doc.id=data[0].id;else doc.id=Date.now();
 documents[pid].push(doc);actLog.unshift({time:nowStr(),text:`Document uploaded: "${title}"`,color:'#534AB7',cat:'Documents',user:CU.name,proj:projects.find(p=>p.id===pid)?.name||''});
@@ -3081,7 +3127,7 @@ function openDeliveryForProjById(projId){
 function openDeliveryForProj(projName){
   document.getElementById('fdel-proj').innerHTML=myProjects().map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');
   document.getElementById('fdel-date').value=TODAY;
-  document.getElementById('fdel-prev').innerHTML='';
+  clearFileStore('fdel-prev');
   document.getElementById('fm-delivery').classList.add('op');
 }
 let _dinvFilter={};let currentDTaskFilter={};
@@ -3266,7 +3312,7 @@ function renderTasksGlobal(){
   }).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px">No tasks match this filter.</div>';
 }
 
-function openTaskDetail(taskId){const t=tasks.find(x=>x.id===taskId);if(!t)return;document.getElementById('ftd-title').textContent=t.name;document.getElementById('ftd-task-id').value=taskId;document.getElementById('ftd-date').value=TODAY;document.getElementById('ftd-pct').value=0;document.getElementById('ftd-pct-val').textContent='0%';['ftd-work','ftd-issues','ftd-equip','ftd-materials'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const wEl=document.getElementById('ftd-workers');if(wEl)wEl.value='';const hEl=document.getElementById('ftd-hours');if(hEl)hEl.value='8';const pEl=document.getElementById('ftd-prev');if(pEl)pEl.innerHTML='';
+function openTaskDetail(taskId){const t=tasks.find(x=>x.id===taskId);if(!t)return;document.getElementById('ftd-title').textContent=t.name;document.getElementById('ftd-task-id').value=taskId;document.getElementById('ftd-date').value=TODAY;document.getElementById('ftd-pct').value=0;document.getElementById('ftd-pct-val').textContent='0%';['ftd-work','ftd-issues','ftd-equip','ftd-materials'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const wEl=document.getElementById('ftd-workers');if(wEl)wEl.value='';const hEl=document.getElementById('ftd-hours');if(hEl)hEl.value='8';clearFileStore('ftd-prev');
 const proj=projects.find(p=>projMatch(p.name,t.project));const acts=proj?ganttActivities[proj.id]||[]:[];const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
 document.getElementById('ftd-info').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><div style="font-size:10px;color:var(--tx2)">Project</div><div style="font-weight:600">${t.project}</div></div><div><div style="font-size:10px;color:var(--tx2)">Assignee</div><div style="font-weight:600">${t.assignee}</div></div><div><div style="font-size:10px;color:var(--tx2)">Due Date</div><div style="font-weight:600">${t.due}</div></div><div><div style="font-size:10px;color:var(--tx2)">Schedule</div><div style="font-weight:600">${t.schedule==='daily'?'Every day':t.schedule==='weekly'?'Weekly':t.schedule==='specific'?(t.scheduleDays||[]).join(', ')||'Custom':'One-time'}</div></div></div>${t.details?`<div style="margin-top:8px;font-size:12px;color:var(--tx2);white-space:pre-line;border-top:0.5px solid var(--bd);padding-top:8px">${t.details}</div>`:''} ${act?`<div style="margin-top:8px"><span class="badge bi"><i class="ti ti-link" style="font-size:9px"></i> Gantt: ${act.name} (${act.done}%)</span></div>`:''}`;
 const rpts=t.reports||[];const rEl=document.getElementById('ftd-reports-section');if(rEl)rEl.innerHTML=rpts.length?`<div style="font-size:12px;font-weight:600;margin-bottom:8px"><i class="ti ti-history"></i> Previous Reports (${rpts.length})</div>`+rpts.slice(-3).reverse().map(r=>`<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:8px;margin-bottom:6px;font-size:11px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;margin-bottom:4px"><strong>${r.date}</strong><div style="display:flex;gap:4px"><span class="badge bi">${r.weather||''}</span><span class="badge ${(r.pct||0)>=100?'bk':'bw'}">${r.pct||0}%</span></div></div><div style="color:var(--tx2)">${r.work}</div>${r.issues?`<div style="color:var(--wn-tx);margin-top:3px">Issue: ${r.issues}</div>`:''}</div>`).join(''):'';
@@ -3297,7 +3343,7 @@ function submitTaskReport(){
     const projId=parseInt(taskIdEl.dataset.projId);
     const work=document.getElementById('ftd-work').value.trim();
     if(!work){alert('Work description required');return;}
-    const files=document.getElementById('ftd-files').files;
+    const fileCount=getFileCount('ftd-prev');
     actLog.unshift({time:nowStr(),text:`Sub-task report submitted by ${CU.name}`,color:'#534AB7'});
     closeFm('fm-task-detail');
     taskIdEl.dataset.isSubtask='';
@@ -3305,7 +3351,7 @@ function submitTaskReport(){
     alert('Report submitted! Sub-task marked complete.');
     return;
   }
-  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const files=document.getElementById('ftd-files').files;t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:files.length,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name}`,color:'#534AB7'});closeFm('fm-task-detail');if(activeProjectId){renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}renderGlobalReports();alert('Report submitted!')}
+  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const fileCount2=getFileCount('ftd-prev');t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount2,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name}`,color:'#534AB7'});closeFm('fm-task-detail');if(activeProjectId){renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}renderGlobalReports();alert('Report submitted!')}
 
 function markTaskDone(){
   if(!CU||(CU.role!=='admin'&&CU.role!=='pm')){alert('Only Admin or Project Manager can mark tasks as complete.');closeFm('fm-task-detail');return}
@@ -3462,12 +3508,12 @@ function renderGlobalAtt(){const sel=document.getElementById('att-proj-filter');
 // DELIVERY
 async function addDelivery(){
   const items=document.getElementById('fdel-items').value.trim();if(!items){alert('Items required');return}
-  const files=document.getElementById('fdel-files').files;
+  const fileNamesD=getFileNames('fdel-prev');
   const projName=document.getElementById('fdel-proj').value;
   const delDate=document.getElementById('fdel-date').value||TODAY;
   const status=document.getElementById('fdel-status').value;
   const supplier=document.getElementById('fdel-supplier').value;
-  const d={_isNew:true,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:files.length,by:CU.name,time:nowStr()};
+  const d={_isNew:true,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:fileNamesD.length,mediaFiles:fileNamesD,by:CU.name,time:nowStr()};
   deliveries.unshift(d);
   sbSaveDelivery(d).then(()=>sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName));
   if(status==='Scheduled'){
@@ -3788,13 +3834,13 @@ function renderBudgetOverview(){
     +'</div></div>';
 }
 function renderGlobalExpenses(){const mp=myProjects();const pSel=document.getElementById('exp-proj-filter');if(pSel.children.length<=1)pSel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const pf=pSel.value;const cf=document.getElementById('exp-cat-filter').value;let exp=expenses.filter(e=>mp.some(p=>projMatch(p.name,e.proj)));if(pf)exp=exp.filter(e=>projMatch(e.proj,pf));if(cf)exp=exp.filter(e=>e.cat===cf);const total=exp.reduce((s,e)=>s+e.amount,0);document.getElementById('global-exp-content').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div style="font-size:13px;font-weight:600">${exp.length} expense(s)</div><div style="font-size:14px;font-weight:700;color:var(--er-tx)">Total: ${fmt(total)}</div></div>${exp.length?exp.map(e=>`<div class="expense-row"><div style="flex:1"><div style="font-weight:500">${e.desc}</div><div style="font-size:10px;color:var(--tx2)">${e.proj} - ${e.cat} - ${e.date} ${e.payee?'- '+e.payee:''} ${e.ref?'- '+e.ref:''} - by ${e.by}</div></div><div style="display:flex;align-items:center;gap:6px"><strong style="color:var(--er-tx)">${fmt(e.amount)}</strong>${(CU.role==='admin'||CU.role==='pm')?`<button class="btn btns" style="font-size:10px;padding:2px 6px" onclick="openEditExpense(${e.id})" title="Edit"><i class="ti ti-edit"></i></button>`:''}</div></div>`).join(''):'<div style="color:var(--tx2);font-size:12px;padding:8px 0">No expenses found.</div>'}`}
-function addExpense(){const desc=document.getElementById('fex-desc').value.trim();const amount=parseFloat(document.getElementById('fex-amount').value);if(!desc){alert('Description required');return}if(!amount||amount<=0){alert('Enter valid amount');return}const proj=document.getElementById('fex-proj').value;const e={_isNew:true,proj,date:document.getElementById('fex-date').value||TODAY,cat:document.getElementById('fex-cat').value,amount,desc,payee:document.getElementById('fex-payee').value||'--',ref:document.getElementById('fex-ref').value,by:CU.name};expenses.push(e);sbSaveExpense(e).then(()=>sbLog(`Expense: ${fmt(amount)} (${e.cat}) - ${proj}`,'#C05621','Budget',proj));closeFm('fm-expense');renderGlobalExpenses();if(activeProjectId)renderDetailBudget(activeProjectId)}
+function addExpense(){const desc=document.getElementById('fex-desc').value.trim();const amount=parseFloat(document.getElementById('fex-amount').value);if(!desc){alert('Description required');return}if(!amount||amount<=0){alert('Enter valid amount');return}const proj=document.getElementById('fex-proj').value;const fileNamesE=getFileNames('fex-prev');const e={_isNew:true,proj,date:document.getElementById('fex-date').value||TODAY,cat:document.getElementById('fex-cat').value,amount,desc,payee:document.getElementById('fex-payee').value||'--',ref:document.getElementById('fex-ref').value,files:fileNamesE,by:CU.name};expenses.push(e);sbSaveExpense(e).then(()=>sbLog(`Expense: ${fmt(amount)} (${e.cat}) - ${proj}`,'#C05621','Budget',proj));closeFm('fm-expense');renderGlobalExpenses();if(activeProjectId)renderDetailBudget(activeProjectId)}
 function openExpForProj(projName){document.getElementById('fex-proj').innerHTML=myProjects().map(p=>`<option${p.name===projName?' selected':''}>${p.name}</option>`).join('');document.getElementById('fex-date').value=TODAY;document.getElementById('fex-by').value=CU.name;document.getElementById('fm-expense').classList.add('op')}
 function openEditExpense(id){const e=expenses.find(x=>parseInt(x.id)===parseInt(id));if(!e)return;document.getElementById('fee-id').value=id;document.getElementById('fee-desc').value=e.desc||'';document.getElementById('fee-amount').value=e.amount||0;document.getElementById('fee-cat').value=e.cat||'Materials';document.getElementById('fee-date').value=e.date||TODAY;document.getElementById('fee-payee').value=e.payee||'';document.getElementById('fee-ref').value=e.ref||'';document.getElementById('fm-edit-expense').classList.add('op');}
 async function saveEditExpense(){const id=parseInt(document.getElementById('fee-id').value);const e=expenses.find(x=>parseInt(x.id)===parseInt(id));if(!e)return;const newAmount=parseFloat(document.getElementById('fee-amount').value);if(!newAmount||newAmount<=0){alert('Enter valid amount');return;}e.desc=document.getElementById('fee-desc').value||e.desc;e.amount=newAmount;e.cat=document.getElementById('fee-cat').value;e.date=document.getElementById('fee-date').value||e.date;e.payee=document.getElementById('fee-payee').value;e.ref=document.getElementById('fee-ref').value;if(e.id&&e.id<2000000000){await sb.from('expenses').update({description:e.desc,amount:e.amount,category:e.cat,date:e.date||null,recorded_by:e.by}).eq('id',e.id);}sbLog(`Expense updated: "${e.desc}" ${fmt(e.amount)}`,'#C05621','Budget',e.proj);closeFm('fm-edit-expense');renderGlobalExpenses();if(activeProjectId)renderDetailBudget(activeProjectId);}
 
 // SOP
-async function addSOP(){const title=document.getElementById('fs-title').value.trim();if(!title){alert('Title required');return}const files=Array.from(document.getElementById('fs-files').files).map(f=>f.name);const sop={title,cat:document.getElementById('fs-cat').value,version:document.getElementById('fs-version').value||'v1.0',date:document.getElementById('fs-date').value||TODAY,desc:document.getElementById('fs-desc').value,content:document.getElementById('fs-content').value,files,by:CU.name,history:[{version:document.getElementById('fs-version').value||'v1.0',date:document.getElementById('fs-date').value||TODAY,by:CU.name,note:'Initial version'}]};
+async function addSOP(){const title=document.getElementById('fs-title').value.trim();if(!title){alert('Title required');return}const files=getFileNames('fs-prev');const sop={title,cat:document.getElementById('fs-cat').value,version:document.getElementById('fs-version').value||'v1.0',date:document.getElementById('fs-date').value||TODAY,desc:document.getElementById('fs-desc').value,content:document.getElementById('fs-content').value,files,by:CU.name,history:[{version:document.getElementById('fs-version').value||'v1.0',date:document.getElementById('fs-date').value||TODAY,by:CU.name,note:'Initial version'}]};
 const row={title:sop.title,category:sop.cat,version:sop.version,effective_date:sop.date||null,description:sop.desc||'',content:sop.content||'',created_by:CU.name};
 const{data}=await sb.from('sops').insert([row]).select();if(data&&data[0])sop.id=data[0].id;else sop.id=Date.now();
 sops.unshift(sop);sbLog(`SOP added: ${title}`,'#0F6E56','SOP','');closeFm('fm-sop');renderSOPs()}
@@ -4053,7 +4099,7 @@ async function addPipelineLead(){
   const client=document.getElementById('fpl-client').value.trim();
   if(!name||!client){alert('Name and client required');return;}
   const stage=document.getElementById('fpl-stage').value;
-  const files=Array.from(document.getElementById('fpl-files')?.files||[]).map(f=>f.name);
+  const files=getFileNames('fpl-prev');
   const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,notes:document.getElementById('fpl-notes').value,files:files,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
   pipeline.push(lead);
   await sbSavePipeline(lead);
@@ -4074,6 +4120,7 @@ function openPipelineEdit(id){
   document.getElementById('fple-prob').value=l.prob||50;
   document.getElementById('fple-notes').value='';
   document.getElementById('fple-value').value=l.value||0;
+  clearFileStore('fpe-prev');
   document.getElementById('fm-pipeline-edit').classList.add('op');
 }
 function savePipelineLead(){
@@ -4086,6 +4133,8 @@ function savePipelineLead(){
   const note=document.getElementById('fple-notes').value;
   if(!l.history)l.history=[];
   l.history.push({date:TODAY,stage:l.stage,note:note||'Status updated',by:CU.name});
+  const newFiles=getFileNames('fpe-prev');
+  if(newFiles.length){l.files=[...(l.files||[]),...newFiles];}
   sbSavePipeline(l);
   sbLog(`Pipeline: "${l.name}" moved to ${l.stage}`,'#7B2D8B','Pipeline','');
   if(l.stage==='Awarded'&&oldStage!=='Awarded'){
@@ -4187,7 +4236,7 @@ function renderTemplates(){
 }
 function addTemplate(){
   const title=document.getElementById('ftpl-title').value.trim();if(!title){alert('Title required');return}
-  const files=Array.from(document.getElementById('ftpl-files').files).map(f=>f.name);
+  const files=getFileNames('ftpl-prev');
   templates.unshift({id:Date.now(),title,cat:document.getElementById('ftpl-cat').value,desc:document.getElementById('ftpl-desc').value,files:files.length?files:['(no file attached)'],uploader:CU.name,date:TODAY,notes:document.getElementById('ftpl-notes').value,downloads:0});
   actLog.unshift({time:nowStr(),text:'Template uploaded: "'+title+'" by '+CU.name,color:'#534AB7',cat:'Templates',user:CU.name,proj:''});
   closeFm('fm-template-upload');renderTemplates();
