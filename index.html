@@ -141,8 +141,13 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 .cal-day.today{border-color:var(--or);font-weight:700}
 .cal-day.has-ev{background:var(--or2);border-color:var(--or)}
 .cal-ev{font-size:9px;background:var(--or);color:#fff;border-radius:3px;padding:1px 3px;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-@media(max-width:700px){.side{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+@media(max-width:700px){.side{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}
+  .pipeline-grid{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;gap:8px;padding-bottom:4px}
+  .pipeline-grid>div{flex:0 0 auto;width:130px;scroll-snap-align:start}
+}
 .sop-row:hover{background:var(--bg2)}
+.exp-ov-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bd)}
+.exp-ov-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -199,7 +204,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <button class="ntab" onclick="setTab('pipeline')" id="t-pipeline"><i class="ti ti-funnel"></i> Pipeline</button>
     <button class="ntab" onclick="setTab('templates')" id="t-templates"><i class="ti ti-files"></i> Templates</button>
     <button class="ntab" onclick="setTab('activity')" id="t-activity"><i class="ti ti-activity"></i> Activity</button>
-    <button class="ntab" onclick="setTab('calendar')" id="t-calendar"><i class="ti ti-calendar"></i> My Calendar</button>
   </div></div>
   <div class="body-wrap">
     <aside class="side">
@@ -232,42 +236,48 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
       <div class="ct"><i class="ti ti-funnel"></i> Sales Pipeline — Lead Funnel</div>
       <button class="btn btns" onclick="setTab('pipeline')"><i class="ti ti-external-link"></i> Open Pipeline</button>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+    <div class="pipeline-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
       <div style="text-align:center;padding:14px 8px;border-radius:var(--r);background:#EEEDFE;border:1px solid #D4D2FA;cursor:pointer" onclick="setTab('pipeline')">
         <div style="font-size:9px;font-weight:700;color:#534AB7;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px"><i class="ti ti-bulb" style="font-size:10px"></i> Lead Gen</div>
         <div style="font-size:30px;font-weight:800;color:#534AB7;line-height:1" id="m-leads-leadgen">0</div>
         <div style="font-size:10px;color:#534AB7;margin-top:5px;opacity:.75">Starting stage</div>
+        <div style="font-size:10px;font-weight:700;color:#534AB7;margin-top:4px" id="m-leads-leadgen-val"></div>
       </div>
       <div style="text-align:center;padding:14px 8px;border-radius:var(--r);background:#E6F1FB;border:1px solid #B8D4F0;cursor:pointer" onclick="setTab('pipeline')">
         <div style="font-size:9px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px"><i class="ti ti-file-description" style="font-size:10px"></i> Proposal</div>
         <div style="font-size:30px;font-weight:800;color:#185FA5;line-height:1" id="m-leads-proposal">0</div>
         <div style="font-size:10px;color:#185FA5;margin-top:5px;opacity:.75">Under proposal</div>
+        <div style="font-size:10px;font-weight:700;color:#185FA5;margin-top:4px" id="m-leads-proposal-val"></div>
       </div>
       <div style="text-align:center;padding:14px 8px;border-radius:var(--r);background:#FFF3CD;border:1px solid #F0DC8A;cursor:pointer" onclick="setTab('pipeline')">
         <div style="font-size:9px;font-weight:700;color:#854F0B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px"><i class="ti ti-messages" style="font-size:10px"></i> Negotiation</div>
         <div style="font-size:30px;font-weight:800;color:#854F0B;line-height:1" id="m-leads-negotiation">0</div>
         <div style="font-size:10px;color:#854F0B;margin-top:5px;opacity:.75">Negotiating</div>
+        <div style="font-size:10px;font-weight:700;color:#854F0B;margin-top:4px" id="m-leads-negotiation-val"></div>
       </div>
       <div style="text-align:center;padding:14px 8px;border-radius:var(--r);background:#FAEEDA;border:1px solid #F0C99A;cursor:pointer" onclick="setTab('pipeline')">
         <div style="font-size:9px;font-weight:700;color:#C05621;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px"><i class="ti ti-trophy" style="font-size:10px"></i> Closing</div>
         <div style="font-size:30px;font-weight:800;color:#C05621;line-height:1" id="m-leads-closing">0</div>
         <div style="font-size:10px;color:#C05621;margin-top:5px;opacity:.75">For closing</div>
+        <div style="font-size:10px;font-weight:700;color:#C05621;margin-top:4px" id="m-leads-closing-val"></div>
       </div>
       <div style="text-align:center;padding:14px 8px;border-radius:var(--r);background:#EAF3DE;border:1px solid #B3D98A;cursor:pointer" onclick="setTab('pipeline')">
         <div style="font-size:9px;font-weight:700;color:#0F6E56;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px"><i class="ti ti-circle-check" style="font-size:10px"></i> Awarded</div>
         <div style="font-size:30px;font-weight:800;color:#0F6E56;line-height:1" id="m-leads-awarded">0</div>
         <div style="font-size:10px;color:#0F6E56;margin-top:5px;opacity:.75">Won</div>
+        <div style="font-size:10px;font-weight:700;color:#0F6E56;margin-top:4px" id="m-leads-awarded-val"></div>
       </div>
       <div style="text-align:center;padding:14px 8px;border-radius:var(--r);background:#FCEBEB;border:1px solid #F0B8B8;cursor:pointer" onclick="setTab('pipeline')">
         <div style="font-size:9px;font-weight:700;color:#A32D2D;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px"><i class="ti ti-x" style="font-size:10px"></i> Lost</div>
         <div style="font-size:30px;font-weight:800;color:#A32D2D;line-height:1" id="m-leads-lost">0</div>
         <div style="font-size:10px;color:#A32D2D;margin-top:5px;opacity:.75">Lost leads</div>
+        <div style="font-size:10px;font-weight:700;color:#A32D2D;margin-top:4px" id="m-leads-lost-val"></div>
       </div>
     </div>
     <div id="ov-funnel-bar" style="margin-top:12px;display:flex;height:7px;border-radius:6px;overflow:hidden;gap:2px"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;flex-wrap:wrap;gap:6px">
       <div style="font-size:10px;color:var(--tx3)" id="ov-funnel-total"></div>
-      <div style="font-size:10px;color:var(--tx2)" id="ov-pipeline-value"></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap" id="ov-pipeline-totals"></div>
     </div>
   </div>
 
@@ -275,6 +285,14 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="two" style="margin-bottom:12px">
     <div class="card"><div class="ch"><div class="ct"><i class="ti ti-folder"></i> Projects</div></div><div id="ov-proj"></div></div>
     <div class="card"><div class="ch"><div class="ct"><i class="ti ti-package"></i> Inventory Status</div></div><div id="ov-inv"></div></div>
+  </div>
+
+  <!-- Expenses overview per project -->
+  <div class="card" style="margin-bottom:12px" id="ov-expenses-card">
+    <div class="ch"><div class="ct"><i class="ti ti-receipt"></i> Expenses Overview — Per Project</div>
+      <button class="btn btns" onclick="setTab('expenses')"><i class="ti ti-external-link"></i> Open Expenses</button>
+    </div>
+    <div id="ov-expenses"></div>
   </div>
 
   <!-- Recent Activity -->
@@ -369,10 +387,21 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div><div class="pt">Delivery</div><div class="ps">Record & monitor material deliveries with proof uploads</div></div>
     <button class="btn btnp" onclick="openFm('fm-delivery')"><i class="ti ti-plus"></i> Record Delivery</button>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
     <select class="inp" id="del-proj-filter" style="width:175px" onchange="renderDeliveries()"><option value="">All Projects</option></select>
     <select class="inp" id="del-status-filter" style="width:130px" onchange="renderDeliveries()"><option value="">All Status</option><option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option></select>
     <input class="inp" id="del-search" style="width:170px" placeholder="Search supplier, items..." oninput="renderDeliveries()">
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+    <span style="font-size:11px;color:var(--tx2)">Date:</span>
+    <input class="inp" type="date" id="del-date-from" style="width:140px" onchange="setDelDateFilter('range')">
+    <span style="font-size:11px;color:var(--tx2)">to</span>
+    <input class="inp" type="date" id="del-date-to" style="width:140px" onchange="setDelDateFilter('range')">
+    <div style="display:flex;gap:4px">
+      <button class="btn btns" id="del-f-all" onclick="setDelDateFilter('all')" style="font-weight:700">All</button>
+      <button class="btn btns" id="del-f-today" onclick="setDelDateFilter('today')">Today</button>
+      <button class="btn btns" id="del-f-overdue" onclick="setDelDateFilter('overdue')" style="color:var(--er-tx)">Overdue</button>
+    </div>
   </div>
   <div id="delivery-list"></div>
 </div>
@@ -380,16 +409,22 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <!-- VISITORS -->
 <div class="pg" id="pg-visitors">
   <div class="ph">
-    <div><div class="pt">Visitors</div><div class="ps">Visitor log & schedule calendar</div></div>
+    <div><div class="pt">Visitors</div><div class="ps">Visitor log</div></div>
     <button class="btn btnp" onclick="openFm('fm-visitor')"><i class="ti ti-plus"></i> Log Visitor</button>
   </div>
-  <div class="two">
-    <div class="card"><div class="ch"><div class="ct"><i class="ti ti-calendar"></i> Schedule Calendar</div></div><div id="visitor-cal"></div></div>
-    <div class="card"><div class="ch"><div class="ct"><i class="ti ti-list"></i> Visitor Log</div><span style="font-size:11px;color:var(--tx2)">Click a visitor to manage</span></div><div id="visitor-list"></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+    <span style="font-size:11px;color:var(--tx2)">Date:</span>
+    <input class="inp" type="date" id="vis-date-filter" style="width:160px" onchange="setVisDateFilter('date')">
+    <div style="display:flex;gap:4px">
+      <button class="btn btns" id="vis-f-today" onclick="setVisDateFilter('today')" style="font-weight:700">Today</button>
+      <button class="btn btns" id="vis-f-all" onclick="setVisDateFilter('all')">All</button>
+    </div>
   </div>
+  <div class="card"><div class="ch"><div class="ct"><i class="ti ti-list"></i> Visitor Log</div><span style="font-size:11px;color:var(--tx2)">Click a visitor to manage</span></div><div id="visitor-list"></div></div>
 </div>
 
 <!-- MEETINGS -->
+
 <div class="pg" id="pg-meetings">
   <div class="ph">
     <div><div class="pt">Meetings</div><div class="ps">Minutes of Meeting & schedules</div></div>
@@ -421,6 +456,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
       <button class="btn btns" id="inv-f-ok" onclick="setInvFilter('ok')" style="color:var(--ok-tx)">OK</button>
     </div>
   </div>
+  <div id="inv-total-value" style="margin-bottom:12px"></div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:12px" id="inv-grid-global"></div>
   <div class="card"><div class="ch"><div class="ct"><i class="ti ti-arrow-up-down"></i> Transactions</div></div><div id="inv-log-global"></div></div>
 </div>
@@ -506,31 +542,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 </div>
 
 
-<!-- CALENDAR -->
-<div class="pg" id="pg-calendar">
-  <div class="ph">
-    <div><div class="pt">My Calendar</div><div class="ps">Your personal schedule — meetings & visitors assigned to you</div></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btns" onclick="calNav(-1)"><i class="ti ti-chevron-left"></i></button>
-      <span id="cal-month-label" style="font-size:13px;font-weight:600;display:flex;align-items:center;padding:0 6px"></span>
-      <button class="btn btns" onclick="calNav(1)"><i class="ti ti-chevron-right"></i></button>
-      <button class="btn btns" onclick="calGoToday()">Today</button>
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 320px;gap:14px">
-    <div class="card" style="padding:10px"><div id="my-calendar-grid"></div></div>
-    <div>
-      <div class="card" style="margin-bottom:10px">
-        <div class="ch"><div class="ct"><i class="ti ti-calendar-event"></i> My Meetings</div></div>
-        <div id="my-cal-meetings"></div>
-      </div>
-      <div class="card">
-        <div class="ch"><div class="ct"><i class="ti ti-user-check"></i> My Visitor Duties</div></div>
-        <div id="my-cal-visitors"></div>
-      </div>
-    </div>
-  </div>
-</div>
 <!-- Edit Meeting -->
 <div class="fm" id="fm-meeting-edit"><div class="fb fb-lg">
   <div class="ft"><i class="ti ti-calendar-event"></i> Edit Meeting</div>
@@ -1031,6 +1042,14 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fg"><label class="fl">Minutes / Discussion Notes</label><textarea class="inp" id="fm2-minutes" style="min-height:90px" placeholder="What was discussed, decided, and agreed upon..."></textarea></div>
   <div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="fm2-actions" placeholder="Action item — Person responsible — Deadline..."></textarea></div>
   <div class="fg"><label class="fl">Next Meeting Date</label><input class="inp" id="fm2-next" type="date"></div>
+  <div class="fg"><label class="fl">Attach Files (Photos, Documents, Presentation...)</label>
+    <div class="upload-zone" onclick="document.getElementById('fm2-files').click()">
+      <input type="file" id="fm2-files" multiple onchange="prevMedia(this,'fm2-prev')">
+      <i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Click to attach files — rename below</div>
+    </div>
+    <div class="media-prev" id="fm2-prev"></div>
+  </div>
   <div class="fa"><button class="btn" onclick="closeFm('fm-meeting')">Cancel</button><button class="btn btnp" onclick="addMeeting()">Save Meeting</button></div>
 </div></div>
 
@@ -1284,7 +1303,7 @@ async function loadAllData(){
       sb.from('pipeline').select('*').order('created_at',{ascending:false}),
       sb.from('inventory_log').select('*').order('created_at',{ascending:false}).limit(500),
       sb.from('sops').select('*').order('created_at',{ascending:false}),
-      sb.from('contacts').select('id,name,position,title,department,dept,phone,mobile,email,type,contact_type,notes').order('name'),
+      sb.from('contacts').select('*').order('name'),
     ]);
     if(uRes.data)users=uRes.data.map(u=>({...u,projects:u.project_access||[],active:u.active!==false}));
     if(pRes.data)projects=pRes.data.map(p=>({...p,id:parseInt(p.id),contractPrice:p.budget||0,contingency:p.contingency||0,color:p.color||COLS[0],status:p.status||'on-track',start:p.start_date,end:p.end_date,desc:p.description||p.desc||'',paymentTerms:p.payment_terms||'',billing:p.billing||[]}));
@@ -1334,7 +1353,7 @@ async function loadAllData(){
     }));
     if(delRes.data)deliveries=delRes.data.map(d=>({...d,proj:(d.project_name||'').trim(),date:d.scheduled_date,items:d.items||'',mediaCount:0}));
     if(expRes.data)expenses=expRes.data.map(e=>({...e,proj:(e.project_name||'').trim(),amount:e.amount||0,by:e.recorded_by||'',cat:e.category||''}));
-    if(meetRes.data)meetings=meetRes.data.map(m=>({...m,proj:(m.project_name||'').trim(),datetime:m.date}));
+    if(meetRes.data)meetings=meetRes.data.map(m=>({...m,id:parseInt(m.id),proj:(m.project_name||'').trim(),datetime:m.date,files:m.files||[]}));
     if(visRes.data)visitors=visRes.data.map(v=>({...v,proj:(v.project_name||'').trim(),timein:v.visit_date}));
     if(actRes.data)actLog=actRes.data.map(l=>({...l,text:l.text,color:l.color||'#666',time:new Date(l.created_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),user:l.user_name,proj:l.project_name}));
     if(pipRes.data)pipeline=pipRes.data.map(l=>({...l,closedate:l.closedate,history:[]}));
@@ -1363,10 +1382,16 @@ async function loadAllData(){
         });
       });
     }
-    const docRes=await sb.from('documents').select('*');
-    if(docRes.data){
-      projects.forEach(p=>{documents[p.id]=[];});
-      docRes.data.forEach(d=>{if(!documents[d.project_id])documents[d.project_id]=[];documents[d.project_id].push(d);});
+    try{
+      const docRes=await sb.from('documents').select('*');
+      if(docRes.error)throw docRes.error;
+      if(docRes.data){
+        projects.forEach(p=>{documents[p.id]=[];});
+        docRes.data.forEach(d=>{if(!documents[d.project_id])documents[d.project_id]=[];documents[d.project_id].push(d);});
+      }
+    }catch(docErr){
+      console.warn('Documents table unavailable (this is OK if not yet created):',docErr);
+      projects.forEach(p=>{if(!documents[p.id])documents[p.id]=[];});
     }
   }catch(e){console.error('Load error:',e);}
   showLoadingOverlay(false);
@@ -1390,11 +1415,57 @@ async function sbLog(text,color,cat,proj){
   }
 }
 
+// ─── SUPABASE SAFE WRITE HELPERS ──────────────────────────────────
+// Automatically strips columns that don't exist in the target table and retries,
+// so schema differences (e.g. missing 'payment_terms') don't break the whole save.
+function _extractBadColumn(error){
+  if(!error||!error.message)return null;
+  let m=error.message.match(/the '([a-zA-Z_][a-zA-Z0-9_]*)' column/i);
+  if(m)return m[1];
+  m=error.message.match(/column "([a-zA-Z_][a-zA-Z0-9_]*)"/i);
+  if(m)return m[1];
+  return null;
+}
+async function sbSafeInsert(table,row,maxAttempts){
+  maxAttempts=maxAttempts||6;
+  let attemptRow={...row};
+  for(let i=0;i<maxAttempts;i++){
+    const res=await sb.from(table).insert([attemptRow]).select();
+    if(!res.error)return res;
+    const badCol=_extractBadColumn(res.error);
+    if(badCol&&badCol in attemptRow){
+      console.warn(`sbSafeInsert(${table}): dropping unknown column '${badCol}' and retrying`,res.error);
+      delete attemptRow[badCol];
+      continue;
+    }
+    console.error(`sbSafeInsert(${table}) error:`,res.error);
+    return res;
+  }
+  return await sb.from(table).insert([attemptRow]).select();
+}
+async function sbSafeUpdate(table,row,idField,idVal,maxAttempts){
+  maxAttempts=maxAttempts||6;
+  let attemptRow={...row};
+  for(let i=0;i<maxAttempts;i++){
+    const res=await sb.from(table).update(attemptRow).eq(idField,idVal);
+    if(!res.error)return res;
+    const badCol=_extractBadColumn(res.error);
+    if(badCol&&badCol in attemptRow){
+      console.warn(`sbSafeUpdate(${table}): dropping unknown column '${badCol}' and retrying`,res.error);
+      delete attemptRow[badCol];
+      continue;
+    }
+    console.error(`sbSafeUpdate(${table}) error:`,res.error);
+    return res;
+  }
+  return await sb.from(table).update(attemptRow).eq(idField,idVal);
+}
+
 // ─── SUPABASE SAVE FUNCTIONS ──────────────────────────────────────
 async function sbSaveProject(p){
   const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,description:p.desc||'',color:p.color,payment_terms:p.paymentTerms||''};
-  if(p._isNew){const{data,error}=await sb.from('projects').insert([row]).select();if(error)console.error('sbSaveProject insert error:',error);if(data&&data[0])p.id=data[0].id;}
-  else{const{error}=await sb.from('projects').update(row).eq('id',p.id);if(error)console.error('sbSaveProject update error:',error);}
+  if(p._isNew){const{data,error}=await sbSafeInsert('projects',row);if(error)console.error('sbSaveProject insert error:',error);if(data&&data[0])p.id=data[0].id;}
+  else{const{error}=await sbSafeUpdate('projects',row,'id',p.id);if(error)console.error('sbSaveProject update error:',error);}
 }
 async function sbSaveTask(t){
   // Build description with all metadata so it always saves even if extra columns don't exist
@@ -1411,14 +1482,15 @@ async function sbSaveTask(t){
     status:t.done?'done':(t.status||'pending'),
     priority:t.priority||'medium',
     due_date:t.due||null,
-    description:desc
+    description:desc,
+    reports:t.reports||[]
   };
   if(t._isNew){
-    const{data,error}=await sb.from('tasks').insert([row]).select();
+    const{data,error}=await sbSafeInsert('tasks',row);
     if(data&&data[0]){t.id=data[0].id;delete t._isNew;console.log('Task saved to Supabase:',t.name,t.id);}
     else{console.error('sbSaveTask insert error:',error,row);if(error)console.error('Details:',JSON.stringify(error));}
   } else if(t.id){
-    const{error}=await sb.from('tasks').update(row).eq('id',t.id);
+    const{error}=await sbSafeUpdate('tasks',row,'id',t.id);
     if(error)console.error('sbSaveTask update error:',error);
   }
 }
@@ -1442,12 +1514,19 @@ async function sbSaveExpense(e){
   const{data}=await sb.from('expenses').insert([row]).select();if(data&&data[0])e.id=data[0].id;
 }
 async function sbSaveMeeting(m){
-  const row={project_name:m.proj,title:m.title,date:m.datetime||null,attendees:m.attendees||'',minutes:m.minutes||''};
-  const{data}=await sb.from('meetings').insert([row]).select();if(data&&data[0])m.id=data[0].id;
+  const row={project_name:m.proj,title:m.title,date:m.datetime||null,attendees:m.attendees||'',minutes:m.minutes||'',agenda:m.agenda||'',actions:m.actions||'',location:m.location||'',files:m.files||[]};
+  const{data}=await sbSafeInsert('meetings',row);if(data&&data[0])m.id=data[0].id;
 }
 async function sbSaveVisitor(v){
   const row={project_name:v.proj,name:v.name,company:v.company||'',purpose:v.purpose||'',visit_date:v.timein||null,host:v.host||'',status:v.status||'scheduled',remarks:v.remarks||''};
-  const{data}=await sb.from('visitors').insert([row]).select();if(data&&data[0])v.id=data[0].id;
+  if(v.id&&!v._isNew){
+    const{error}=await sbSafeUpdate('visitors',row,'id',v.id);
+    if(error)console.error('sbSaveVisitor update error:',error);
+  }else{
+    const{data,error}=await sbSafeInsert('visitors',row);
+    if(error)console.error('sbSaveVisitor insert error:',error);
+    if(data&&data[0]){v.id=data[0].id;delete v._isNew;}
+  }
 }
 async function sbSaveUser(u){
   const row={name:u.name,role:u.role,pin:u.pin,color:u.color||'',initials:initials(u.name),project_access:u.projects||[]};
@@ -1663,7 +1742,7 @@ if(document.getElementById('btn-new-mat'))document.getElementById('btn-new-mat')
 }
 
 // TABS
-function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorCal();renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='calendar')renderMyCalendar();if(t==='reports')renderGlobalReports();}
+function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='reports')renderGlobalReports();}
 function setDTab(t){
   document.querySelectorAll('.dpg').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('on'));
@@ -1749,18 +1828,38 @@ const FUNNEL_STAGES=[
 const total=pipeline.length||1;
 const funnelBar=document.getElementById('ov-funnel-bar');
 const funnelTotal=document.getElementById('ov-funnel-total');
-const pipelineVal=document.getElementById('ov-pipeline-value');
+const pipelineTotals=document.getElementById('ov-pipeline-totals');
 let barHtml='';
 FUNNEL_STAGES.forEach(s=>{
-  const count=pipeline.filter(l=>l.stage===s.key).length;
+  const stageLeads=pipeline.filter(l=>l.stage===s.key);
+  const count=stageLeads.length;
   const el=document.getElementById(s.id);
   if(el)el.textContent=count;
+  const valEl=document.getElementById(s.id+'-val');
+  if(valEl){
+    if(canSeeCosts()){
+      const stageVal=stageLeads.reduce((sum,l)=>sum+(l.value||0),0);
+      valEl.textContent=stageVal>0?fmt(stageVal):'';
+    }else valEl.textContent='';
+  }
   const pct=Math.max(2,Math.round(count/total*100));
   if(count>0)barHtml+='<div style="flex:'+pct+';background:'+s.col+';min-width:4px;border-radius:3px" title="'+s.key+': '+count+'"></div>';
 });
 if(funnelBar)funnelBar.innerHTML=barHtml||'<div style="flex:1;background:var(--bg3);border-radius:3px"></div>';
 if(funnelTotal)funnelTotal.textContent=pipeline.length+' total lead'+(pipeline.length!==1?'s':'');
-if(pipelineVal&&canSeeCosts()){const totalVal=pipeline.filter(l=>l.stage!=='Lost').reduce((s,l)=>s+l.value,0);pipelineVal.textContent='Active pipeline: '+fmt(totalVal);}
+if(pipelineTotals){
+  if(canSeeCosts()){
+    const totalAll=pipeline.reduce((s,l)=>s+(l.value||0),0);
+    const totalActive=pipeline.filter(l=>l.stage!=='Lost'&&l.stage!=='Awarded').reduce((s,l)=>s+(l.value||0),0);
+    const totalAwarded=pipeline.filter(l=>l.stage==='Awarded').reduce((s,l)=>s+(l.value||0),0);
+    pipelineTotals.innerHTML=
+      '<span style="font-size:10px;color:var(--tx2)">Active: <strong style="color:var(--tx)">'+fmt(totalActive)+'</strong></span>'
+      +'<span style="font-size:10px;color:var(--tx2)">Awarded: <strong style="color:var(--ok-tx)">'+fmt(totalAwarded)+'</strong></span>'
+      +'<span style="font-size:10px;color:var(--tx2)">Total Pipeline: <strong style="color:var(--or)">'+fmt(totalAll)+'</strong></span>';
+  }else{
+    pipelineTotals.innerHTML='';
+  }
+}
 }
 function renderOverview(){
   const mp=myProjects();
@@ -1779,6 +1878,34 @@ function renderOverview(){
     +(myInv.length?myInv.map(i=>{const r=i.qty/i.min;const col=r<=0.5?'var(--er-tx)':r<=1?'var(--wn-tx)':'var(--ok-tx)';const pct=Math.min(100,Math.round(i.qty/i.min*100));return'<div style="padding:5px 0;border-bottom:0.5px solid var(--bd);cursor:pointer" onclick="jumpToInventoryItem('+i.id+')" title="View in Inventory"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;font-weight:500">'+i.name+'</span><span style="font-size:10px;color:'+col+';font-weight:600">'+i.qty+' '+i.unit+'</span></div><div style="display:flex;align-items:center;gap:6px"><div class="pb" style="flex:1;height:4px"><div class="pf" style="width:'+pct+'%;background:'+col+';height:4px"></div></div><span style="font-size:9px;color:var(--tx3)">'+i.project+'</span></div></div>';}).join(''):'<div style="font-size:12px;color:var(--tx2)">No materials tracked yet.</div>');
   // Recent Activity
   document.getElementById('ov-log').innerHTML=actLog.slice(0,8).map((l,i)=>`<div class="log-row" style="cursor:pointer" onclick="goToActivity(${i})" title="Click to view"><div class="log-dot" style="background:${l.color}"></div><div style="flex:1;font-size:12px">${l.text}</div><div class="log-time">${l.time}</div><i class="ti ti-chevron-right" style="font-size:10px;color:var(--tx3);flex-shrink:0"></i></div>`).join('')||'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No activity yet.</div>';
+  // Expenses overview per project
+  const ovExpEl=document.getElementById('ov-expenses');
+  const ovExpCard=document.getElementById('ov-expenses-card');
+  if(ovExpEl&&ovExpCard){
+    if(!canSeeCosts()){
+      ovExpCard.style.display='none';
+    }else{
+      ovExpCard.style.display='';
+      if(mp.length){
+        ovExpEl.innerHTML=mp.map(p=>{
+          const spent=calcSpent(p.name);
+          const pct=p.contractPrice>0?Math.min(100,Math.round(spent/p.contractPrice*100)):0;
+          const col=pct>90?'var(--er-tx)':pct>70?'var(--wn-tx)':'var(--ok-tx)';
+          return '<div class="exp-ov-row" style="cursor:pointer" onclick="openProjectDetail('+p.id+');setTimeout(()=>setDTab(\'budget\'),200)">'
+            +'<div style="width:7px;height:7px;border-radius:50%;background:'+p.color+';flex-shrink:0"></div>'
+            +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+            +'<div class="pb" style="margin-top:4px"><div class="pf" style="width:'+pct+'%;background:'+col+'"></div></div></div>'
+            +'<div style="text-align:right;flex-shrink:0"><div style="font-size:12px;font-weight:700;color:'+col+'">'+fmt(spent)+'</div><div style="font-size:9px;color:var(--tx3)">'+pct+'% of '+fmt(p.contractPrice)+'</div></div>'
+            +'</div>';
+        }).join('');
+        const totalSpent=mp.reduce((s,p)=>s+calcSpent(p.name),0);
+        const totalBudget=mp.reduce((s,p)=>s+p.contractPrice,0);
+        ovExpEl.innerHTML+='<div class="exp-ov-row" style="border-top:1.5px solid var(--bd);margin-top:4px;font-weight:700"><div style="flex:1;font-size:12px">Total — All Projects</div><div style="text-align:right"><div style="font-size:13px;color:var(--or)">'+fmt(totalSpent)+'</div><div style="font-size:9px;color:var(--tx3)">of '+fmt(totalBudget)+'</div></div></div>';
+      }else{
+        ovExpEl.innerHTML='<div style="font-size:12px;color:var(--tx2);padding:8px 0">No projects yet.</div>';
+      }
+    }
+  }
 }
 function renderProjects(){const mp=myProjects();document.getElementById('proj-cards').innerHTML=mp.map(p=>{const prog=calcProgress(p.id);const spent=calcSpent(p.name);const bpct=Math.min(100,Math.round(spent/p.contractPrice*100));const bc=bpct>90?'var(--er-tx)':bpct>70?'var(--wn-tx)':'var(--ok-tx)';return`<div class="card" style="cursor:pointer" onclick="openProjectDetail(${p.id})" onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px"><div style="display:flex;align-items:center;gap:10px"><div style="width:11px;height:11px;border-radius:50%;background:${p.color};flex-shrink:0;margin-top:3px"></div><div><div style="font-size:15px;font-weight:700">${p.name}</div><div style="font-size:11px;color:var(--tx2)">${p.client} - ${p.location}</div></div></div>${sbadge(p.status)}</div><div style="font-size:12px;color:var(--tx2);margin-bottom:12px">${p.desc||''}</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"><div><div style="font-size:10px;color:var(--tx3)">Contract Price</div><div style="font-size:13px;font-weight:700">${hideCosts(fmt(p.contractPrice))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Spent</div><div style="font-size:13px;font-weight:700;color:${bc}">${hideCosts(fmt(spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">Remaining</div><div style="font-size:13px;font-weight:700">${hideCosts(fmt(p.contractPrice-spent))}</div></div><div><div style="font-size:10px;color:var(--tx3)">End Date</div><div style="font-size:13px;font-weight:700">${p.end}</div></div></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:11px;color:var(--tx2);width:70px">Progress</span><div class="pb" style="flex:1"><div class="pf" style="width:${prog}%;background:${p.color}"></div></div><span style="font-size:13px;font-weight:700;color:${p.color}">${prog}%</span><span style="font-size:10px;color:var(--tx3)">Gantt-based</span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--tx2);width:70px">Budget</span><div class="pb" style="flex:1"><div class="pf" style="width:${canSeeCosts()?bpct:0}%;background:${bc}"></div></div><span style="font-size:13px;font-weight:700;color:${bc}">${hideCosts(bpct+'%')}</span></div></div>`;}).join('')}
 
@@ -2709,10 +2836,12 @@ function renderDetailInventory(id){
           +'<button class="btn btns" onclick="openTxn('+i.id+',\'replenish\')" title="Replenish"><i class="ti ti-arrow-down"></i></button>'
           +'</div>':'')
         +'</div>'
-        +'<div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: '+i.min+' '+i.unit+(i.unitCost?' - P'+i.unitCost+'/'+i.unit:'')+'</div>'
+        +'<div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: '+i.min+' '+i.unit+(i.unitCost?' - ₱'+i.unitCost+'/'+i.unit:'')+'</div>'
+        +(canSeeCosts()&&i.unitCost>0?'<div style="font-size:11px;font-weight:700;color:var(--or);margin-top:3px">Total: '+fmt((i.qty||0)*(i.unitCost||0))+'</div>':'')
         +'</div>';}catch(invErr){return '<div class="inv-card" style="padding:8px;color:var(--er-tx);font-size:11px">'+invErr.message+'</div>';}
     }).join(''):'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials for this project yet.</div>')
     +'</div>'
+    +(canSeeCosts()&&pInv.length?'<div class="card" style="margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div><div style="font-size:10px;color:var(--tx2)">Total Inventory Value — '+p.name+'</div><div style="font-size:22px;font-weight:800;color:var(--or)">'+fmt(pInv.reduce(function(s,i){return s+(i.qty||0)*(i.unitCost||0);},0))+'</div></div><div style="font-size:11px;color:var(--tx2)">'+pInv.length+' item(s) tracked</div></div>':'')
     +'<div class="card"><div class="ch"><div class="ct"><i class="ti ti-arrow-up-down"></i> Transactions</div></div>'
     +'<div>'
     +(invLog.filter(function(l){return (l.proj||'').trim().toLowerCase()===pName;}).length
@@ -2741,7 +2870,7 @@ function filterDocs(id,cat){currentDocFilter[id]=cat;const srch=(document.getEle
 function openDocModal(pid){document.getElementById('fd-proj-id').value=pid;document.getElementById('fd-title').value='';document.getElementById('fd-notes').value='';clearFileStore('doc-prev');document.getElementById('fm-doc').classList.add('op')}
 async function uploadDoc(){const title=document.getElementById('fd-title').value.trim();if(!title){alert('Title required');return}const pid=parseInt(document.getElementById('fd-proj-id').value);const files=getFileNames('doc-prev');if(!documents[pid])documents[pid]=[];const doc={title,cat:document.getElementById('fd-cat').value,access:document.getElementById('fd-access').value,notes:document.getElementById('fd-notes').value,files:files.length?files:['(no file)'],uploader:CU.name,date:TODAY,project_id:pid};
 const row={project_id:pid,title:doc.title,cat:doc.cat,access:doc.access,notes:doc.notes||'',files:doc.files,uploader:CU.name,date:TODAY};
-const{data}=await sb.from('documents').insert([row]).select();if(data&&data[0])doc.id=data[0].id;else doc.id=Date.now();
+try{const{data,error}=await sb.from('documents').insert([row]).select();if(error)throw error;if(data&&data[0])doc.id=data[0].id;else doc.id=Date.now();}catch(docInsErr){console.warn('documents table insert failed (saved locally only):',docInsErr);doc.id=Date.now();}
 documents[pid].push(doc);actLog.unshift({time:nowStr(),text:`Document uploaded: "${title}"`,color:'#534AB7',cat:'Documents',user:CU.name,proj:projects.find(p=>p.id===pid)?.name||''});
 sbLog(`Document uploaded: "${title}" by ${CU.name}`,'#534AB7','Documents',projects.find(p=>p.id===pid)?.name||'');
 closeFm('fm-doc');renderDocs(pid)}
@@ -2907,6 +3036,7 @@ function renderDetailMeetings(id){id=parseInt(id);
     ${m.agenda?`<div style="font-size:12px;margin-bottom:4px"><strong>Agenda:</strong> ${m.agenda}</div>`:''}
     ${m.minutes?`<div style="font-size:12px;margin-bottom:4px"><strong>Minutes:</strong> ${m.minutes.slice(0,150)}${m.minutes.length>150?'...':''}</div>`:''}
     ${m.actions?`<div style="font-size:12px;padding:5px 8px;border-radius:var(--r);background:var(--ok-bg);color:var(--ok-tx)"><strong>Actions:</strong> ${m.actions}</div>`:''}
+    ${m.files&&m.files.length?`<div style="font-size:10px;color:var(--in-tx);margin-top:5px"><i class="ti ti-paperclip"></i> ${m.files.length} file(s): ${m.files.join(', ')}</div>`:''}
   </div>`).join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No meetings for this project yet.</div>'}`;
 }
 function openMeetingForProj(projId){
@@ -3000,7 +3130,7 @@ function showDayVisitors(dateStr,projId){
 let _visitorDetailId=null;
 function openVisitorActionModal(visitorId){
   _visitorDetailId=visitorId;
-  const v=visitors.find(x=>x.id===visitorId);if(!v)return;
+  const v=visitors.find(x=>parseInt(x.id)===parseInt(visitorId));if(!v)return;
   document.getElementById('fva-id').value=visitorId;
   document.getElementById('fva-title').textContent='Visitor: '+v.name;
   document.getElementById('fva-info').innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">'
@@ -3016,6 +3146,10 @@ function openVisitorActionModal(visitorId){
   document.getElementById('fva-remarks').value='';
   document.getElementById('fva-reschedule-wrap').style.display='none';
   document.getElementById('fva-new-time').value=v.timein||'';
+  // Reset pending action and button highlighting — prevents a leftover action from a
+  // previously opened visitor's modal from being applied to this visitor
+  _visitorPendingAction=null;
+  document.querySelectorAll('#fva-actions button').forEach(b=>{b.style.fontWeight='400'});
   document.getElementById('fm-visitor-action').classList.add('op');
 }
 let _visitorPendingAction=null;
@@ -3025,25 +3159,26 @@ function doVisitorAction(action){
   // Highlight active action button
   document.querySelectorAll('#fva-actions button').forEach(b=>{b.style.fontWeight=b.getAttribute('onclick')?.includes(action)?'700':'400';});
 }
-function saveVisitorAction(){
+async function saveVisitorAction(){
   const id=parseInt(document.getElementById('fva-id').value);
   const v=visitors.find(x=>parseInt(x.id)===parseInt(id));if(!v)return;
   const newTime=document.getElementById('fva-new-time').value;
   const remarks=document.getElementById('fva-remarks').value.trim();
   const action=_visitorPendingAction;
+  if(!action&&!remarks){alert('Choose an action above (Reschedule, Cancel, Check In, Check Out) or enter remarks before saving.');return;}
   if(remarks)v.remarks=(v.remarks?v.remarks+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
   if(action==='reschedule'){
     if(!newTime){alert('Please enter a new date/time.');return;}
     v.timein=newTime;v.status='rescheduled';
     // Update linked task if any
     const linked=tasks.find(t=>t.autoType==='visitor'&&t.refId===v.id&&!t.done);
-    if(linked){linked.due=newTime.split('T')[0];linked.details='Rescheduled to '+newTime.replace('T',' ');}
+    if(linked){linked.due=newTime.split('T')[0];linked.details='Rescheduled to '+newTime.replace('T',' ');sbSaveTask(linked);}
     actLog.unshift({time:nowStr(),text:'Visitor rescheduled: '+v.name+' → '+(newTime||'').replace('T',' '),color:'#854F0B',cat:'Visitors',user:CU.name,proj:v.proj,note:remarks||''});
   } else if(action==='cancel'){
     if(!confirm('Confirm cancel visit for '+v.name+'?'))return;
     v.status='cancelled';
     const linked=tasks.find(t=>t.autoType==='visitor'&&t.refId===v.id&&!t.done);
-    if(linked){linked.done=true;linked.status='done';}
+    if(linked){linked.done=true;linked.status='done';sbSaveTask(linked);}
     actLog.unshift({time:nowStr(),text:'Visitor cancelled: '+v.name,color:'#993C1D',cat:'Visitors',user:CU.name,proj:v.proj,note:remarks||'Cancelled by '+CU.name});
   } else if(action==='checkin'){
     v.status='checked-in';
@@ -3054,8 +3189,11 @@ function saveVisitorAction(){
   } else if(remarks){
     actLog.unshift({time:nowStr(),text:'Visitor remark: '+v.name+' — '+remarks,color:'#534AB7',cat:'Visitors',user:CU.name,proj:v.proj,note:remarks});
   }
+  await sbSaveVisitor(v);
+  sbLog(actLog[0].text,actLog[0].color,'Visitors',v.proj);
   _visitorPendingAction=null;
-  closeFm('fm-visitor-action');renderVisitorList();renderVisitorCal();
+  closeFm('fm-visitor-action');renderVisitorList();
+  if(activeProjectId)renderDetailVisitors(activeProjectId);
 }
 function cancelVisitor(id){
   const v=visitors.find(x=>parseInt(x.id)===parseInt(id));if(!v)return;
@@ -3064,7 +3202,7 @@ function cancelVisitor(id){
   const remarks=prompt('Reason for cancellation (optional):','');
   if(remarks)v.remarks=(v.remarks?v.remarks+' | ':'')+remarks;
   actLog.unshift({time:nowStr(),text:'Visitor cancelled: '+v.name,color:'#993C1D',cat:'Visitors',user:CU.name,proj:v.proj});
-  renderVisitorList();renderVisitorCal();
+  renderVisitorList();
 }
 function rescheduleVisitor(id){
   const v=visitors.find(x=>parseInt(x.id)===parseInt(id));if(!v)return;
@@ -3072,13 +3210,7 @@ function rescheduleVisitor(id){
   document.getElementById('fva-reschedule-wrap').style.display='';
 }
 function openVisitorDetail(visitorId,projId){
-  _visitorDetailId=visitorId;
-  const v=visitors.find(x=>x.id===visitorId);if(!v)return;
-  const msg=`Visitor: ${v.name}\nCompany: ${v.company||'—'}\nPurpose: ${v.purpose||'—'}\nHost: ${v.host||'—'}\nTime: ${(v.timein||'').replace('T',' ')}\nProject: ${v.proj}\nID: ${v.idPresented||'—'}\nStatus: ${v.status||'Logged'}\n\nAction:`;
-  const action=prompt(msg+'\n[cancel] to cancel visit\n[reschedule] to reschedule\n[ok] to close','ok');
-  if(action==='cancel'){v.status='cancelled';actLog.unshift({time:nowStr(),text:`Visitor cancelled: ${v.name}`,color:'#993C1D'});}
-  else if(action==='reschedule'){const newTime=prompt('Enter new date/time (YYYY-MM-DDTHH:MM):',v.timein||'');if(newTime){v.timein=newTime;v.status='rescheduled';actLog.unshift({time:nowStr(),text:`Visitor rescheduled: ${v.name}`,color:'#854F0B'});}}
-  renderVisitorList();renderVisitorCal();if(projId)renderDetailVisitors(projId);
+  openVisitorActionModal(visitorId);
 }
 function renderDetailDelivery(id){id=parseInt(id);
   const p=findProject(id);
@@ -3344,14 +3476,39 @@ function submitTaskReport(){
     const work=document.getElementById('ftd-work').value.trim();
     if(!work){alert('Work description required');return;}
     const fileCount=getFileCount('ftd-prev');
-    actLog.unshift({time:nowStr(),text:`Sub-task report submitted by ${CU.name}`,color:'#534AB7'});
+    let foundAct=null;
+    Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{if(a.id===actId)foundAct=a;}));
+    if(foundAct){
+      const st=(foundAct.subTasks||[]).find(s=>s.id===stId);
+      if(st){
+        st.done=true;
+        if(foundAct.subTasks.length)foundAct.done=Math.round(foundAct.subTasks.filter(s=>s.done).length/foundAct.subTasks.length*100);
+        const stForSave=foundAct.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||foundAct.start||'',end:s.end||foundAct.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));
+        sb.from('gantt_activities').update({sub_tasks:stForSave,completion:foundAct.done}).eq('id',actId).then(({error})=>{if(error)console.error('Sub-task auto-complete save error:',error);});
+        const linkedTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
+        if(linkedTask){
+          linkedTask.done=true;linkedTask.status='done';
+          if(!linkedTask.reports)linkedTask.reports=[];
+          linkedTask.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:100,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+          sbSaveTask(linkedTask);
+        }
+      }
+    }
+    actLog.unshift({time:nowStr(),text:`Sub-task report submitted by ${CU.name} — marked complete`,color:'#534AB7'});
     closeFm('fm-task-detail');
     taskIdEl.dataset.isSubtask='';
-    toggleSubTask(actId,stId,projId);
+    renderGanttDetail(projId);renderDetailTasks(projId);renderTasksGlobal();renderMetrics();renderSidebar();
+    if(activeProjectId){renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}
+    renderGlobalReports();
     alert('Report submitted! Sub-task marked complete.');
     return;
   }
-  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const fileCount2=getFileCount('ftd-prev');t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount2,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name}`,color:'#534AB7'});closeFm('fm-task-detail');if(activeProjectId){renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}renderGlobalReports();alert('Report submitted!')}
+  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const fileCount2=getFileCount('ftd-prev');t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount2,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  // Auto-complete: submitting a report marks the task as done
+  t.done=true;t.status='done';
+  if(t.subTaskId){Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{const st=(a.subTasks||[]).find(s=>s.id===t.subTaskId);if(st){st.done=true;if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);const stForSave=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));sb.from('gantt_activities').update({sub_tasks:stForSave,completion:a.done}).eq('id',a.id).then(({error})=>{if(error)console.error('Linked sub-task save error:',error);});}}))}
+  sbSaveTask(t);
+  actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name} — task marked complete`,color:'#534AB7'});closeFm('fm-task-detail');renderTasksGlobal();renderMetrics();renderSidebar();if(activeProjectId){renderDetailTasks(activeProjectId);renderGanttDetail(activeProjectId);renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}renderGlobalReports();alert('Report submitted! Task marked as complete.')}
 
 function markTaskDone(){
   if(!CU||(CU.role!=='admin'&&CU.role!=='pm')){alert('Only Admin or Project Manager can mark tasks as complete.');closeFm('fm-task-detail');return}
@@ -3524,7 +3681,28 @@ async function addDelivery(){
   }
   closeFm('fm-delivery');renderDeliveries();renderSidebar();if(activeProjectId)refreshDetailDelivery(activeProjectId);
 }
-function renderDeliveries(){const mp=myProjects();const pf=document.getElementById('del-proj-filter').value;const sf=document.getElementById('del-status-filter').value;const sel=document.getElementById('del-proj-filter');if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const delSrch=(document.getElementById('del-search')?.value||'').toLowerCase();let list=deliveries.filter(d=>mp.some(p=>projMatch(p.name,d.proj)));if(pf)list=list.filter(d=>projMatch(d.proj,pf));if(sf)list=list.filter(d=>d.status===sf);if(delSrch)list=list.filter(d=>(d.items+' '+(d.supplier||'')+' '+(d.driver||'')+' '+(d.receiver||'')).toLowerCase().includes(delSrch));const sBadge={Scheduled:'bw',Delivered:'bk',Partial:'bi',Cancelled:'be'};document.getElementById('delivery-list').innerHTML=list.length?list.map(d=>`<div class="delivery-card" style="cursor:pointer" onclick="openDeliveryUpdate(${d.id})"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><div><div style="font-size:13px;font-weight:600">${d.proj} - ${d.date}</div><div style="font-size:11px;color:var(--tx2)">${d.supplier||''} ${d.driver?'- Driver: '+d.driver:''} ${d.receiver?'- Rcvd: '+d.receiver:''}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge ${sBadge[d.status]||'bg_'}">${d.status}</span>${d.amount>0?`<span class="badge bg_">${fmt(d.amount)}</span>`:''}<span style="font-size:10px;color:var(--in-tx)"><i class="ti ti-pencil"></i> Update</span></div></div><div style="font-size:12px;margin-bottom:5px">${d.items}</div><div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap">${d.invoice?`<span>INV: ${d.invoice}</span>`:''} ${d.dr?`<span>DR: ${d.dr}</span>`:''} ${d.mediaCount>0?`<span style="color:var(--in-tx)"><i class="ti ti-photo"></i> ${d.mediaCount} proof file(s)</span>`:''} ${d.notes?`<span style="color:var(--wn-tx)"><i class="ti ti-alert-circle"></i> ${d.notes}</span>`:''}</div></div>`).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:20px">No deliveries recorded yet.</div>'}
+let _delDateFilter='all';
+function setDelDateFilter(mode){
+  _delDateFilter=mode;
+  if(mode!=='range'){
+    const fromEl=document.getElementById('del-date-from');const toEl=document.getElementById('del-date-to');
+    if(fromEl)fromEl.value='';if(toEl)toEl.value='';
+  }
+  ['all','today','overdue'].forEach(x=>{const el=document.getElementById('del-f-'+x);if(el)el.style.fontWeight=x===mode?'700':'400';});
+  if(mode==='range'){const el=document.getElementById('del-f-all');if(el)el.style.fontWeight='400';}
+  renderDeliveries();
+}
+function renderDeliveries(){const mp=myProjects();const pf=document.getElementById('del-proj-filter').value;const sf=document.getElementById('del-status-filter').value;const sel=document.getElementById('del-proj-filter');if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const delSrch=(document.getElementById('del-search')?.value||'').toLowerCase();let list=deliveries.filter(d=>mp.some(p=>projMatch(p.name,d.proj)));if(pf)list=list.filter(d=>projMatch(d.proj,pf));if(sf)list=list.filter(d=>d.status===sf);if(delSrch)list=list.filter(d=>(d.items+' '+(d.supplier||'')+' '+(d.driver||'')+' '+(d.receiver||'')).toLowerCase().includes(delSrch));
+  if(_delDateFilter==='today'){list=list.filter(d=>d.date===TODAY);}
+  else if(_delDateFilter==='overdue'){list=list.filter(d=>d.date&&d.date<TODAY&&d.status!=='Delivered'&&d.status!=='Cancelled');}
+  else if(_delDateFilter==='range'){
+    const from=document.getElementById('del-date-from')?.value||'';
+    const to=document.getElementById('del-date-to')?.value||'';
+    if(from)list=list.filter(d=>d.date>=from);
+    if(to)list=list.filter(d=>d.date<=to);
+  }
+  list=[...list].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const sBadge={Scheduled:'bw',Delivered:'bk',Partial:'bi',Cancelled:'be'};document.getElementById('delivery-list').innerHTML=list.length?list.map(d=>{const isOverdue=d.date&&d.date<TODAY&&d.status!=='Delivered'&&d.status!=='Cancelled';return `<div class="delivery-card" style="cursor:pointer" onclick="openDeliveryUpdate(${d.id})"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><div><div style="font-size:13px;font-weight:600">${d.proj} - ${d.date}${isOverdue?' <span class="badge be" style="margin-left:4px">OVERDUE</span>':''}</div><div style="font-size:11px;color:var(--tx2)">${d.supplier||''} ${d.driver?'- Driver: '+d.driver:''} ${d.receiver?'- Rcvd: '+d.receiver:''}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge ${sBadge[d.status]||'bg_'}">${d.status}</span>${d.amount>0?`<span class="badge bg_">${fmt(d.amount)}</span>`:''}<span style="font-size:10px;color:var(--in-tx)"><i class="ti ti-pencil"></i> Update</span></div></div><div style="font-size:12px;margin-bottom:5px">${d.items}</div><div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap">${d.invoice?`<span>INV: ${d.invoice}</span>`:''} ${d.dr?`<span>DR: ${d.dr}</span>`:''} ${d.mediaCount>0?`<span style="color:var(--in-tx)"><i class="ti ti-photo"></i> ${d.mediaCount} proof file(s)</span>`:''} ${d.notes?`<span style="color:var(--wn-tx)"><i class="ti ti-alert-circle"></i> ${d.notes}</span>`:''}</div></div>`;}).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:20px">No deliveries match this filter.</div>'}
 
 // VISITORS
 async function addVisitor(){
@@ -3541,23 +3719,59 @@ async function addVisitor(){
   const visitorTask={_isNew:true,name:'Prepare for visitor: '+name+(purpose?' ('+purpose+')':''),project:projName,assignee:host||CU.name,due:dueDate,priority:'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled visitor: '+name+' from '+(v.company||'N/A')+'. Purpose: '+(purpose||'—')+'. Host: '+(host||CU.name),riskLevel:'LOW',reports:[],autoType:'visitor'};
   tasks.push(visitorTask);
   await sbSaveTask(visitorTask);
-  closeFm('fm-visitor');renderVisitorCal();renderVisitorList();renderTasksGlobal();renderSidebar();
+  closeFm('fm-visitor');renderVisitorList();renderTasksGlobal();renderSidebar();
 }
 function visitorStatusBadge(v){const s=v.status||'scheduled';const m={scheduled:'<span style="background:var(--in-bg);color:var(--in-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">SCHEDULED</span>',rescheduled:'<span style="background:var(--wn-bg);color:var(--wn-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">RESCHEDULED</span>',cancelled:'<span style="background:var(--er-bg);color:var(--er-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CANCELLED</span>','checked-in':'<span style="background:var(--ok-bg);color:var(--ok-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED IN</span>','checked-out':'<span style="background:var(--bg2);color:var(--tx2);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED OUT</span>'};return m[s]||m.scheduled;}
+let _visDateFilter='today';
+function setVisDateFilter(mode){
+  if(mode==='date'){
+    _visDateFilter='date';
+  }else{
+    _visDateFilter=mode;
+    const dateEl=document.getElementById('vis-date-filter');if(dateEl)dateEl.value='';
+  }
+  ['today','all'].forEach(x=>{const el=document.getElementById('vis-f-'+x);if(el)el.style.fontWeight=x===mode?'700':'400';});
+  renderVisitorList();
+}
+function visitorRow(v){
+  const sb=visitorStatusBadge(v);
+  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:0.5px solid var(--bd);cursor:pointer;border-radius:6px" class="log-row" onclick="openVisitorActionModal('+v.id+')">'
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:12px;font-weight:600">'+v.name+(v.company?' — '+v.company:'')+'</span>'+sb+'</div>'
+    +'<div style="font-size:11px;color:var(--tx2);margin-top:1px">'+(v.purpose||'')+(v.host?' · Host: '+v.host:'')+'</div>'
+    +'<div style="font-size:10px;color:var(--tx3)">'+v.proj+' · '+(v.timein||'').replace('T',' ')+(v.remarks?' · '+v.remarks:'')+'</div>'
+    +'</div><i class="ti ti-chevron-right" style="font-size:11px;color:var(--tx3);flex-shrink:0"></i></div>';
+}
 function renderVisitorList(){
   const el=document.getElementById('visitor-list');if(!el)return;
   if(!visitors.length){el.innerHTML='<div style="font-size:12px;color:var(--tx2)">No visitors logged yet.</div>';return;}
-  el.innerHTML=visitors.slice(0,20).map(v=>{
-    const sb=visitorStatusBadge(v);
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:0.5px solid var(--bd);cursor:pointer;border-radius:6px" class="log-row" onclick="openVisitorActionModal('+v.id+')">'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:12px;font-weight:600">'+v.name+(v.company?' — '+v.company:'')+'</span>'+sb+'</div>'
-      +'<div style="font-size:11px;color:var(--tx2);margin-top:1px">'+(v.purpose||'')+(v.host?' · Host: '+v.host:'')+'</div>'
-      +'<div style="font-size:10px;color:var(--tx3)">'+v.proj+' · '+(v.timein||'').replace('T',' ')+(v.remarks?' · '+v.remarks:'')+'</div>'
-      +'</div><i class="ti ti-chevron-right" style="font-size:11px;color:var(--tx3);flex-shrink:0"></i></div>';
+  const dateVal=document.getElementById('vis-date-filter')?.value||'';
+  let filterDate=null;
+  if(_visDateFilter==='date'&&dateVal)filterDate=dateVal;
+  else if(_visDateFilter==='today')filterDate=TODAY;
+  if(filterDate){
+    const list=visitors.filter(v=>v.timein&&v.timein.startsWith(filterDate));
+    el.innerHTML=list.length?list.map(visitorRow).join(''):'<div style="font-size:12px;color:var(--tx2)">No visitors on '+filterDate+'.</div>';
+    return;
+  }
+  // ALL: group by date, then by project
+  const byDate={};
+  visitors.forEach(v=>{
+    const d=(v.timein||'').slice(0,10)||'No date';
+    if(!byDate[d])byDate[d]=[];
+    byDate[d].push(v);
+  });
+  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  el.innerHTML=dates.map(d=>{
+    const byProj={};
+    byDate[d].forEach(v=>{const p=v.proj||'Unassigned';if(!byProj[p])byProj[p]=[];byProj[p].push(v);});
+    const projNames=Object.keys(byProj).sort();
+    return '<div style="margin-bottom:10px">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--or);padding:6px 0;border-bottom:1px solid var(--bd);margin-bottom:4px">'+d+(d===TODAY?' (Today)':'')+'</div>'
+      +projNames.map(p=>'<div style="margin-bottom:4px"><div style="font-size:10px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em;padding:4px 0">'+p+'</div>'+byProj[p].map(visitorRow).join('')+'</div>').join('')
+      +'</div>';
   }).join('');
 }
-function renderVisitorCal(){const now=new Date();const yr=now.getFullYear();const mo=now.getMonth();const firstDay=new Date(yr,mo,1).getDay();const daysInMonth=new Date(yr,mo+1,0).getDate();const headers=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-hdr">${d}</div>`).join('');let cells='';for(let i=0;i<firstDay;i++)cells+='<div></div>';for(let d=1;d<=daysInMonth;d++){const dStr=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const evs=visitors.filter(v=>v.timein&&v.timein.startsWith(dStr));const isToday=dStr===TODAY;cells+=`<div class="cal-day${isToday?' today':''}${evs.length?' has-ev':''}"><div>${d}</div>${evs.map(v=>`<div class="cal-ev">${v.name.split(' ')[0]}</div>`).join('')}</div>`}document.getElementById('visitor-cal').innerHTML=`<div class="cal-wrap">${headers}${cells}</div>`}
 
 // MEETINGS
 async function addMeeting(){
@@ -3565,7 +3779,8 @@ async function addMeeting(){
   const projName=document.getElementById('fm2-proj').value;
   const meetDatetime=document.getElementById('fm2-datetime').value;
   const attendees=document.getElementById('fm2-attendees').value;
-  const m={_isNew:true,title,datetime:meetDatetime,location:document.getElementById('fm2-location').value,proj:projName,attendees,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,by:CU.name,time:nowStr()};
+  const files=getFileNames('fm2-prev');
+  const m={_isNew:true,title,datetime:meetDatetime,location:document.getElementById('fm2-location').value,proj:projName,attendees,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,files,by:CU.name,time:nowStr()};
   meetings.unshift(m);
   await sbSaveMeeting(m);
   sbLog('Meeting added: '+title,'#534AB7','Meetings','');
@@ -3575,6 +3790,7 @@ async function addMeeting(){
   tasks.push(meetTask);
   await sbSaveTask(meetTask);
   renderTasksGlobal();renderSidebar();
+  clearFileStore('fm2-prev');
   closeFm('fm-meeting');renderMeetings();
 }
 function renderMeetings(){
@@ -3600,6 +3816,7 @@ function renderMeetings(){
         </div>
       </div>
       ${m.agenda?`<div style="font-size:11px;color:var(--tx2);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" onclick="openMeetingDetail(${m.id})"><strong>Agenda:</strong> ${m.agenda}</div>`:''}
+      ${m.files&&m.files.length?`<div style="font-size:10px;color:var(--in-tx);margin-top:5px"><i class="ti ti-paperclip"></i> ${m.files.length} file(s): ${m.files.join(', ')}</div>`:''}
     </div>`).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:20px">No meetings recorded yet.</div>';
 }
 let _curMeetingId=null;
@@ -3669,39 +3886,6 @@ function openMeetingDetail(id){
 }
 
 // PERSONAL CALENDAR
-let _calYear=new Date().getFullYear();
-let _calMonth=new Date().getMonth();
-function calNav(dir){_calMonth+=dir;if(_calMonth>11){_calMonth=0;_calYear++;}else if(_calMonth<0){_calMonth=11;_calYear--;}renderMyCalendar();}
-function calGoToday(){_calYear=new Date().getFullYear();_calMonth=new Date().getMonth();renderMyCalendar();}
-function renderMyCalendar(){
-  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('cal-month-label').textContent=months[_calMonth]+' '+_calYear;
-  const firstDay=new Date(_calYear,_calMonth,1).getDay();
-  const daysInMonth=new Date(_calYear,_calMonth+1,0).getDate();
-  const myMeetings=meetings.filter(m=>CU.role==='admin'||CU.role==='pm'||(m.attendees||'').toLowerCase().includes(CU.name.toLowerCase()));
-  const myVisitors=visitors.filter(v=>v.host===CU.name||v.by===CU.name);
-  const headers=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="font-size:10px;font-weight:600;color:var(--tx2);text-align:center;padding:4px 0">${d}</div>`).join('');
-  let cells='';
-  for(let i=0;i<firstDay;i++)cells+='<div></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const dStr=`${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday=dStr===TODAY;
-    const dayMeetings=myMeetings.filter(m=>m.datetime&&m.datetime.startsWith(dStr));
-    const dayVisits=myVisitors.filter(v=>v.timein&&v.timein.startsWith(dStr));
-    cells+=`<div style="min-height:60px;border:0.5px solid var(--bd);border-radius:6px;padding:4px;${isToday?'background:var(--or2);border-color:var(--or)':''}">
-      <div style="font-size:11px;font-weight:${isToday?'700':'400'};color:${isToday?'var(--or)':'var(--tx)'};margin-bottom:2px">${d}</div>
-      ${dayMeetings.map(m=>`<div style="font-size:9px;background:var(--in-bg);color:var(--in-tx);border-radius:3px;padding:1px 4px;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" onclick="openMeetingDetail(${m.id})" title="${m.title}">${m.title}</div>`).join('')}
-      ${dayVisits.map(v=>`<div style="font-size:9px;background:var(--wn-bg);color:var(--wn-tx);border-radius:3px;padding:1px 4px;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="Visitor: ${v.name}">👤 ${v.name}</div>`).join('')}
-    </div>`;
-  }
-  document.getElementById('my-calendar-grid').innerHTML=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${headers}${cells}</div>`;
-  // Side panels
-  const upcomingMeetings=myMeetings.filter(m=>m.datetime&&m.datetime>=TODAY).sort((a,b)=>a.datetime>b.datetime?1:-1).slice(0,5);
-  document.getElementById('my-cal-meetings').innerHTML=upcomingMeetings.length?upcomingMeetings.map(m=>`<div style="padding:8px 0;border-bottom:0.5px solid var(--bd);cursor:pointer" onclick="openMeetingDetail(${m.id})"><div style="font-size:12px;font-weight:600">${m.title}</div><div style="font-size:10px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.proj}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No upcoming meetings.</div>';
-  const upcomingVisitors=myVisitors.filter(v=>v.timein&&v.timein>=TODAY).sort((a,b)=>a.timein>b.timein?1:-1).slice(0,5);
-  document.getElementById('my-cal-visitors').innerHTML=upcomingVisitors.length?upcomingVisitors.map(v=>`<div style="padding:8px 0;border-bottom:0.5px solid var(--bd)"><div style="font-size:12px;font-weight:600">${v.name}</div><div style="font-size:10px;color:var(--tx2)">${(v.timein||'').replace('T',' ')} · ${v.proj} · ${v.purpose||''}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No upcoming visitor duties.</div>';
-}
-
 // INVENTORY
 let _invStockFilter='all';
 function setInvFilter(f){
@@ -3709,7 +3893,22 @@ function setInvFilter(f){
   ['all','critical','low','ok'].forEach(x=>{const el=document.getElementById('inv-f-'+x);if(el)el.style.fontWeight=x===f?'700':'400';});
   renderGlobalInventory();
 }
-function renderGlobalInventory(){const mp=myProjects();const sel=document.getElementById('inv-proj-filter');if(!sel)return;if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const f=sel.value;const invSrch=(document.getElementById('inv-search')?.value||'').toLowerCase();const mpSet=new Set(mp.map(p=>(p.name||'').trim()));let inv=inventory.filter(i=>i&&i.name&&(mpSet.has((i.project||'').trim())||(CU.role==='admin'&&i.project)));if(f)inv=inv.filter(i=>projMatch(i.project,f));if(invSrch)inv=inv.filter(i=>i.name.toLowerCase().includes(invSrch));if(_invStockFilter==='critical')inv=inv.filter(i=>i.qty<=i.min*0.5);else if(_invStockFilter==='low')inv=inv.filter(i=>i.qty<=i.min&&i.qty>i.min*0.5);else if(_invStockFilter==='ok')inv=inv.filter(i=>i.qty>i.min);document.getElementById('inv-grid-global').innerHTML=inv.map(i=>`<div class="inv-card" id="inv-item-${i.id}" style="cursor:pointer;scroll-margin-top:12px" onclick="highlightInventoryItem(${i.id})"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div></div>${CU&&CU.role==='admin'?`<button class="btn btns" onclick="event.stopPropagation();deleteInventoryItem(${i.id})" title="Delete" style="padding:2px 5px;flex-shrink:0"><i class="ti ti-trash" style="font-size:10px;color:var(--er-tx)"></i></button>`:''}</div><div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw" style="font-weight:700;font-size:13px;padding:2px 8px">−</button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish" style="font-weight:700;font-size:13px;padding:2px 8px;color:var(--ok-tx)">+</button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' · ₱'+i.unitCost+'/'+i.unit:''}</div></div>`).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials found.</div>';document.getElementById('inv-log-global').innerHTML=invLog.length?invLog.filter(l=>!f||projMatch(l.proj,f)).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><span style="font-size:13px;font-weight:700;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}">${l.type==='replenish'?'+':'−'}</span></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} ${l.type==='replenish'?'+':'−'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.proj} · ${l.note||''} · by ${l.user}${l.requestor?' · Requestor: <strong>'+l.requestor+'</strong>':''}</div></div><div class="log-time">${l.time}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
+function renderGlobalInventory(){const mp=myProjects();const sel=document.getElementById('inv-proj-filter');if(!sel)return;if(sel.children.length<=1)sel.innerHTML='<option value="">All Projects</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');const f=sel.value;const invSrch=(document.getElementById('inv-search')?.value||'').toLowerCase();const mpSet=new Set(mp.map(p=>(p.name||'').trim()));let inv=inventory.filter(i=>i&&i.name&&(mpSet.has((i.project||'').trim())||(CU.role==='admin'&&i.project)));if(f)inv=inv.filter(i=>projMatch(i.project,f));if(invSrch)inv=inv.filter(i=>i.name.toLowerCase().includes(invSrch));if(_invStockFilter==='critical')inv=inv.filter(i=>i.qty<=i.min*0.5);else if(_invStockFilter==='low')inv=inv.filter(i=>i.qty<=i.min&&i.qty>i.min*0.5);else if(_invStockFilter==='ok')inv=inv.filter(i=>i.qty>i.min);
+  // Total inventory value summary
+  const totalValueEl=document.getElementById('inv-total-value');
+  if(totalValueEl){
+    if(canSeeCosts()){
+      const totalVal=inv.reduce((s,i)=>s+(i.qty||0)*(i.unitCost||0),0);
+      const itemsWithCost=inv.filter(i=>i.unitCost>0).length;
+      totalValueEl.innerHTML='<div class="card" style="margin:0;display:flex;align-items:center;gap:16px;flex-wrap:wrap">'
+        +'<div><div style="font-size:10px;color:var(--tx2)">Total Inventory Value'+(f?' — '+f:'')+'</div><div style="font-size:24px;font-weight:800;color:var(--or)">'+fmt(totalVal)+'</div></div>'
+        +'<div style="font-size:11px;color:var(--tx2)">'+inv.length+' item(s) tracked'+(itemsWithCost<inv.length?' · '+(inv.length-itemsWithCost)+' missing unit cost':'')+'</div>'
+        +'</div>';
+    }else{
+      totalValueEl.innerHTML='';
+    }
+  }
+  document.getElementById('inv-grid-global').innerHTML=inv.map(i=>{const totalCost=(i.qty||0)*(i.unitCost||0);return`<div class="inv-card" id="inv-item-${i.id}" style="cursor:pointer;scroll-margin-top:12px" onclick="highlightInventoryItem(${i.id})"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div></div>${CU&&CU.role==='admin'?`<button class="btn btns" onclick="event.stopPropagation();deleteInventoryItem(${i.id})" title="Delete" style="padding:2px 5px;flex-shrink:0"><i class="ti ti-trash" style="font-size:10px;color:var(--er-tx)"></i></button>`:''}</div><div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw" style="font-weight:700;font-size:13px;padding:2px 8px">−</button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish" style="font-weight:700;font-size:13px;padding:2px 8px;color:var(--ok-tx)">+</button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' · ₱'+i.unitCost+'/'+i.unit:''}</div>${canSeeCosts()&&i.unitCost>0?`<div style="font-size:11px;font-weight:700;color:var(--or);margin-top:3px">Total: ${fmt(totalCost)}</div>`:''}</div>`;}).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials found.</div>';document.getElementById('inv-log-global').innerHTML=invLog.length?invLog.filter(l=>!f||projMatch(l.proj,f)).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><span style="font-size:13px;font-weight:700;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}">${l.type==='replenish'?'+':'−'}</span></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} ${l.type==='replenish'?'+':'−'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.proj} · ${l.note||''} · by ${l.user}${l.requestor?' · Requestor: <strong>'+l.requestor+'</strong>':''}</div></div><div class="log-time">${l.time}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
 function addMaterial(){const name=document.getElementById('fi-name').value.trim();if(!name){alert('Name required');return}const qty=parseInt(document.getElementById('fi-qty').value)||0;const proj=document.getElementById('fi-proj').value;const minVal=parseInt(document.getElementById('fi-min').value)||0;const i={_isNew:true,name,qty,unit:document.getElementById('fi-unit').value||'pcs',min:minVal,project:proj,unitCost:parseFloat(document.getElementById('fi-cost').value)||0};inventory.push(i);invLog.unshift({time:nowStr(),mat:name,type:'replenish',qty,unit:i.unit,note:'Initial stock',user:CU.name,proj});sbSaveInventory(i).then(()=>{sbLog(`Material added: ${name} to ${proj}`,'#185FA5','Inventory',proj);if(minVal>0&&qty<=minVal){const isCritical=qty<=minVal*0.5;const invTask={_isNew:true,name:(isCritical?'🔴 CRITICAL':'🟡 LOW')+' Stock — Replenish: '+name,project:proj,assignee:CU.name,due:TODAY,priority:isCritical?'high':'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Stock alert: '+name+' added at '+qty+' '+i.unit+' (min: '+minVal+')',riskLevel:isCritical?'HIGH':'MEDIUM',reports:[],autoType:'inventory_replenish'};tasks.push(invTask);sbSaveTask(invTask);renderTasksGlobal();}});closeFm('fm-inv-add');renderGlobalInventory();renderSidebar();if(activeProjectId)renderDetailInventory(activeProjectId)}
 function jumpToInventoryFilter(f){
   setTab('inventory');
@@ -3905,7 +4104,7 @@ async function deleteDocument(pid,docId){
   if(!confirm('Delete this document?\n\nThis cannot be undone.'))return;
   if(!documents[pid])return;
   documents[pid]=documents[pid].filter(d=>d.id!==docId);
-  if(docId<2000000000){await sb.from('documents').delete().eq('id',docId);}
+  if(docId<2000000000){try{await sb.from('documents').delete().eq('id',docId);}catch(e){console.warn('documents delete skipped (table missing?):',e);}}
   sbLog('Document deleted','#993C1D','Documents','');
   renderDocs(pid);
 }
@@ -4040,7 +4239,7 @@ async function addProject(){
   };
   // Save to Supabase first so we get the real ID back
   const row={name:p.name,client:p.client,location:p.location,status:p.status,start_date:p.start,end_date:p.end,budget:p.contractPrice,contingency:p.contingency,description:p.desc||'',color:p.color,payment_terms:p.paymentTerms||''};
-  const {data,error}=await sb.from('projects').insert([row]).select();
+  const {data,error}=await sbSafeInsert('projects',row);
   if(error||!data||!data[0]){
     alert('Failed to save project to database. Check console for details.');
     console.error('Supabase insert error:',error);
@@ -4059,8 +4258,8 @@ async function deleteProject(id){
   if(!CU||CU.role!=='admin'){alert('Only Admin can delete projects.');return;}
   const p=findProject(id);if(!p)return;
   if(!confirm('DELETE project "'+p.name+'"?\n\nThis will permanently remove the project and ALL associated data (tasks, expenses, deliveries, documents, gantt activities).\n\nType OK to confirm — this CANNOT be undone.')){return;}
-  // Delete from Supabase
-  await Promise.all([
+  // Delete from Supabase (allSettled so a missing table like 'documents' doesn't abort the rest)
+  await Promise.allSettled([
     sb.from('projects').delete().eq('id',id),
     sb.from('tasks').delete().eq('project_name',p.name),
     sb.from('expenses').delete().eq('project_name',p.name),
