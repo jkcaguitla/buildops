@@ -179,7 +179,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="logo" onclick="goHome()"><div class="logo-ic"><i class="ti ti-building-skyscraper"></i></div>JCY Design Studio</div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:var(--tx2)" id="top-date"></div>
-      <button class="btn" id="btn-refresh" onclick="doRefresh()" title="Refresh all data" style="display:none;padding:5px 10px;font-size:12px;gap:5px"><i class="ti ti-refresh" id="refresh-icon"></i> Refresh</button>
       <div style="display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--bg2);cursor:pointer" onclick="doLogout()">
         <div class="av" id="top-av"></div>
         <div><div style="font-weight:600;font-size:12px" id="top-name">—</div><div style="font-size:10px;color:var(--tx2)" id="top-role">—</div></div>
@@ -345,8 +344,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
       <button class="dtab" onclick="setDTab('dmeeting')" id="dt-dmeeting"><i class="ti ti-calendar-event"></i> Meetings</button>
       <button class="dtab" onclick="setDTab('dvisitors')" id="dt-dvisitors"><i class="ti ti-user-check"></i> Visitors</button>
       <button class="dtab" onclick="setDTab('dbilling')" id="dt-dbilling"><i class="ti ti-cash"></i> Billing</button>
-      <button class="dtab" onclick="setDTab('dquotation')" id="dt-dquotation"><i class="ti ti-file-invoice"></i> Quotation</button>
-      <button class="dtab" onclick="setDTab('dbom')" id="dt-dbom"><i class="ti ti-list-numbers"></i> BOM</button>
     </div>
     <div class="dpg" id="dpg-gantt"><div id="d-gantt-content"></div></div>
     <div class="dpg" id="dpg-dtasks"><div id="d-tasks-content"></div></div>
@@ -360,8 +357,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="dpg" id="dpg-dmeeting"><div id="d-meeting-content"></div></div>
     <div class="dpg" id="dpg-dvisitors"><div id="d-visitors-content"></div></div>
     <div class="dpg" id="dpg-dbilling"><div id="d-billing-content"></div></div>
-    <div class="dpg" id="dpg-dquotation"><div id="d-quotation-content"></div></div>
-    <div class="dpg" id="dpg-dbom"><div id="d-bom-content"></div></div>
   </div>
 </div>
 
@@ -408,7 +403,14 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
     <select class="inp" id="del-proj-filter" style="width:175px" onchange="renderDeliveries()"><option value="">All Projects</option></select>
-    <select class="inp" id="del-status-filter" style="width:160px" onchange="renderDeliveries()"><option value="">All Status</option><option value="Scheduled">Scheduled</option><option value="Delivered">Delivered</option><option value="Cancelled">Cancelled</option><option value="Rescheduled">Rescheduled</option><option value="Pending">Pending (Not Delivered)</option></select>
+    <div style="display:flex;gap:4px;flex-wrap:wrap" id="del-status-btns">
+      <button class="btn btns" id="delbtn-all" onclick="setDelFilter(this,'')" style="font-weight:700;font-size:11px">All</button>
+      <button class="btn btns" id="delbtn-scheduled" onclick="setDelFilter(this,'Scheduled')" style="font-size:11px">Scheduled</button>
+      <button class="btn btns" id="delbtn-delivered" onclick="setDelFilter(this,'Delivered')" style="font-size:11px;color:var(--ok-tx)">Delivered</button>
+      <button class="btn btns" id="delbtn-cancelled" onclick="setDelFilter(this,'Cancelled')" style="font-size:11px;color:var(--er-tx)">Cancelled</button>
+      <button class="btn btns" id="delbtn-rescheduled" onclick="setDelFilter(this,'Rescheduled')" style="font-size:11px;color:var(--wn-tx)">Rescheduled</button>
+    </div>
+    <input type="hidden" id="del-status-filter" value="">
     <input class="inp" id="del-search" style="width:170px" placeholder="Search supplier, items..." oninput="renderDeliveries()">
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
@@ -463,10 +465,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <div class="pg" id="pg-inventory">
   <div class="ph">
     <div><div class="pt">Inventory</div><div class="ps">Materials stock per project</div></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn" onclick="openInvCSVImport()"><i class="ti ti-file-import"></i> Import CSV</button>
-      <button class="btn btnp" id="btn-new-mat" style="display:none" onclick="openFm('fm-inv-add')"><i class="ti ti-plus"></i> Add Material</button>
-    </div>
+    <button class="btn btnp" id="btn-new-mat" style="display:none" onclick="openFm('fm-inv-add')"><i class="ti ti-plus"></i> Add Material</button>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
     <select class="inp" id="inv-proj-filter" style="width:175px" onchange="renderGlobalInventory()"><option value="">All Projects</option></select>
@@ -487,11 +486,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <div class="pg" id="pg-expenses">
   <div class="ph">
     <div><div class="pt">Budget & Expenses</div><div class="ps">All project expenditures with budget overview</div></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn" onclick="openExpenseCSVImport()"><i class="ti ti-file-import"></i> Import CSV</button>
-      <button class="btn" onclick="printExpenses()"><i class="ti ti-printer"></i> Print</button>
-      <button class="btn btnp" onclick="openFm('fm-expense')"><i class="ti ti-plus"></i> Add Expense</button>
-    </div>
+    <button class="btn btnp" onclick="openFm('fm-expense')"><i class="ti ti-plus"></i> Add Expense</button>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
     <select class="inp" id="exp-proj-filter" style="width:190px" onchange="renderGlobalExpenses()"><option value="">All Projects</option></select>
@@ -583,41 +578,10 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 </div></div>
 
 <!-- Meeting Detail Modal -->
-<div class="fm" id="fm-meeting-detail"><div class="fb fb-lg" style="max-width:820px">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-    <div class="ft" style="margin:0" id="fmd-title">Meeting Details</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn btns" id="fmd-reschedule-btn" onclick="doMeetingAction('reschedule')"><i class="ti ti-calendar"></i> Reschedule</button>
-      <button class="btn btns" id="fmd-cancel-btn" style="color:var(--er-tx)" onclick="doMeetingAction('cancel')"><i class="ti ti-x"></i> Cancel</button>
-      <button class="btn btns" style="color:var(--ok-tx)" onclick="doMeetingAction('checkin')"><i class="ti ti-login"></i> Mark Checked In</button>
-      <button class="btn btns" style="color:var(--in-tx)" onclick="doMeetingAction('checkout')"><i class="ti ti-logout"></i> Mark Checked Out</button>
-      <button class="btn" onclick="closeFm('fm-meeting-detail')">✕ Close</button>
-    </div>
-  </div>
-  <div id="fmd-info" style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px"></div>
-  <div id="fmd-reschedule-wrap" style="display:none;margin-bottom:10px">
-    <div class="fg"><label class="fl">New Date &amp; Time</label><input class="inp" id="fmd-new-datetime" type="datetime-local"></div>
-  </div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Attendees</label><textarea class="inp" id="fmd-attendees" rows="2" placeholder="List of attendees, one per line or comma-separated"></textarea></div>
-    <div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="fmd-actions" rows="2" placeholder="Who does what by when..."></textarea></div>
-  </div>
-  <div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="fmd-minutes" rows="5" placeholder="Record the key discussion points, decisions made, and outcomes..."></textarea></div>
-  <div class="fg">
-    <label class="fl">Attach Files (Minutes, References, Presentations...)</label>
-    <div class="upload-zone" onclick="document.getElementById('fmd-files').click()">
-      <input type="file" id="fmd-files" multiple onchange="prevMedia(this,'fmd-prev')">
-      <i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-      <div style="font-size:12px;color:var(--tx2)">Upload MOM files, reference docs, presentations</div>
-    </div>
-    <div class="media-prev" id="fmd-prev"></div>
-  </div>
-  <div class="fg"><label class="fl">Remarks / Notes</label><textarea class="inp" id="fmd-remarks" rows="2" placeholder="Any additional notes or follow-up actions..."></textarea></div>
-  <input type="hidden" id="fmd-id">
-  <div class="fa" style="justify-content:space-between;margin-top:14px">
-    <div id="fmd-prev-section" style="font-size:11px;color:var(--tx2)"></div>
-    <button class="btn btnp" onclick="saveMeetingDetail()"><i class="ti ti-check"></i> Save Meeting Update</button>
-  </div>
+<div class="fm" id="fm-meeting-detail"><div class="fb fb-lg">
+  <div class="ft"><i class="ti ti-calendar-event"></i> Meeting Details</div>
+  <div id="fmd-body" style="max-height:65vh;overflow-y:auto"></div>
+  <div class="fa" style="margin-top:12px"><button class="btn" onclick="closeFm('fm-meeting-detail')">Close</button></div>
 </div></div>
 
 <div class="fm" id="fm-sop-detail"><div class="fb fb-lg">
@@ -670,15 +634,15 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div id="fdu-info" style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px"></div>
   <div class="fr2">
     <div class="fg"><label class="fl">Status *</label>
-      <select class="inp" id="fdu-status" onchange="onDeliveryStatusChange()">
+      <select class="inp" id="fdu-status" onchange="onFduStatusChange()">
         <option>Scheduled</option><option>Delivered</option><option>Cancelled</option><option>Rescheduled</option>
       </select>
     </div>
-    <div class="fg" id="fdu-reschedule-row" style="display:none"><label class="fl">New Delivery Date</label><input class="inp" id="fdu-new-date" type="date"></div>
+    <div class="fg" id="fdu-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="fdu-new-date" type="date"></div>
     <div class="fg" id="fdu-actual-row"><label class="fl">Actual Delivery Date</label><input class="inp" id="fdu-actual-date" type="date"></div>
   </div>
   <div class="fr2">
-    <div class="fg"><label class="fl">Received By *</label><input class="inp" id="fdu-receiver" placeholder="Name of person who received (required)"></div>
+    <div class="fg"><label class="fl">Received By *</label><input class="inp" id="fdu-receiver" placeholder="Name of person who received (required for Delivered)"></div>
     <div class="fg"><label class="fl">PO No.</label><input class="inp" id="fdu-po" placeholder="PO-XXXXX"></div>
   </div>
   <div class="fr2">
@@ -687,7 +651,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
   <div class="fg"><label class="fl">Amount (₱)</label><input class="inp" id="fdu-amount" type="number" min="0" placeholder="0"></div>
   <div class="fg"><label class="fl">Notes / Issues</label><textarea class="inp" id="fdu-notes" placeholder="Discrepancies, issues, quantities received..."></textarea></div>
-  <div class="fg"><label class="fl">Remarks / Reason</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled due to weather, short delivery"></div>
+  <div class="fg"><label class="fl">Remarks / Reason</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled due to weather"></div>
   <div class="fg">
     <label class="fl">Proof Photos / Documents</label>
     <div class="upload-zone" onclick="document.getElementById('fdu-files').click()">
@@ -721,10 +685,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <div class="pg" id="pg-quotation">
   <div class="ph">
     <div><div class="pt">Quotation</div><div class="ps">Generate and manage client quotations</div></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn" onclick="openUploadQuotation()"><i class="ti ti-upload"></i> Upload Quotation</button>
-      <button class="btn btnp" onclick="openFmQuotation()"><i class="ti ti-plus"></i> New Quotation</button>
-    </div>
+    <button class="btn btnp" onclick="openFmQuotation()"><i class="ti ti-plus"></i> New Quotation</button>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
     <select class="inp" id="quot-proj-filter" style="width:200px" onchange="renderQuotations()"><option value="">All Projects</option></select>
@@ -933,11 +894,9 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="ft" id="ftd-title" style="margin:0">Task Detail</div>
     <span id="ftd-type-badge" style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--tx2)"></span>
   </div>
-  <div id="ftd-info" style="margin-bottom:14px;padding:12px;background:var(--bg2);border-radius:var(--r);font-size:12px"></div>
+  <div id="ftd-info" style="margin-bottom:12px;padding:12px;background:var(--bg2);border-radius:var(--r);font-size:12px"></div>
   <div id="ftd-reports-section" style="margin-bottom:10px"></div>
-  <!-- Context-aware form injected by buildTaskForm() -->
   <div id="ftd-form-area" style="border-top:0.5px solid var(--bd);padding-top:12px"></div>
-  <!-- Hidden shared fields always present for Gantt -->
   <input type="hidden" id="ftd-task-id">
   <div class="fa" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px">
     <button class="btn btns btnd" id="ftd-delete-btn" onclick="deleteTaskFromReport()"><i class="ti ti-trash"></i> Delete</button>
@@ -4800,45 +4759,26 @@ function goToActivity(idx){
 // INIT
 
 // ═══════════════════════════════════════════════════════════════
-//  REFRESH BUTTON
+//  DELIVERY FILTER BUTTONS
 // ═══════════════════════════════════════════════════════════════
-async function doRefresh(){
-  const icon=document.getElementById('refresh-icon');
-  const btn=document.getElementById('btn-refresh');
-  if(btn){btn.disabled=true;}
-  if(icon){icon.style.animation='spin 0.8s linear infinite';}
-  try{
-    await loadAllData();
-    render();
-    if(activeProjectId)renderDetailAll(activeProjectId);
-    sbLog('Data refreshed','#185FA5','System','');
-  }catch(e){console.error('Refresh error:',e);}
-  if(btn){btn.disabled=false;}
-  if(icon){icon.style.animation='';}
-}
-(function(){const s=document.createElement('style');s.textContent='@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';document.head.appendChild(s);})();
-
-// Show/hide refresh button on login/logout
-const _origSetupApp=window.setupApp;
-if(typeof setupApp==='function'){
-  const _sa=setupApp;
-  window.setupApp=function(){_sa();const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='';};
-}
-const _origDoLogout=window.doLogout;
-if(typeof doLogout==='function'){
-  const _dl=doLogout;
-  window.doLogout=function(){_dl();const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='none';};
+let _delFilter='';
+function setDelFilter(btn,val){
+  _delFilter=val;
+  document.querySelectorAll('#del-status-btns button').forEach(b=>b.style.fontWeight='400');
+  if(btn)btn.style.fontWeight='700';
+  const hid=document.getElementById('del-status-filter');if(hid)hid.value=val;
+  renderDeliveries();
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  DELIVERY UPDATE — full version with PO, Received By required
+//  DELIVERY UPDATE MODAL — full version
 // ═══════════════════════════════════════════════════════════════
-function onDeliveryStatusChange(){
+function onFduStatusChange(){
   const s=document.getElementById('fdu-status')?.value||'';
-  const rw=document.getElementById('fdu-reschedule-row');
-  const aw=document.getElementById('fdu-actual-row');
-  if(rw)rw.style.display=s==='Rescheduled'?'':'none';
-  if(aw)aw.style.display=(s==='Delivered')?'':'none';
+  const rr=document.getElementById('fdu-reschedule-row');
+  const ar=document.getElementById('fdu-actual-row');
+  if(rr)rr.style.display=s==='Rescheduled'?'':'none';
+  if(ar)ar.style.display=(s==='Delivered')?'':'none';
 }
 
 window._origOpenDeliveryUpdate=window.openDeliveryUpdate;
@@ -4847,8 +4787,9 @@ async function openDeliveryUpdate(id){
   document.getElementById('fdu-id').value=id;
   document.getElementById('fdu-info').innerHTML=
     '<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+d.items+'</div>'+
-    '<div style="font-size:11px;color:var(--tx2)">'+d.proj+' · Scheduled: '+d.date+(d.supplier?' · '+d.supplier:'')+(d.driver?' · Driver: '+d.driver:'')+'</div>'+
-    (d.notes?'<div style="font-size:11px;color:var(--wn-tx);margin-top:3px">'+d.notes+'</div>':'');
+    '<div style="font-size:11px;color:var(--tx2)">'+d.proj+' · Scheduled: '+d.date+
+    (d.supplier?' · '+d.supplier:'')+(d.driver?' · Driver: '+d.driver:'')+'</div>'+
+    (d.notes?'<div style="margin-top:4px;font-size:11px;color:var(--wn-tx)">'+d.notes+'</div>':'');
   document.getElementById('fdu-status').value=d.status||'Scheduled';
   document.getElementById('fdu-notes').value=d.notes||'';
   document.getElementById('fdu-remarks').value='';
@@ -4859,18 +4800,19 @@ async function openDeliveryUpdate(id){
   document.getElementById('fdu-amount').value=d.amount||'';
   const adEl=document.getElementById('fdu-actual-date');if(adEl)adEl.value=d.actualDate||'';
   const ndEl=document.getElementById('fdu-new-date');if(ndEl)ndEl.value='';
-  if(typeof clearFileStore==='function')clearFileStore('fdu-prev');
-  onDeliveryStatusChange();
+  clearFileStore('fdu-prev');
+  onFduStatusChange();
   document.getElementById('fm-delivery-update').classList.add('op');
 }
 
-window._origSaveDeliveryUpdate=window.saveDeliveryUpdate;
 async function saveDeliveryUpdate(){
   const id=parseInt(document.getElementById('fdu-id').value);
   const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
   const newStatus=document.getElementById('fdu-status').value;
   const receiver=(document.getElementById('fdu-receiver')?.value||'').trim();
   if(newStatus==='Delivered'&&!receiver){alert('Received By is required when marking as Delivered.');return;}
+  const newDate=document.getElementById('fdu-new-date')?.value||'';
+  if(newStatus==='Rescheduled'&&!newDate){alert('Please enter the rescheduled date.');return;}
   const notes=document.getElementById('fdu-notes').value;
   const remarks=(document.getElementById('fdu-remarks')?.value||'').trim();
   const po=document.getElementById('fdu-po')?.value||'';
@@ -4878,147 +4820,196 @@ async function saveDeliveryUpdate(){
   const dr=document.getElementById('fdu-dr')?.value||'';
   const amount=parseFloat(document.getElementById('fdu-amount')?.value)||0;
   const actualDate=document.getElementById('fdu-actual-date')?.value||'';
-  const newDate=document.getElementById('fdu-new-date')?.value||'';
   const fileCount=typeof getFileCount==='function'?getFileCount('fdu-prev'):0;
+  // Update delivery object
   d.status=newStatus;d.notes=notes;
   if(remarks)d.notes=(d.notes?d.notes+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
   if(receiver)d.receiver=receiver;
   if(po)d.po=po;if(invoice)d.invoice=invoice;if(dr)d.dr=dr;
-  if(amount)d.amount=amount;
-  if(actualDate)d.actualDate=actualDate;
+  if(amount)d.amount=amount;if(actualDate)d.actualDate=actualDate;
   if(newStatus==='Rescheduled'&&newDate)d.date=newDate;
   if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
+  // Save to Supabase
   const upRow={status:newStatus,notes:d.notes||'',scheduled_date:d.date||null};
   if(receiver)upRow.receiver=receiver;
   if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;if(dr)upRow.dr_no=dr;
   if(amount)upRow.amount=amount;if(actualDate)upRow.actual_date=actualDate;
-  if(d.id&&d.id<2000000000){const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);if(error)console.error('Delivery update error:',error);}
-  // Sync linked task
-  if(newStatus==='Delivered'){
-    const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
-    if(linked){linked.done=true;linked.status='done';if(!linked.reports)linked.reports=[];linked.reports.push({date:TODAY,work:'Delivery marked Delivered. Received by: '+receiver,pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});sbSaveTask(linked);}
-  }else if(newStatus==='Rescheduled'&&newDate){
-    const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
-    if(linked){linked.due=newDate;linked.status='pending';sbSaveTask(linked);}
-  }else if(newStatus==='Cancelled'){
-    const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
-    if(linked){linked.done=true;linked.status='done';sbSaveTask(linked);}
+  if(d.id&&d.id<2000000000){
+    const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);
+    if(error)console.error('Delivery update error:',error);
+  }
+  // ── Sync linked task ────────────────────────────────────────
+  const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
+  if(linked){
+    if(newStatus==='Delivered'){
+      linked.done=true;linked.status='done';
+      if(!linked.reports)linked.reports=[];
+      linked.reports.push({date:TODAY,work:'Delivery received. Received by: '+receiver+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+      sbSaveTask(linked);
+    }else if(newStatus==='Rescheduled'&&newDate){
+      linked.due=newDate;linked.status='pending';
+      sbSaveTask(linked);
+    }else if(newStatus==='Cancelled'){
+      linked.done=true;linked.status='done';
+      sbSaveTask(linked);
+    }
+    renderTasksGlobal();
   }
   sbLog('Delivery updated: "'+d.items.slice(0,40)+'" \u2192 '+newStatus+(remarks?' - '+remarks:''),'#0F5F6E','Delivery',d.proj);
   closeFm('fm-delivery-update');
-  renderDeliveries();renderTasksGlobal();
+  renderDeliveries();
   if(activeProjectId)refreshDetailDelivery(activeProjectId);
 }
 
-// Patch renderDeliveries to handle "Pending" filter
-const _origRenderDeliveries=window.renderDeliveries;
-if(typeof renderDeliveries==='function'){
-  const _rd=renderDeliveries;
-  window.renderDeliveries=function(){
-    const sf=document.getElementById('del-status-filter')?.value||'';
-    if(sf==='Pending'){
-      // temporarily override to filter for non-delivered
-      const origVal=document.getElementById('del-status-filter').value;
-      document.getElementById('del-status-filter').value='';
-      _rd();
-      // now filter rendered items (simple approach — just re-filter in JS)
-      document.getElementById('del-status-filter').value=origVal;
-      return;
-    }
-    _rd();
-  };
-}
+// ═══════════════════════════════════════════════════════════════
+//  VISITOR → TASK SYNC (from Visitor tab / modal)
+// ═══════════════════════════════════════════════════════════════
+// Wrap saveVisitorAction to sync task after save
+const _origSaveVisitorAction=window.saveVisitorAction;
+window.saveVisitorAction=async function(){
+  // Get current state before calling original
+  const id=parseInt(document.getElementById('fva-id').value);
+  const v=visitors.find(x=>parseInt(x.id)===parseInt(id));
+  const action=_visitorPendingAction;
+  const newTime=document.getElementById('fva-new-time')?.value||'';
+  // Call original
+  await _origSaveVisitorAction.apply(this,arguments);
+  // Now sync task
+  if(!v||!action)return;
+  const linked=tasks.find(t=>t.autoType==='visitor'&&parseInt(t.refId)===parseInt(v.id));
+  if(!linked)return;
+  if(action==='checkout'){
+    linked.done=true;linked.status='done';
+    if(!linked.reports)linked.reports=[];
+    linked.reports.push({date:TODAY,work:'Visitor checked out from Visitor tab.',pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+    sbSaveTask(linked);renderTasksGlobal();
+  }else if(action==='cancel'){
+    linked.done=true;linked.status='done';
+    sbSaveTask(linked);renderTasksGlobal();
+  }else if(action==='reschedule'&&newTime){
+    linked.due=newTime.split('T')[0];linked.status='pending';
+    sbSaveTask(linked);renderTasksGlobal();
+  }else if(action==='checkin'){
+    linked.status='in-progress';
+    sbSaveTask(linked);renderTasksGlobal();
+  }
+};
 
 // ═══════════════════════════════════════════════════════════════
-//  MEETING DETAIL — full update form
+//  MEETING → TASK SYNC (from Meeting tab / modal)
 // ═══════════════════════════════════════════════════════════════
-let _meetingDetailId=null;
-let _meetingDetailAction=null;
-
+// Wrap openMeetingDetail to replace view-only with update form
 const _origOpenMeetingDetail=window.openMeetingDetail;
 window.openMeetingDetail=function(id){
   const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
-  _meetingDetailId=id;
-  _meetingDetailAction=null;
-  document.getElementById('fmd-id').value=id;
-  document.getElementById('fmd-title').textContent=m.title||'Meeting Details';
-  document.getElementById('fmd-info').innerHTML=
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:6px">'+
-    '<div><span style="color:var(--tx3)">Date:</span> <strong>'+(m.datetime||'—').replace('T',' ')+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Project:</span> <strong>'+m.proj+'</strong></div>'+
-    (m.location?'<div><span style="color:var(--tx3)">Location:</span> <strong>'+m.location+'</strong></div>':'')+
-    '<div><span style="color:var(--tx3)">Added by:</span> '+(m.by||'—')+'</div>'+
-    '<div><span style="color:var(--tx3)">Status:</span> <strong style="color:'+(m.status==='checked-out'||m.status==='done'?'var(--ok-tx)':m.status==='cancelled'?'var(--er-tx)':'var(--in-tx)')+'">'+(m.status||'Scheduled')+'</strong></div>'+
+  _curMeetingId=id;
+  // Build a full update form inside fmd-body
+  const el=document.getElementById('fmd-body');
+  el.innerHTML=
+    '<div style="margin-bottom:12px">'+
+      '<div style="font-size:18px;font-weight:700;margin-bottom:4px">'+m.title+'</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--tx2)">'+
+        '<span><i class="ti ti-calendar"></i> '+(m.datetime||'').replace('T',' ')+'</span>'+
+        (m.location?'<span><i class="ti ti-map-pin"></i> '+m.location+'</span>':'')+
+        '<span><i class="ti ti-folder"></i> '+m.proj+'</span>'+
+        '<span>Status: <strong style="color:'+(m.status==='checked-out'||m.status==='done'?'var(--ok-tx)':m.status==='cancelled'?'var(--er-tx)':'var(--in-tx)')+'">'+( m.status||'Scheduled')+'</strong></span>'+
+      '</div>'+
     '</div>'+
-    (m.agenda?'<div style="margin-top:6px"><span style="font-size:10px;font-weight:600;color:var(--tx2)">AGENDA:</span> <span style="font-size:12px">'+m.agenda+'</span></div>':'');
-  document.getElementById('fmd-attendees').value=m.attendees||'';
-  document.getElementById('fmd-actions').value=m.actions||'';
-  document.getElementById('fmd-minutes').value=m.minutes||'';
-  document.getElementById('fmd-remarks').value='';
-  document.getElementById('fmd-reschedule-wrap').style.display='none';
-  if(typeof clearFileStore==='function')clearFileStore('fmd-prev');
-  // Show prev minutes count
-  const prevEl=document.getElementById('fmd-prev-section');
-  if(prevEl)prevEl.textContent=m.minutes?'Minutes saved — editing above will update':'No minutes on file yet.';
+    // Action buttons
+    '<div class="fg" style="margin-bottom:10px"><label class="fl">Action</label>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap" id="fmd-action-btns">'+
+      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setMeetingAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+      '<button class="btn btns" style="color:var(--in-tx)" onclick="setMeetingAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setMeetingAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+      '<button class="btn btns" style="color:var(--er-tx)" onclick="setMeetingAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+    '</div></div>'+
+    '<div id="fmd-reschedule-row" style="display:none;margin-bottom:10px"><label class="fl">New Date &amp; Time</label><input class="inp" id="fmd-new-datetime" type="datetime-local"></div>'+
+    '<div class="fr2">'+
+      '<div class="fg"><label class="fl">Attendees</label><textarea class="inp" id="fmd-attendees" rows="2" placeholder="List attendees...">'+(m.attendees||'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="fmd-actions" rows="2" placeholder="Who does what by when...">'+(m.actions||'')+'</textarea></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="fmd-minutes" rows="4" placeholder="Key decisions, outcomes, discussion points...">'+(m.minutes||'')+'</textarea></div>'+
+    '<div class="fg">'+
+      '<label class="fl">Attach Files</label>'+
+      '<div class="upload-zone" onclick="document.getElementById(\'fmd-files\').click()">'+
+        '<input type="file" id="fmd-files" multiple onchange="prevMedia(this,\'fmd-prev\')">'+
+        '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+        '<div style="font-size:12px;color:var(--tx2)">Upload MOM files, references</div>'+
+      '</div>'+
+      '<div class="media-prev" id="fmd-prev"></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="fmd-remarks" rows="2" placeholder="Additional notes...">'+(m.remarks||'')+'</textarea></div>'+
+    '<input type="hidden" id="fmd-meeting-action" value="">';
+  // Replace footer buttons
+  const fa=document.querySelector('#fm-meeting-detail .fa');
+  if(fa){
+    fa.innerHTML='<button class="btn" onclick="closeFm(\'fm-meeting-detail\')">Close</button>'+
+      '<button class="btn btnp" onclick="saveMeetingFromDetail()"><i class="ti ti-check"></i> Save Meeting Update</button>';
+  }
+  clearFileStore('fmd-prev');
   document.getElementById('fm-meeting-detail').classList.add('op');
 };
 
-function doMeetingAction(action){
-  _meetingDetailAction=action;
-  const rw=document.getElementById('fmd-reschedule-wrap');
-  if(rw)rw.style.display=action==='reschedule'?'':'none';
-  // Highlight active button
-  ['fmd-reschedule-btn','fmd-cancel-btn'].forEach(id=>{
-    const btn=document.getElementById(id);
-    if(btn)btn.style.fontWeight='400';
-  });
-  if(action==='reschedule'){const b=document.getElementById('fmd-reschedule-btn');if(b)b.style.fontWeight='700';}
-  if(action==='cancel'){const b=document.getElementById('fmd-cancel-btn');if(b)b.style.fontWeight='700';}
+function setMeetingAction(btn,action){
+  document.getElementById('fmd-meeting-action').value=action;
+  document.querySelectorAll('#fmd-action-btns button').forEach(b=>b.style.fontWeight='400');
+  if(btn)btn.style.fontWeight='700';
+  const rr=document.getElementById('fmd-reschedule-row');
+  if(rr)rr.style.display=action==='reschedule'?'':'none';
 }
 
-async function saveMeetingDetail(){
-  const id=_meetingDetailId;
-  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
-  const action=_meetingDetailAction;
-  const attendees=document.getElementById('fmd-attendees').value;
-  const actions=document.getElementById('fmd-actions').value;
-  const minutes=document.getElementById('fmd-minutes').value;
-  const remarks=document.getElementById('fmd-remarks').value.trim();
-  const newDt=document.getElementById('fmd-new-datetime').value;
+async function saveMeetingFromDetail(){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(_curMeetingId));if(!m)return;
+  const action=document.getElementById('fmd-meeting-action')?.value||'';
+  const newDt=document.getElementById('fmd-new-datetime')?.value||'';
+  const attendees=document.getElementById('fmd-attendees')?.value||'';
+  const actions=document.getElementById('fmd-actions')?.value||'';
+  const minutes=document.getElementById('fmd-minutes')?.value||'';
+  const remarks=document.getElementById('fmd-remarks')?.value||'';
   const fileCount=typeof getFileCount==='function'?getFileCount('fmd-prev'):0;
   // Apply action
-  if(action==='reschedule'){
+  if(action==='checkin'){m.status='checked-in';}
+  else if(action==='checkout'){m.status='checked-out';}
+  else if(action==='reschedule'){
     if(!newDt){alert('Please enter a new date and time.');return;}
     m.datetime=newDt;m.status='rescheduled';
-    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
-    if(linked){linked.due=newDt.split('T')[0];sbSaveTask(linked);}
   }else if(action==='cancel'){
     if(!confirm('Confirm cancel this meeting?'))return;
     m.status='cancelled';
-    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
-    if(linked){linked.done=true;linked.status='done';sbSaveTask(linked);}
-  }else if(action==='checkin'){
-    m.status='checked-in';
-    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
-    if(linked){linked.status='in-progress';sbSaveTask(linked);}
-  }else if(action==='checkout'){
-    m.status='checked-out';
-    // Completing the meeting marks task as done
-    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
-    if(linked){linked.done=true;linked.status='done';if(!linked.reports)linked.reports=[];linked.reports.push({date:TODAY,work:'Meeting completed. Minutes: '+(minutes||'—').slice(0,100),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});sbSaveTask(linked);}
   }
-  // Update meeting fields
   if(attendees)m.attendees=attendees;
   if(actions)m.actions=actions;
   if(minutes)m.minutes=minutes;
-  if(remarks)m.remarks=(m.remarks?m.remarks+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
+  if(remarks)m.remarks=(m.remarks?m.remarks+'\n':'')+'['+TODAY+' '+CU.name+']: '+remarks;
   if(fileCount>0)m.fileCount=(m.fileCount||0)+fileCount;
-  const upRow={attendees:m.attendees||'',actions:m.actions||'',minutes:m.minutes||'',status:m.status||'',remarks:m.remarks||''};
+  // Save to Supabase
+  const upRow={status:m.status,attendees:m.attendees||'',actions:m.actions||'',minutes:m.minutes||'',remarks:m.remarks||''};
   if(action==='reschedule'&&newDt)upRow.datetime=newDt;
-  if(m.id&&m.id<2000000000){const{error}=await sb.from('meetings').update(upRow).eq('id',m.id);if(error)console.error('Meeting update error:',error);}
-  sbLog('Meeting updated: "'+m.title+'"'+(action?' — '+action:''),'#534AB7','Meetings',m.proj);
+  if(m.id&&m.id<2000000000){
+    const{error}=await sb.from('meetings').update(upRow).eq('id',m.id);
+    if(error)console.error('Meeting update error:',error);
+  }
+  // ── Sync linked task ────────────────────────────────────────
+  const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id));
+  if(linked){
+    if(action==='checkout'){
+      if(!linked.done){
+        linked.done=true;linked.status='done';
+        if(!linked.reports)linked.reports=[];
+        linked.reports.push({date:TODAY,work:'Meeting completed (Checked Out). Minutes: '+(minutes||'—').slice(0,120),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+        sbSaveTask(linked);renderTasksGlobal();
+      }
+    }else if(action==='cancel'){
+      linked.done=true;linked.status='done';sbSaveTask(linked);renderTasksGlobal();
+    }else if(action==='reschedule'&&newDt){
+      linked.due=newDt.split('T')[0];linked.status='pending';sbSaveTask(linked);renderTasksGlobal();
+    }else if(action==='checkin'){
+      linked.status='in-progress';sbSaveTask(linked);renderTasksGlobal();
+    }
+  }
+  sbLog('Meeting updated: "'+m.title+'"'+(action?' \u2192 '+action:''),'#534AB7','Meetings',m.proj);
   closeFm('fm-meeting-detail');
-  renderMeetings();renderTasksGlobal();
+  renderMeetings();
   if(activeProjectId)renderDetailMeetings(activeProjectId);
 }
 
@@ -5032,12 +5023,11 @@ window.openTaskDetail=function(taskId){
   const typeColors={gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',inventory_replenish:'#A32D2D',manual:'#666'};
   const typeLabels={gantt:'GANTT',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',inventory_replenish:'INVENTORY',manual:'TASK'};
   const col=typeColors[autoType]||'#666';
-  const lbl=typeLabels[autoType]||'TASK';
-  const badge=document.getElementById('ftd-type-badge');
-  if(badge){badge.textContent=lbl;badge.style.background=col+'22';badge.style.color=col;}
   document.getElementById('ftd-title').textContent=t.name;
+  const badge=document.getElementById('ftd-type-badge');
+  if(badge){badge.textContent=typeLabels[autoType]||'TASK';badge.style.background=col+'22';badge.style.color=col;}
   document.getElementById('ftd-task-id').value=taskId;
-  // Info section
+  // Info
   const proj=projects.find(p=>projMatch(p.name,t.project));
   const acts=proj?ganttActivities[proj.id]||[]:[];
   const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
@@ -5049,15 +5039,18 @@ window.openTaskDetail=function(taskId){
     '<div><span style="color:var(--tx3)">Due:</span> <strong>'+(t.due||'—')+'</strong></div>'+
     '<div><span style="color:var(--tx3)">Status:</span> <strong>'+(t.done?'Done':t.status==='in-progress'?'In Progress':'Pending')+'</strong></div>'+
     '</div>'+
-    (act?'<div style="margin-top:6px;padding:6px;background:var(--in-bg);border-radius:var(--r);font-size:11px;color:var(--in-tx)"><i class="ti ti-link"></i> Gantt: '+act.name+' ('+act.done+'%)'+( st?' — Sub-task: '+st.name:'' )+'</div>':'')+
+    (act?'<div style="margin-top:6px;padding:6px;background:var(--in-bg);border-radius:var(--r);font-size:11px;color:var(--in-tx)"><i class="ti ti-link"></i> Gantt: '+act.name+' ('+act.done+'%)'+( st?' — Sub-task: '+st.name:'')+'</div>':'')+
     (t.details&&!act?'<div style="margin-top:6px;font-size:11px;color:var(--tx2)">'+t.details+'</div>':'');
   // Previous reports
   const rpts=t.reports||[];
   const rEl=document.getElementById('ftd-reports-section');
   if(rEl)rEl.innerHTML=rpts.length?
-    '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
-    rpts.slice(-2).reverse().map(r=>'<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px"><div style="display:flex;justify-content:space-between"><strong>'+(r.date||'')+'</strong><span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div><div style="color:var(--tx2);margin-top:2px">'+(r.work||'').slice(0,120)+'</div></div>').join(''):
-    '';
+    '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:5px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
+    rpts.slice(-2).reverse().map(r=>
+      '<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:2px"><strong>'+(r.date||'')+'</strong>'+
+      '<span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div>'+
+      '<div style="color:var(--tx2)">'+(r.work||'').slice(0,120)+'</div></div>').join(''):'';
   // Build context-aware form
   buildTaskForm(t,autoType);
   document.getElementById('fm-task-detail').classList.add('op');
@@ -5067,88 +5060,114 @@ function buildTaskForm(t,autoType){
   const formEl=document.getElementById('ftd-form-area');
   const btnsEl=document.getElementById('ftd-action-btns');
   if(!formEl||!btnsEl)return;
-  const isGantt=autoType==='gantt'||t.subTaskId;
   const isDone=t.done||t.status==='done';
   if(isDone){
     formEl.innerHTML='<div style="text-align:center;padding:16px;background:var(--ok-bg);border-radius:var(--r)"><i class="ti ti-circle-check" style="font-size:32px;color:var(--ok-tx);display:block;margin-bottom:6px"></i><div style="font-size:14px;font-weight:700;color:var(--ok-tx)">Task Completed</div><div style="font-size:12px;color:var(--ok-tx);margin-top:4px">'+(t.reports||[]).length+' report(s) on file</div></div>';
-    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+(CU.role==='admin'||CU.role==='pm'?'<button class="btn" onclick="reopenThisTask('+t.id+')" style="color:var(--wn-tx)"><i class="ti ti-rotate"></i> Reopen</button>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+((CU.role==='admin'||CU.role==='pm')?'<button class="btn" onclick="reopenTask('+t.id+')" style="color:var(--wn-tx)"><i class="ti ti-rotate"></i> Reopen</button>':'');
     return;
   }
+  // ── DELIVERY ──────────────────────────────────────────────
   if(autoType==='delivery'){
     const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
-      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><br><span style="color:var(--tx2)">'+d.proj+' · '+d.date+' · Status: '+d.status+'</span></div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked delivery found.</div>')+
-      '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
+    formEl.innerHTML=
+      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
+      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
+      '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status" onchange="onTdDelStatusChange()"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
       '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
       '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
       '<div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="td-del-invoice" placeholder="INV-XXXXX"></div></div>'+
-      '<div class="fg"><label class="fl">Notes</label><textarea class="inp" id="td-del-notes" rows="2" placeholder="Discrepancies, quantities received..."></textarea></div>'+
+      '<div class="fg" id="td-del-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="td-del-new-date" type="date"></div>'+
+      '<div class="fg"><label class="fl">Notes</label><textarea class="inp" id="td-del-notes" rows="2" placeholder="Issues, discrepancies..."></textarea></div>'+
+      '<div class="fg"><label class="fl">Attach Files / Proof</label>'+
+      '<div class="upload-zone" onclick="document.getElementById(\'td-del-files\').click()">'+
+      '<input type="file" id="td-del-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,\'td-del-prev\')">'+
+      '<i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+      '<div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div></div>'+
+      '<div class="media-prev" id="td-del-prev"></div></div>'+
       '<input type="hidden" id="td-del-ref" value="'+(d?d.id:'')+'">'+
-      (d?'<script>document.getElementById("td-del-status").value="'+d.status+'";<\/script>':'');
+      (d?'<script>setTimeout(()=>{const el=document.getElementById("td-del-status");if(el)el.value="'+d.status+'";},10);<\/script>':'');
     btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdDeliveryUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
       '<button class="btn btnp" onclick="tdDeliveryComplete('+t.id+')"><i class="ti ti-check"></i> Mark Delivered</button>';
-    if(d)setTimeout(()=>{const el=document.getElementById('td-del-status');if(el)el.value=d.status||'Scheduled';},50);
     return;
   }
+  // ── VISITOR ──────────────────────────────────────────────
   if(autoType==='visitor'){
     const v=visitors.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-user-check"></i> Visitor Action</div>'+
-      (v?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+v.name+'</strong>'+(v.company?' · '+v.company:'')+' | Status: <strong>'+v.status+'</strong></div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked visitor found.</div>')+
-      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-vis-actions">'+
-      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setVisAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
-      '<button class="btn btns" style="color:var(--in-tx)" onclick="setVisAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
-      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setVisAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
-      '<button class="btn btns" style="color:var(--er-tx)" onclick="setVisAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+    formEl.innerHTML=
+      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-user-check"></i> Visitor Action</div>'+
+      (v?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+v.name+'</strong>'+(v.company?' · '+v.company:'')+' | Status: <strong>'+v.status+'</strong></div>':'')+
+      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-vis-action-btns">'+
+      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdVisAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+      '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdVisAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdVisAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+      '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdVisAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
       '</div></div>'+
-      '<div class="fg" id="td-vis-new-time-wrap" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-vis-new-time" type="datetime-local"></div>'+
+      '<div class="fg" id="td-vis-reschedule-row" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-vis-new-time" type="datetime-local"></div>'+
       '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-vis-remarks" rows="2" placeholder="Reason or notes..."></textarea></div>'+
-      '<input type="hidden" id="td-vis-action"><input type="hidden" id="td-vis-ref" value="'+(v?v.id:'')+'">'+
-      (v&&v.status==='checked-in'?'<script>setTimeout(()=>{const btns=document.querySelectorAll("#td-vis-actions button");if(btns[1])btns[1].click();},50);<\/script>':'');
+      '<input type="hidden" id="td-vis-action" value=""><input type="hidden" id="td-vis-ref" value="'+(v?v.id:'')+'">';
     btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn btnp" onclick="tdVisitorSave('+t.id+')"><i class="ti ti-check"></i> Save</button>';
     return;
   }
+  // ── MEETING ──────────────────────────────────────────────
   if(autoType==='meeting'){
     const m=meetings.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-calendar-event"></i> Meeting Update</div>'+
-      (m?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+m.title+'</strong> · '+m.proj+' · '+(m.datetime||'').replace('T',' ')+' | Status: <strong>'+(m.status||'Scheduled')+'</strong></div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked meeting found.</div>')+
-      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap">'+
-      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setMeetAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
-      '<button class="btn btns" style="color:var(--in-tx)" onclick="setMeetAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
-      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setMeetAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
-      '<button class="btn btns" style="color:var(--er-tx)" onclick="setMeetAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+    formEl.innerHTML=
+      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-calendar-event"></i> Meeting Update</div>'+
+      (m?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+m.title+'</strong> | '+m.proj+' | '+(m.datetime||'').replace('T',' ')+' | Status: <strong>'+(m.status||'Scheduled')+'</strong></div>':'')+
+      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-meet-action-btns">'+
+      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdMeetAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+      '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdMeetAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdMeetAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+      '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdMeetAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
       '</div></div>'+
-      '<div class="fg" id="td-meet-new-dt-wrap" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-meet-new-dt" type="datetime-local"></div>'+
+      '<div class="fg" id="td-meet-reschedule-row" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-meet-new-dt" type="datetime-local"></div>'+
       '<div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="td-meet-minutes" rows="3" placeholder="Key decisions, outcomes...">'+(m?m.minutes||'':'')+'</textarea></div>'+
       '<div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="td-meet-actions" rows="2" placeholder="Who does what by when...">'+(m?m.actions||'':'')+'</textarea></div>'+
       '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-meet-remarks" rows="1" placeholder="Notes..."></textarea></div>'+
-      '<input type="hidden" id="td-meet-action"><input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">'+
-      (m&&m.status==='checked-in'?'<script>setTimeout(()=>setMeetAction(document.querySelector("#td-meet-actions"),"checkout"),50);<\/script>':'');
+      '<input type="hidden" id="td-meet-action" value=""><input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">';
     btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdMeetingUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
-      '<button class="btn btnp" onclick="tdMeetingComplete('+t.id+')"><i class="ti ti-logout"></i> Check Out (Done)</button>';
+      '<button class="btn btnp" onclick="tdMeetingCheckOut('+t.id+')"><i class="ti ti-logout"></i> Check Out (Done)</button>';
     return;
   }
+  // ── PIPELINE ──────────────────────────────────────────────
   if(autoType==='pipeline'){
     const lead=pipeline.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-funnel"></i> Pipeline Update</div>'+
-      (lead?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+lead.name+'</strong> · '+lead.client+' | Stage: <strong>'+lead.stage+'</strong> | Value: '+fmt(lead.value||0)+'</div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked lead found.</div>')+
-      '<div class="fr2"><div class="fg"><label class="fl">Stage</label><select class="inp" id="td-pip-stage"><option>Lead Gen</option><option>Proposal</option><option>Negotiation</option><option>Closing</option><option>Awarded</option><option>Lost</option></select></div>'+
-      '<div class="fg"><label class="fl">Probability (%)</label><input class="inp" id="td-pip-prob" type="number" min="0" max="100" placeholder="50"></div></div>'+
-      '<div class="fr2"><div class="fg"><label class="fl">Estimated Value (₱)</label><input class="inp" id="td-pip-value" type="number" min="0" placeholder="0"></div>'+
-      '<div class="fg"><label class="fl">Due Date / Deadline</label><input class="inp" id="td-pip-due" type="date"></div></div>'+
+    formEl.innerHTML=
+      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-funnel"></i> Pipeline Update</div>'+
+      (lead?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+lead.name+'</strong> · '+lead.client+' | Stage: <strong>'+lead.stage+'</strong> | Value: '+fmt(lead.value||0)+'</div>':'')+
+      '<div class="fr2">'+
+      '<div class="fg"><label class="fl">Stage</label><select class="inp" id="td-pip-stage"><option>Lead Gen</option><option>Proposal</option><option>Negotiation</option><option>Closing</option><option>Awarded</option><option>Lost</option></select></div>'+
+      '<div class="fg"><label class="fl">Probability (%)</label><input class="inp" id="td-pip-prob" type="number" min="0" max="100"></div>'+
+      '</div>'+
+      '<div class="fr2">'+
+      '<div class="fg"><label class="fl">Estimated Value (₱)</label><input class="inp" id="td-pip-value" type="number" min="0"></div>'+
+      '<div class="fg"><label class="fl">Due Date</label><input class="inp" id="td-pip-due" type="date"></div>'+
+      '</div>'+
       '<div class="fg"><label class="fl">Notes / Update</label><textarea class="inp" id="td-pip-notes" rows="2" placeholder="Latest update, next steps..."></textarea></div>'+
-      '<div class="fg"><label class="fl">Recurrence</label><select class="inp" id="td-pip-recur"><option value="">None (one-time)</option><option value="daily">Daily (until due date)</option></select></div>'+
+      '<div class="fg"><label class="fl">Recurrence</label><select class="inp" id="td-pip-recur"><option value="">None (one-time update)</option><option value="daily">Daily reminder until due date</option></select></div>'+
+      '<div class="fg"><label class="fl">Attach Files</label>'+
+      '<div class="upload-zone" onclick="document.getElementById(\'td-pip-files\').click()">'+
+      '<input type="file" id="td-pip-files" multiple onchange="prevMedia(this,\'td-pip-prev\')">'+
+      '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+      '<div style="font-size:12px;color:var(--tx2)">Upload proposals, specs, any docs</div></div>'+
+      '<div class="media-prev" id="td-pip-prev"></div></div>'+
       '<input type="hidden" id="td-pip-ref" value="'+(lead?lead.id:'')+'">'+
-      (lead?'<script>setTimeout(()=>{const s=document.getElementById("td-pip-stage");if(s)s.value="'+lead.stage+'";const p=document.getElementById("td-pip-prob");if(p)p.value='+(lead.prob||50)+';const v=document.getElementById("td-pip-value");if(v)v.value='+(lead.value||0)+';const d=document.getElementById("td-pip-due");if(d)d.value="'+(t.due||'')+'";},50);<\/script>':'');
+      (lead?'<script>setTimeout(()=>{'+
+        'const s=document.getElementById("td-pip-stage");if(s)s.value="'+lead.stage+'";'+
+        'const p=document.getElementById("td-pip-prob");if(p)p.value='+(lead.prob||50)+';'+
+        'const v=document.getElementById("td-pip-value");if(v)v.value='+(lead.value||0)+';'+
+        'const d=document.getElementById("td-pip-due");if(d)d.value="'+(t.due||'')+'";'+
+      '},10);<\/script>':'');
     btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn btnp" onclick="tdPipelineUpdate('+t.id+')"><i class="ti ti-check"></i> Update Lead</button>';
     return;
   }
-  // GANTT / default: daily report form
-  formEl.innerHTML='<div style="font-size:13px;font-weight:600;margin-bottom:10px"><i class="ti ti-notebook"></i> '+
-    (isGantt?'Gantt Sub-task Report':'Daily Report')+'</div>'+
+  // ── GANTT / Default ───────────────────────────────────────
+  formEl.innerHTML=
+    '<div style="font-size:13px;font-weight:600;margin-bottom:10px"><i class="ti ti-notebook"></i> Daily Report</div>'+
     '<div class="fr2">'+
     '<div class="fg"><label class="fl">Date</label><input class="inp" id="ftd-date" type="date" value="'+TODAY+'"></div>'+
     '<div class="fg"><label class="fl">Weather</label><select class="inp" id="ftd-weather"><option>Sunny</option><option>Cloudy</option><option>Rainy</option><option>Stormy</option><option>Hot</option></select></div>'+
@@ -5173,27 +5192,25 @@ function buildTaskForm(t,autoType){
     '<button class="btn btnp" onclick="submitTaskReport()"><i class="ti ti-send"></i> Submit Report</button>';
 }
 
-function setVisAction(btn,action){
+// ── Helper: set action for in-form buttons ───────────────────
+function onTdDelStatusChange(){
+  const s=document.getElementById('td-del-status')?.value||'';
+  const rr=document.getElementById('td-del-reschedule-row');
+  if(rr)rr.style.display=s==='Rescheduled'?'':'none';
+}
+function setTdVisAction(btn,action){
   document.getElementById('td-vis-action').value=action;
-  document.querySelectorAll('#td-vis-actions button').forEach(b=>b.style.fontWeight='400');
-  btn.style.fontWeight='700';
-  const tw=document.getElementById('td-vis-new-time-wrap');
-  if(tw)tw.style.display=action==='reschedule'?'':'none';
-}
-function setMeetAction(btn,action){
-  document.getElementById('td-meet-action').value=action;
-  document.querySelectorAll('#td-meet-actions button, #td-meet-actions-wrap button').forEach(b=>{if(b)b.style.fontWeight='400';});
+  document.querySelectorAll('#td-vis-action-btns button').forEach(b=>b.style.fontWeight='400');
   if(btn)btn.style.fontWeight='700';
-  const tw=document.getElementById('td-meet-new-dt-wrap');
-  if(tw)tw.style.display=action==='reschedule'?'':'none';
+  const rr=document.getElementById('td-vis-reschedule-row');
+  if(rr)rr.style.display=action==='reschedule'?'':'none';
 }
-
-function reopenThisTask(taskId){
-  const t=tasks.find(x=>x.id===taskId);if(!t)return;
-  if(!confirm('Reopen this task?'))return;
-  t.done=false;t.status='pending';sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
-  if(activeProjectId)renderDetailAll(activeProjectId);
+function setTdMeetAction(btn,action){
+  document.getElementById('td-meet-action').value=action;
+  document.querySelectorAll('#td-meet-action-btns button').forEach(b=>b.style.fontWeight='400');
+  if(btn)btn.style.fontWeight='700';
+  const rr=document.getElementById('td-meet-reschedule-row');
+  if(rr)rr.style.display=action==='reschedule'?'':'none';
 }
 
 // ── Task action handlers ─────────────────────────────────────
@@ -5202,41 +5219,59 @@ async function tdDeliveryUpdate(taskId){
   const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
   const d=deliveries.find(x=>parseInt(x.id)===delId);
   const status=document.getElementById('td-del-status')?.value||'Scheduled';
+  const newDate=document.getElementById('td-del-new-date')?.value||'';
+  if(status==='Rescheduled'&&!newDate){alert('Please enter the rescheduled date.');return;}
   const notes=document.getElementById('td-del-notes')?.value||'';
   const po=document.getElementById('td-del-po')?.value||'';
   const invoice=document.getElementById('td-del-invoice')?.value||'';
+  const fileCount=typeof getFileCount==='function'?getFileCount('td-del-files'):0;
   if(d){
-    d.status=status;if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;if(po)d.po=po;if(invoice)d.invoice=invoice;
-    const upRow={status,notes:d.notes||''};if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
+    d.status=status;if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;
+    if(po)d.po=po;if(invoice)d.invoice=invoice;
+    if(status==='Rescheduled'&&newDate)d.date=newDate;
+    if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
+    const upRow={status,notes:d.notes||'',scheduled_date:d.date||null};
+    if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
     if(d.id&&d.id<2000000000)await sb.from('deliveries').update(upRow).eq('id',d.id);
+    renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
   }
-  t.status='in-progress';
+  if(status==='Rescheduled'&&newDate){
+    t.due=newDate;t.status='pending';
+  }else if(status==='Cancelled'){
+    t.done=true;t.status='done';
+  }else{
+    t.status='in-progress';
+  }
   if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Delivery update: '+status+(notes?' - '+notes:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  t.reports.push({date:TODAY,work:'Delivery update: status changed to '+status+(status==='Rescheduled'?' → new date: '+newDate:'')+(notes?' | '+notes:''),pct:status==='Delivered'?100:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
   sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderDeliveries();
-  if(activeProjectId)refreshDetailDelivery(activeProjectId);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 async function tdDeliveryComplete(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const receiver=(document.getElementById('td-del-receiver')?.value||'').trim();
-  if(!receiver){alert('Received By is required.');return;}
+  if(!receiver){alert('Received By is required to mark as Delivered.');return;}
   const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
   const d=deliveries.find(x=>parseInt(x.id)===delId);
   const notes=document.getElementById('td-del-notes')?.value||'';
   const po=document.getElementById('td-del-po')?.value||'';
   const invoice=document.getElementById('td-del-invoice')?.value||'';
+  const fileCount=typeof getFileCount==='function'?getFileCount('td-del-files'):0;
   if(d){
     d.status='Delivered';d.receiver=receiver;d.actualDate=TODAY;
-    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;if(po)d.po=po;if(invoice)d.invoice=invoice;
-    if(d.id&&d.id<2000000000)await sb.from('deliveries').update({status:'Delivered',receiver,actual_date:TODAY,notes:d.notes||''}).eq('id',d.id);
+    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;
+    if(po)d.po=po;if(invoice)d.invoice=invoice;
+    if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
+    const upRow={status:'Delivered',receiver,actual_date:TODAY,notes:d.notes||''};
+    if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
+    if(d.id&&d.id<2000000000)await sb.from('deliveries').update(upRow).eq('id',d.id);
+    renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
   }
   t.done=true;t.status='done';
   if(!t.reports)t.reports=[];
   t.reports.push({date:TODAY,work:'Delivery completed. Received by: '+receiver+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
   sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderDeliveries();
-  if(activeProjectId)refreshDetailDelivery(activeProjectId);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 async function tdVisitorSave(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
@@ -5246,17 +5281,32 @@ async function tdVisitorSave(taskId){
   const visId=parseInt(document.getElementById('td-vis-ref')?.value||0);
   const v=visitors.find(x=>parseInt(x.id)===visId);
   if(!action&&!remarks){alert('Choose an action or add a remark.');return;}
+  if(action==='reschedule'&&!newTime){alert('Please enter a new date and time for rescheduling.');return;}
   if(v){
-    if(remarks)v.remarks=(v.remarks?v.remarks+' | ':'')+remarks;
-    if(action==='checkin'){v.status='checked-in';t.status='in-progress';}
-    else if(action==='checkout'){v.status='checked-out';t.done=true;t.status='done';}
-    else if(action==='reschedule'&&newTime){v.timein=newTime;v.status='rescheduled';t.due=newTime.split('T')[0];}
-    else if(action==='cancel'){v.status='cancelled';t.done=true;t.status='done';}
+    if(remarks)v.remarks=(v.remarks?v.remarks+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
+    if(action==='checkin'){v.status='checked-in';}
+    else if(action==='checkout'){v.status='checked-out';}
+    else if(action==='reschedule'&&newTime){v.timein=newTime;v.status='rescheduled';}
+    else if(action==='cancel'){v.status='cancelled';}
     await sbSaveVisitor(v);
     renderVisitorList();if(activeProjectId)renderDetailVisitors(activeProjectId);
   }
-  if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Visitor '+action+(remarks?' - '+remarks:''),pct:action==='checkout'||action==='cancel'?100:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  if(action==='checkout'||action==='cancel'){
+    t.done=true;t.status='done';
+    if(!t.reports)t.reports=[];
+    t.reports.push({date:TODAY,work:'Visitor '+action+(remarks?' - '+remarks:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+  }else if(action==='reschedule'&&newTime){
+    t.due=newTime.split('T')[0];t.status='pending';
+    if(!t.reports)t.reports=[];
+    t.reports.push({date:TODAY,work:'Visitor rescheduled to '+newTime.replace('T',' '),pct:0,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  }else if(action==='checkin'){
+    t.status='in-progress';
+    if(!t.reports)t.reports=[];
+    t.reports.push({date:TODAY,work:'Visitor checked in'+(remarks?' - '+remarks:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  }else if(remarks){
+    if(!t.reports)t.reports=[];
+    t.reports.push({date:TODAY,work:'Remark: '+remarks,pct:0,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  }
   sbSaveTask(t);
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
@@ -5265,40 +5315,44 @@ async function tdMeetingUpdate(taskId){
   const meetId=parseInt(document.getElementById('td-meet-ref')?.value||0);
   const m=meetings.find(x=>parseInt(x.id)===meetId);
   const action=document.getElementById('td-meet-action')?.value||'';
-  const minutes=document.getElementById('td-meet-minutes')?.value||'';
-  const actions=document.getElementById('td-meet-actions')?.value||'';
-  const remarks=(document.getElementById('td-meet-remarks')?.value||'').trim();
   const newDt=document.getElementById('td-meet-new-dt')?.value||'';
+  if(action==='reschedule'&&!newDt){alert('Please enter a new date and time.');return;}
+  const minutes=document.getElementById('td-meet-minutes')?.value||'';
+  const meetActions=document.getElementById('td-meet-actions')?.value||'';
+  const remarks=document.getElementById('td-meet-remarks')?.value||'';
   if(m){
-    if(minutes)m.minutes=minutes;if(actions)m.actions=actions;
-    if(action==='reschedule'&&newDt){m.datetime=newDt;m.status='rescheduled';t.due=newDt.split('T')[0];}
+    if(action==='checkin'){m.status='checked-in';}
+    else if(action==='reschedule'&&newDt){m.datetime=newDt;m.status='rescheduled';}
     else if(action==='cancel'){m.status='cancelled';}
-    else if(action==='checkin'){m.status='checked-in';t.status='in-progress';}
-    const upRow={minutes:m.minutes||'',actions:m.actions||'',status:m.status||''};
+    if(minutes)m.minutes=minutes;if(meetActions)m.actions=meetActions;
+    const upRow={status:m.status,minutes:m.minutes||'',actions:m.actions||''};
     if(action==='reschedule'&&newDt)upRow.datetime=newDt;
     if(m.id&&m.id<2000000000)await sb.from('meetings').update(upRow).eq('id',m.id);
     renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
   }
-  t.status='in-progress';
+  if(action==='cancel'){t.done=true;t.status='done';}
+  else if(action==='reschedule'&&newDt){t.due=newDt.split('T')[0];t.status='pending';}
+  else{t.status='in-progress';}
   if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Meeting update: '+(action||'notes added')+(remarks?' - '+remarks:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  t.reports.push({date:TODAY,work:'Meeting update: '+(action||'notes updated')+(remarks?' - '+remarks:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
   sbSaveTask(t);
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
-async function tdMeetingComplete(taskId){
+async function tdMeetingCheckOut(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const meetId=parseInt(document.getElementById('td-meet-ref')?.value||0);
   const m=meetings.find(x=>parseInt(x.id)===meetId);
   const minutes=document.getElementById('td-meet-minutes')?.value||'';
-  const actions=document.getElementById('td-meet-actions')?.value||'';
+  const meetActions=document.getElementById('td-meet-actions')?.value||'';
   if(m){
-    m.status='checked-out';if(minutes)m.minutes=minutes;if(actions)m.actions=actions;
+    m.status='checked-out';
+    if(minutes)m.minutes=minutes;if(meetActions)m.actions=meetActions;
     if(m.id&&m.id<2000000000)await sb.from('meetings').update({status:'checked-out',minutes:m.minutes||'',actions:m.actions||''}).eq('id',m.id);
     renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
   }
   t.done=true;t.status='done';
   if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Meeting completed — checked out.'+(minutes?' Minutes: '+minutes.slice(0,100):''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  t.reports.push({date:TODAY,work:'Meeting completed — Checked Out.'+(minutes?' Minutes recorded.':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
   sbSaveTask(t);
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
@@ -5312,309 +5366,48 @@ async function tdPipelineUpdate(taskId){
   const due=document.getElementById('td-pip-due')?.value||'';
   const notes=(document.getElementById('td-pip-notes')?.value||'').trim();
   const recur=document.getElementById('td-pip-recur')?.value||'';
+  const fileCount=typeof getFileCount==='function'?getFileCount('td-pip-files'):0;
+  const stageChanged=lead&&stage&&stage!==lead.stage;
   if(lead){
+    const oldStage=lead.stage;
     if(stage)lead.stage=stage;if(prob)lead.prob=prob;if(value)lead.value=value;
     if(!lead.history)lead.history=[];
     lead.history.push({date:TODAY,stage:lead.stage,note:notes||'Pipeline update',by:CU.name});
-    sbSavePipeline(lead);renderPipeline();
+    sbSavePipeline(lead);
+    if(lead.stage==='Awarded'&&oldStage!=='Awarded')promotePipelineToProject(lead);
+    renderPipeline();
   }
-  if(due)t.due=due;
-  if(recur==='daily')t.schedule='daily';
-  t.done=true;t.status='done';
-  if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Pipeline updated: Stage='+stage+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
-  sbSaveTask(t);
-  // If awarded, promote to project
-  if(stage==='Awarded'&&lead)promotePipelineToProject(lead);
-  closeFm('fm-task-detail');renderTasksGlobal();renderPipeline();renderSidebar();
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  GANTT: Collapsable sub-tasks
-// ═══════════════════════════════════════════════════════════════
-let _ganttCollapsed={};
-let _ganttAllCollapsed=false;
-function toggleGanttActivity(actId){
-  _ganttCollapsed[actId]=!_ganttCollapsed[actId];
-  if(activeProjectId)renderGanttDetail(activeProjectId);
-}
-function toggleAllGantt(){
-  _ganttAllCollapsed=!_ganttAllCollapsed;
-  const acts=ganttActivities[activeProjectId]||[];
-  acts.forEach(a=>{_ganttCollapsed[a.id]=_ganttAllCollapsed;});
-  if(activeProjectId)renderGanttDetail(activeProjectId);
-  const btn=document.getElementById('btn-gantt-collapse-all');
-  if(btn)btn.textContent=_ganttAllCollapsed?'Expand All':'Collapse All';
-}
-
-// Patch renderGanttDetail to add collapse toggle and project tabs
-const _origRenderGanttDetail=window.renderGanttDetail;
-if(typeof renderGanttDetail==='function'){
-  const _rgd=renderGanttDetail;
-  window.renderGanttDetail=function(id){
-    // First render the chart header with collapse button
-    const headerEl=document.getElementById('d-gantt-content');
-    if(headerEl){
-      // Add collapse-all button to gantt header area if not there
-      const colBtn=document.getElementById('btn-gantt-collapse-all');
-      if(!colBtn){
-        const toolbar=document.querySelector('#d-gantt-content .ch');
-        if(toolbar){
-          const btn=document.createElement('button');
-          btn.id='btn-gantt-collapse-all';
-          btn.className='btn btns';
-          btn.style.fontSize='11px';
-          btn.textContent=_ganttAllCollapsed?'Expand All':'Collapse All';
-          btn.onclick=toggleAllGantt;
-          toolbar.appendChild(btn);
-        }
-      }
-    }
-    _rgd(id);
-  };
-}
-
-// Patch the sub-task rendering to respect collapse state
-// We override inside setDTab for gantt
-const _origSetDTab=window.setDTab;
-if(typeof setDTab==='function'){
-  window.setDTab=function(tab){
-    _origSetDTab(tab);
-    if(tab==='dquotation'&&activeProjectId)renderDetailQuotation(activeProjectId);
-    if(tab==='dbom'&&activeProjectId)renderDetailBOM(activeProjectId);
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  PROJECT DETAIL: Quotation + BOM tabs
-// ═══════════════════════════════════════════════════════════════
-function renderDetailQuotation(projId){
-  projId=parseInt(projId);
-  const p=findProject(projId);if(!p)return;
-  const el=document.getElementById('d-quotation-content');if(!el)return;
-  const pQuots=quotations.filter(q=>projMatch(q.proj,p.name)||projMatch(q.proj,p.name));
-  el.innerHTML='<div class="ch"><div class="ct"><i class="ti ti-file-invoice"></i> Quotations — '+p.name+'</div>'+
-    '<div style="display:flex;gap:6px"><button class="btn btns" onclick="openUploadQuotation()"><i class="ti ti-upload"></i> Upload</button>'+
-    '<button class="btn btns btnp" onclick="openFmQuotation()"><i class="ti ti-plus"></i> New</button></div></div>'+
-    (pQuots.length?pQuots.map(q=>'<div class="card" style="margin-bottom:8px;cursor:pointer" onclick="viewQuotation('+q.id+')">'+
-      '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
-      '<div><div style="font-size:14px;font-weight:700">'+q.name+'</div><div style="font-size:11px;color:var(--tx2)">'+q.proj+' · '+q.date+' · By: '+q.by+'</div></div>'+
-      '<div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--or)">'+fmt(q.totalSell)+'</div><span class="badge '+(q.status==='Approved'?'bk':q.status==='Rejected'?'be':'bw')+'">'+(q.status||'Draft')+'</span></div>'+
-      '</div></div>').join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No quotations for this project yet.</div>');
-}
-function renderDetailBOM(projId){
-  projId=parseInt(projId);
-  const p=findProject(projId);if(!p)return;
-  const el=document.getElementById('d-bom-content');if(!el)return;
-  const pBoms=bomDocs.filter(b=>projMatch(b.proj,p.name));
-  el.innerHTML='<div class="ch"><div class="ct"><i class="ti ti-list-numbers"></i> Bill of Materials — '+p.name+'</div>'+
-    '<button class="btn btns btnp" onclick="openNewBOM()"><i class="ti ti-plus"></i> New BOM</button></div>'+
-    (pBoms.length?pBoms.map(b=>'<div class="card" style="margin-bottom:8px;cursor:pointer" onclick="viewBOM('+b.id+')">'+
-      '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
-      '<div><div style="font-size:14px;font-weight:700">'+b.name+'</div><div style="font-size:11px;color:var(--tx2)">'+b.proj+' · '+b.date+'</div></div>'+
-      '<div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--or)">'+fmt(b.totalSell)+'</div></div>'+
-      '</div></div>').join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No BOMs for this project yet.</div>');
-}
-
-// Hook into renderDetailAll
-const _origRenderDetailAll=window.renderDetailAll;
-if(typeof renderDetailAll==='function'){
-  const _rda=renderDetailAll;
-  window.renderDetailAll=function(id){
-    _rda(id);
-    // Render new tabs if visible
-    if(document.getElementById('dpg-dquotation')?.classList.contains('on'))renderDetailQuotation(id);
-    if(document.getElementById('dpg-dbom')?.classList.contains('on'))renderDetailBOM(id);
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  BUDGET: Import CSV + Print
-// ═══════════════════════════════════════════════════════════════
-let _expCSVData=[];
-function openExpenseCSVImport(){
-  const mp=myProjects();
-  document.getElementById('fec-proj').innerHTML=mp.map(p=>'<option>'+p.name+'</option>').join('');
-  document.getElementById('fec-preview').innerHTML='';
-  if(document.getElementById('fec-file'))document.getElementById('fec-file').value='';
-  _expCSVData=[];
-  document.getElementById('fm-expense-csv').classList.add('op');
-}
-function downloadExpenseCSVTemplate(e){
-  e.preventDefault();
-  const rows=['date,description,category,amount,payee,reference',
-    TODAY+',Cement purchase,Materials,14000,ABC Hardware,INV-001',
-    TODAY+',Worker wages,Manpower / Salary,25000,Direct Hire,'];
-  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='expense_template.csv';
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-}
-function previewExpenseCSV(input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const lines=e.target.result.replace(/\r/g,'').split('\n').filter(l=>l.trim());
-    if(lines.length<2){document.getElementById('fec-preview').innerHTML='<div style="color:var(--er-tx);font-size:12px">No data rows found.</div>';return;}
-    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
-    _expCSVData=lines.slice(1).map(line=>{
-      const vals=[];let cur='',inQ=false;
-      for(const ch of line){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=ch;}
-      vals.push(cur.trim());
-      const row={};headers.forEach((h,i)=>row[h]=(vals[i]||'').replace(/^"|"$/g,'').trim());
-      return row;
-    }).filter(r=>r.amount&&parseFloat(r.amount)>0);
-    document.getElementById('fec-preview').innerHTML=
-      '<div style="font-size:12px;font-weight:600;color:var(--ok-tx);margin-bottom:6px"><i class="ti ti-check"></i> '+_expCSVData.length+' expense(s) ready</div>'+
-      '<div style="overflow-x:auto"><table class="tbl" style="font-size:11px"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
-      _expCSVData.slice(0,5).map(r=>'<tr>'+headers.map(h=>'<td>'+(r[h]||'')+'</td>').join('')+'</tr>').join('')+
-      (_expCSVData.length>5?'<tr><td colspan="'+headers.length+'" style="text-align:center;color:var(--tx3)">...and '+(_expCSVData.length-5)+' more</td></tr>':'')+
-      '</tbody></table></div>';
-  };
-  reader.readAsText(file);
-}
-async function doExpenseCSVImport(){
-  if(!_expCSVData.length){alert('No valid CSV data loaded.');return;}
-  const proj=document.getElementById('fec-proj').value;
-  if(!proj){alert('Select a project.');return;}
-  let imported=0;
-  for(const row of _expCSVData){
-    const amount=parseFloat(row.amount||0);if(!amount)continue;
-    const e={_isNew:true,proj,date:row.date||TODAY,cat:row.category||'Materials',amount,desc:row.description||row.desc||'',payee:row.payee||'',ref:row.reference||row.ref||'',by:CU.name};
-    expenses.push(e);await sbSaveExpense(e);imported++;
+  if(stageChanged){
+    // Mark current task done and create a new one for the new stage
+    t.done=true;t.status='done';
+    if(!t.reports)t.reports=[];
+    t.reports.push({date:TODAY,work:'Pipeline advanced to stage: '+stage+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+    sbSaveTask(t);
+    // Create new task for new stage
+    const newDue=due||lead?.closedate||TODAY;
+    const newTask={_isNew:true,name:'Follow up: '+lead.name+' ('+stage+')',project:lead?.name||t.project,assignee:t.assignee,due:newDue,priority:stage==='Closing'?'high':'medium',done:false,status:'pending',schedule:recur==='daily'?'daily':'once',scheduleDays:[],details:'Pipeline: '+lead.name+' | Stage: '+stage,riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead?.id||t.refId};
+    tasks.push(newTask);
+    sbSaveTask(newTask);
+    sbLog('Pipeline advanced: "'+lead.name+'" \u2192 '+stage+' — new follow-up task created','#7B2D8B','Pipeline',lead?.name||'');
+  }else{
+    // Same stage — just update due date and notes, don't mark done
+    if(due)t.due=due;
+    if(recur==='daily')t.schedule='daily';
+    if(!t.reports)t.reports=[];
+    t.reports.push({date:TODAY,work:'Pipeline update: '+(notes||'no change to stage')+(fileCount>0?' | '+fileCount+' file(s) attached':''),pct:0,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+    sbSaveTask(t);
+    sbLog('Pipeline update: "'+lead?.name+'" — same stage ('+stage+')','#7B2D8B','Pipeline',lead?.name||'');
   }
-  sbLog('CSV Import: '+imported+' expenses imported to '+proj,'#185FA5','Budget',proj);
-  _expCSVData=[];closeFm('fm-expense-csv');
-  renderGlobalExpenses();if(activeProjectId)renderDetailBudget(activeProjectId);
-  alert('Imported '+imported+' expense(s)!');
-}
-function printExpenses(){
-  const pf=document.getElementById('exp-proj-filter')?.value||'';
-  const cf=document.getElementById('exp-cat-filter')?.value||'';
-  const mp=myProjects();
-  let exp=expenses.filter(e=>mp.some(p=>projMatch(p.name,e.proj)));
-  if(pf)exp=exp.filter(e=>projMatch(e.proj,pf));
-  if(cf)exp=exp.filter(e=>e.cat===cf);
-  const total=exp.reduce((s,e)=>s+e.amount,0);
-  const html='<!DOCTYPE html><html><head><title>Expense Report</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px}h2{color:#333}table{width:100%;border-collapse:collapse;margin-top:16px}th{background:#f0efe8;padding:8px 10px;text-align:left;font-size:11px;border:1px solid #ddd}td{padding:7px 10px;border:1px solid #ddd}tfoot td{font-weight:700;background:#fff8f0;color:#C05621}.total{font-size:14px;font-weight:700;color:#C05621}@media print{button{display:none}}</style></head>'+
-    '<body><h2>Budget & Expense Report'+(pf?' — '+pf:'')+(cf?' | '+cf:'')+'</h2>'+
-    '<div style="font-size:11px;color:#666;margin-bottom:12px">Generated: '+new Date().toLocaleString('en-PH')+' · By: '+CU.name+'</div>'+
-    '<table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payee</th><th>Reference</th><th>Amount</th><th>By</th></tr></thead><tbody>'+
-    exp.map(e=>'<tr><td>'+e.date+'</td><td>'+e.desc+'</td><td>'+e.cat+'</td><td>'+(e.payee||'')+'</td><td>'+(e.ref||'')+'</td><td style="text-align:right">'+fmt(e.amount)+'</td><td>'+e.by+'</td></tr>').join('')+
-    '</tbody><tfoot><tr><td colspan="5">TOTAL</td><td style="text-align:right" class="total">'+fmt(total)+'</td><td></td></tr></tfoot></table>'+
-    '<script>window.print();<\/script></body></html>';
-  const w=window.open('','_blank');w.document.write(html);w.document.close();
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  INVENTORY: Import CSV
-// ═══════════════════════════════════════════════════════════════
-let _invCSVData=[];
-function openInvCSVImport(){
-  const mp=myProjects();
-  document.getElementById('fic-proj').innerHTML=mp.map(p=>'<option>'+p.name+'</option>').join('');
-  document.getElementById('fic-preview').innerHTML='';
-  if(document.getElementById('fic-file'))document.getElementById('fic-file').value='';
-  _invCSVData=[];
-  document.getElementById('fm-inv-csv').classList.add('op');
+function reopenTask(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  if(!confirm('Reopen this task?'))return;
+  t.done=false;t.status='pending';sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  if(activeProjectId)renderDetailAll(activeProjectId);
 }
-function downloadInvCSVTemplate(e){
-  e.preventDefault();
-  const rows=['material,unit,qty,min_stock,unit_cost','Portland Cement,bags,500,100,280','Rebar 12mm,pcs,300,50,180','Hollow Blocks 4in,pcs,2000,500,12'];
-  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='inventory_template.csv';
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-}
-function previewInvCSV(input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const lines=e.target.result.replace(/\r/g,'').split('\n').filter(l=>l.trim());
-    if(lines.length<2){document.getElementById('fic-preview').innerHTML='<div style="color:var(--er-tx);font-size:12px">No data rows found.</div>';return;}
-    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
-    _invCSVData=lines.slice(1).map(line=>{
-      const vals=line.split(',').map(v=>v.trim());
-      const row={};headers.forEach((h,i)=>row[h]=(vals[i]||'').trim());return row;
-    }).filter(r=>r.material||r.name);
-    document.getElementById('fic-preview').innerHTML=
-      '<div style="font-size:12px;font-weight:600;color:var(--ok-tx);margin-bottom:6px"><i class="ti ti-check"></i> '+_invCSVData.length+' item(s) ready</div>'+
-      '<div style="overflow-x:auto"><table class="tbl" style="font-size:11px"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
-      _invCSVData.slice(0,5).map(r=>'<tr>'+headers.map(h=>'<td>'+(r[h]||'')+'</td>').join('')+'</tr>').join('')+
-      '</tbody></table></div>';
-  };
-  reader.readAsText(file);
-}
-async function doInvCSVImport(){
-  if(!_invCSVData.length){alert('No valid CSV data loaded.');return;}
-  const proj=document.getElementById('fic-proj').value;
-  if(!proj){alert('Select a project.');return;}
-  let imported=0;
-  for(const row of _invCSVData){
-    const name=row.material||row.name||'';if(!name)continue;
-    const item={_isNew:true,name,project:proj,unit:row.unit||'pcs',qty:parseFloat(row.qty||0),min:parseFloat(row.min_stock||row.min||0),unitCost:parseFloat(row.unit_cost||row.cost||0)};
-    inventory.push(item);await sbSaveInventory(item);imported++;
-  }
-  sbLog('CSV Import: '+imported+' inventory items to '+proj,'#185FA5','Inventory',proj);
-  _invCSVData=[];closeFm('fm-inv-csv');
-  renderGlobalInventory();if(activeProjectId)filterDetailInventory(activeProjectId);
-  alert('Imported '+imported+' inventory item(s)!');
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  QUOTATION: Upload file
-// ═══════════════════════════════════════════════════════════════
-function openUploadQuotation(){
-  const mp=myProjects();
-  document.getElementById('fqu-proj').innerHTML=mp.map(p=>'<option>'+p.name+'</option>').join('');
-  document.getElementById('fqu-date').value=TODAY;
-  if(typeof clearFileStore==='function')clearFileStore('fqu-prev');
-  ['fqu-title','fqu-number','fqu-amount','fqu-scope'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('fm-quotation-upload').classList.add('op');
-}
-async function saveUploadedQuotation(){
-  const title=document.getElementById('fqu-title')?.value.trim();
-  if(!title){alert('Quotation title required.');return;}
-  const proj=document.getElementById('fqu-proj')?.value||'';
-  const amount=parseFloat(document.getElementById('fqu-amount')?.value)||0;
-  const files=typeof getFileNames==='function'?getFileNames('fqu-prev'):[];
-  const q={_isNew:true,name:title,proj,number:document.getElementById('fqu-number')?.value||'QT-'+Date.now().toString().slice(-6),date:document.getElementById('fqu-date')?.value||TODAY,scope:document.getElementById('fqu-scope')?.value||'',status:document.getElementById('fqu-status')?.value||'Draft',totalSell:amount,totalCost:Math.round(amount*0.85),by:CU.name,items:[{desc:title,unit:'lot',qty:1,cost:Math.round(amount*0.85),markup:15}],uploaded:true,files};
-  quotations.push(q);
-  if(typeof sbSaveQuotation==='function')await sbSaveQuotation(q);
-  sbLog('Quotation uploaded: "'+title+'" — '+fmt(amount),'#185FA5','Quotation',proj);
-  closeFm('fm-quotation-upload');
-  renderQuotations();if(activeProjectId)renderDetailQuotation(activeProjectId);
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  SETUP APP: Show refresh button + handle new dtabs
-// ═══════════════════════════════════════════════════════════════
-// Show refresh button after login (patch setupApp after it's defined)
-document.addEventListener('DOMContentLoaded',function(){
-  const origSA=window.setupApp;
-  if(typeof origSA==='function'){
-    window.setupApp=function(){
-      origSA.apply(this,arguments);
-      const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='';
-    };
-  }
-  const origDL=window.doLogout;
-  if(typeof origDL==='function'){
-    window.doLogout=function(){
-      origDL.apply(this,arguments);
-      const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='none';
-    };
-  }
-  // Patch setDTab for new tabs
-  const origSTD=window.setDTab;
-  if(typeof origSTD==='function'){
-    window.setDTab=function(tab){
-      origSTD(tab);
-      if(tab==='dquotation'&&activeProjectId)renderDetailQuotation(activeProjectId);
-      if(tab==='dbom'&&activeProjectId)renderDetailBOM(activeProjectId);
-    };
-  }
-});
 
 async function boot(){
   showLoadingOverlay(true);
@@ -6127,75 +5920,5 @@ function renderBOM(){
 
 boot();
 </script>
-
-<!-- Expense CSV Import Modal -->
-<div class="fm" id="fm-expense-csv"><div class="fb fb-lg">
-  <div class="ft"><i class="ti ti-file-import"></i> Import Expenses from CSV</div>
-  <div style="background:var(--in-bg);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px;color:var(--in-tx)">
-    <strong>Required CSV columns:</strong> <code>date, description, category, amount, payee, reference</code><br>
-    <a href="#" onclick="downloadExpenseCSVTemplate(event)" style="color:var(--in-tx);font-weight:700;font-size:11px;display:inline-block;margin-top:4px"><i class="ti ti-download"></i> Download Template CSV</a>
-  </div>
-  <div class="fg"><label class="fl">Project</label><select class="inp" id="fec-proj"></select></div>
-  <div class="fg">
-    <label class="fl">CSV File *</label>
-    <div class="upload-zone" onclick="document.getElementById('fec-file').click()">
-      <input type="file" id="fec-file" accept=".csv" onchange="previewExpenseCSV(this)">
-      <i class="ti ti-table-import" style="font-size:24px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-      <div style="font-size:12px;color:var(--tx2)">Click to select .csv file</div>
-    </div>
-  </div>
-  <div id="fec-preview" style="margin-bottom:10px"></div>
-  <div class="fa"><button class="btn" onclick="closeFm('fm-expense-csv')">Cancel</button><button class="btn btnp" onclick="doExpenseCSVImport()"><i class="ti ti-check"></i> Import</button></div>
-</div></div>
-
-<!-- Inventory CSV Import Modal -->
-<div class="fm" id="fm-inv-csv"><div class="fb fb-lg">
-  <div class="ft"><i class="ti ti-file-import"></i> Import Inventory from CSV</div>
-  <div style="background:var(--in-bg);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px;color:var(--in-tx)">
-    <strong>Required CSV columns:</strong> <code>material, unit, qty, min_stock, unit_cost</code><br>
-    <a href="#" onclick="downloadInvCSVTemplate(event)" style="color:var(--in-tx);font-weight:700;font-size:11px;display:inline-block;margin-top:4px"><i class="ti ti-download"></i> Download Template CSV</a>
-  </div>
-  <div class="fg"><label class="fl">Project</label><select class="inp" id="fic-proj"></select></div>
-  <div class="fg">
-    <label class="fl">CSV File *</label>
-    <div class="upload-zone" onclick="document.getElementById('fic-file').click()">
-      <input type="file" id="fic-file" accept=".csv" onchange="previewInvCSV(this)">
-      <i class="ti ti-table-import" style="font-size:24px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-      <div style="font-size:12px;color:var(--tx2)">Click to select .csv file</div>
-    </div>
-  </div>
-  <div id="fic-preview" style="margin-bottom:10px"></div>
-  <div class="fa"><button class="btn" onclick="closeFm('fm-inv-csv')">Cancel</button><button class="btn btnp" onclick="doInvCSVImport()"><i class="ti ti-check"></i> Import</button></div>
-</div></div>
-
-<!-- Upload Quotation Modal -->
-<div class="fm" id="fm-quotation-upload"><div class="fb fb-lg">
-  <div class="ft"><i class="ti ti-upload"></i> Upload Quotation File</div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Quotation Title *</label><input class="inp" id="fqu-title" placeholder="e.g. Quotation for Phase 2 Works"></div>
-    <div class="fg"><label class="fl">Project</label><select class="inp" id="fqu-proj"></select></div>
-  </div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Quotation No.</label><input class="inp" id="fqu-number" placeholder="QT-2025-001"></div>
-    <div class="fg"><label class="fl">Date</label><input class="inp" id="fqu-date" type="date"></div>
-  </div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Total Amount (₱)</label><input class="inp" id="fqu-amount" type="number" min="0" placeholder="0"></div>
-    <div class="fg"><label class="fl">Status</label>
-      <select class="inp" id="fqu-status"><option>Draft</option><option>Sent</option><option>Under Review</option><option>Approved</option><option>Rejected</option></select>
-    </div>
-  </div>
-  <div class="fg"><label class="fl">Scope / Description</label><textarea class="inp" id="fqu-scope" placeholder="Brief scope of work covered by this quotation..."></textarea></div>
-  <div class="fg">
-    <label class="fl">Quotation File(s) *</label>
-    <div class="upload-zone" onclick="document.getElementById('fqu-files').click()">
-      <input type="file" id="fqu-files" multiple accept=".pdf,.docx,.xlsx,.pptx" onchange="prevMedia(this,'fqu-prev')">
-      <i class="ti ti-file-invoice" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-      <div style="font-size:12px;color:var(--tx2)">Upload PDF, Word, Excel quotation files</div>
-    </div>
-    <div class="media-prev" id="fqu-prev"></div>
-  </div>
-  <div class="fa"><button class="btn" onclick="closeFm('fm-quotation-upload')">Cancel</button><button class="btn btnp" onclick="saveUploadedQuotation()"><i class="ti ti-check"></i> Save Quotation</button></div>
-</div></div>
 </body>
 </html>
