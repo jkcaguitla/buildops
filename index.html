@@ -179,7 +179,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="logo" onclick="goHome()"><div class="logo-ic"><i class="ti ti-building-skyscraper"></i></div>JCY Design Studio</div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:var(--tx2)" id="top-date"></div>
-      <button class="btn" id="btn-refresh" onclick="doRefresh()" title="Refresh all data" style="display:none;gap:5px;padding:5px 10px;font-size:12px"><i class="ti ti-refresh" id="refresh-icon"></i> Refresh</button>
+      <button class="btn" id="btn-refresh" onclick="doRefresh()" title="Refresh all data" style="display:none;padding:5px 10px;font-size:12px;gap:5px"><i class="ti ti-refresh" id="refresh-icon"></i> Refresh</button>
       <div style="display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--bg2);cursor:pointer" onclick="doLogout()">
         <div class="av" id="top-av"></div>
         <div><div style="font-weight:600;font-size:12px" id="top-name">—</div><div style="font-size:10px;color:var(--tx2)" id="top-role">—</div></div>
@@ -206,7 +206,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <button class="ntab" onclick="setTab('templates')" id="t-templates"><i class="ti ti-files"></i> Templates</button>
     <button class="ntab" onclick="setTab('quotation')" id="t-quotation"><i class="ti ti-file-invoice"></i> Quotation</button>
     <button class="ntab" onclick="setTab('bom')" id="t-bom"><i class="ti ti-list-numbers"></i> Bill of Materials</button>
-    <button class="ntab" onclick="setTab('suppliers')" id="t-suppliers"><i class="ti ti-building-store"></i> Suppliers</button>
     <button class="ntab" onclick="setTab('activity')" id="t-activity"><i class="ti ti-activity"></i> Activity</button>
   </div></div>
   <div class="body-wrap">
@@ -346,6 +345,8 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
       <button class="dtab" onclick="setDTab('dmeeting')" id="dt-dmeeting"><i class="ti ti-calendar-event"></i> Meetings</button>
       <button class="dtab" onclick="setDTab('dvisitors')" id="dt-dvisitors"><i class="ti ti-user-check"></i> Visitors</button>
       <button class="dtab" onclick="setDTab('dbilling')" id="dt-dbilling"><i class="ti ti-cash"></i> Billing</button>
+      <button class="dtab" onclick="setDTab('dquotation')" id="dt-dquotation"><i class="ti ti-file-invoice"></i> Quotation</button>
+      <button class="dtab" onclick="setDTab('dbom')" id="dt-dbom"><i class="ti ti-list-numbers"></i> BOM</button>
     </div>
     <div class="dpg" id="dpg-gantt"><div id="d-gantt-content"></div></div>
     <div class="dpg" id="dpg-dtasks"><div id="d-tasks-content"></div></div>
@@ -359,6 +360,8 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="dpg" id="dpg-dmeeting"><div id="d-meeting-content"></div></div>
     <div class="dpg" id="dpg-dvisitors"><div id="d-visitors-content"></div></div>
     <div class="dpg" id="dpg-dbilling"><div id="d-billing-content"></div></div>
+    <div class="dpg" id="dpg-dquotation"><div id="d-quotation-content"></div></div>
+    <div class="dpg" id="dpg-dbom"><div id="d-bom-content"></div></div>
   </div>
 </div>
 
@@ -405,7 +408,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
     <select class="inp" id="del-proj-filter" style="width:175px" onchange="renderDeliveries()"><option value="">All Projects</option></select>
-    <select class="inp" id="del-status-filter" style="width:130px" onchange="renderDeliveries()"><option value="">All Status</option><option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option></select>
+    <select class="inp" id="del-status-filter" style="width:160px" onchange="renderDeliveries()"><option value="">All Status</option><option value="Scheduled">Scheduled</option><option value="Delivered">Delivered</option><option value="Cancelled">Cancelled</option><option value="Rescheduled">Rescheduled</option><option value="Pending">Pending (Not Delivered)</option></select>
     <input class="inp" id="del-search" style="width:170px" placeholder="Search supplier, items..." oninput="renderDeliveries()">
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
@@ -460,7 +463,10 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <div class="pg" id="pg-inventory">
   <div class="ph">
     <div><div class="pt">Inventory</div><div class="ps">Materials stock per project</div></div>
-    <button class="btn btnp" id="btn-new-mat" style="display:none" onclick="openFm('fm-inv-add')"><i class="ti ti-plus"></i> Add Material</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn" onclick="openInvCSVImport()"><i class="ti ti-file-import"></i> Import CSV</button>
+      <button class="btn btnp" id="btn-new-mat" style="display:none" onclick="openFm('fm-inv-add')"><i class="ti ti-plus"></i> Add Material</button>
+    </div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
     <select class="inp" id="inv-proj-filter" style="width:175px" onchange="renderGlobalInventory()"><option value="">All Projects</option></select>
@@ -481,7 +487,11 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <div class="pg" id="pg-expenses">
   <div class="ph">
     <div><div class="pt">Budget & Expenses</div><div class="ps">All project expenditures with budget overview</div></div>
-    <button class="btn btnp" onclick="openFm('fm-expense')"><i class="ti ti-plus"></i> Add Expense</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn" onclick="openExpenseCSVImport()"><i class="ti ti-file-import"></i> Import CSV</button>
+      <button class="btn" onclick="printExpenses()"><i class="ti ti-printer"></i> Print</button>
+      <button class="btn btnp" onclick="openFm('fm-expense')"><i class="ti ti-plus"></i> Add Expense</button>
+    </div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
     <select class="inp" id="exp-proj-filter" style="width:190px" onchange="renderGlobalExpenses()"><option value="">All Projects</option></select>
@@ -573,10 +583,41 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 </div></div>
 
 <!-- Meeting Detail Modal -->
-<div class="fm" id="fm-meeting-detail"><div class="fb fb-lg">
-  <div class="ft"><i class="ti ti-calendar-event"></i> Meeting Details</div>
-  <div id="fmd-body" style="max-height:65vh;overflow-y:auto"></div>
-  <div class="fa" style="margin-top:12px"><button class="btn" onclick="closeFm('fm-meeting-detail')">Close</button></div>
+<div class="fm" id="fm-meeting-detail"><div class="fb fb-lg" style="max-width:820px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div class="ft" style="margin:0" id="fmd-title">Meeting Details</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btns" id="fmd-reschedule-btn" onclick="doMeetingAction('reschedule')"><i class="ti ti-calendar"></i> Reschedule</button>
+      <button class="btn btns" id="fmd-cancel-btn" style="color:var(--er-tx)" onclick="doMeetingAction('cancel')"><i class="ti ti-x"></i> Cancel</button>
+      <button class="btn btns" style="color:var(--ok-tx)" onclick="doMeetingAction('checkin')"><i class="ti ti-login"></i> Mark Checked In</button>
+      <button class="btn btns" style="color:var(--in-tx)" onclick="doMeetingAction('checkout')"><i class="ti ti-logout"></i> Mark Checked Out</button>
+      <button class="btn" onclick="closeFm('fm-meeting-detail')">✕ Close</button>
+    </div>
+  </div>
+  <div id="fmd-info" style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px"></div>
+  <div id="fmd-reschedule-wrap" style="display:none;margin-bottom:10px">
+    <div class="fg"><label class="fl">New Date &amp; Time</label><input class="inp" id="fmd-new-datetime" type="datetime-local"></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Attendees</label><textarea class="inp" id="fmd-attendees" rows="2" placeholder="List of attendees, one per line or comma-separated"></textarea></div>
+    <div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="fmd-actions" rows="2" placeholder="Who does what by when..."></textarea></div>
+  </div>
+  <div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="fmd-minutes" rows="5" placeholder="Record the key discussion points, decisions made, and outcomes..."></textarea></div>
+  <div class="fg">
+    <label class="fl">Attach Files (Minutes, References, Presentations...)</label>
+    <div class="upload-zone" onclick="document.getElementById('fmd-files').click()">
+      <input type="file" id="fmd-files" multiple onchange="prevMedia(this,'fmd-prev')">
+      <i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Upload MOM files, reference docs, presentations</div>
+    </div>
+    <div class="media-prev" id="fmd-prev"></div>
+  </div>
+  <div class="fg"><label class="fl">Remarks / Notes</label><textarea class="inp" id="fmd-remarks" rows="2" placeholder="Any additional notes or follow-up actions..."></textarea></div>
+  <input type="hidden" id="fmd-id">
+  <div class="fa" style="justify-content:space-between;margin-top:14px">
+    <div id="fmd-prev-section" style="font-size:11px;color:var(--tx2)"></div>
+    <button class="btn btnp" onclick="saveMeetingDetail()"><i class="ti ti-check"></i> Save Meeting Update</button>
+  </div>
 </div></div>
 
 <div class="fm" id="fm-sop-detail"><div class="fb fb-lg">
@@ -629,23 +670,24 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div id="fdu-info" style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px"></div>
   <div class="fr2">
     <div class="fg"><label class="fl">Status *</label>
-      <select class="inp" id="fdu-status" onchange="onFduStatusChange()">
-        <option>Scheduled</option><option>In Progress</option><option>Delivered</option><option>Partial</option><option>Cancelled</option><option>Rescheduled</option>
+      <select class="inp" id="fdu-status" onchange="onDeliveryStatusChange()">
+        <option>Scheduled</option><option>Delivered</option><option>Cancelled</option><option>Rescheduled</option>
       </select>
     </div>
-    <div class="fg" id="fdu-reschedule-wrap" style="display:none"><label class="fl">New Delivery Date</label><input class="inp" id="fdu-new-date" type="date"></div>
-    <div class="fg" id="fdu-actual-wrap"><label class="fl">Actual Delivery Date</label><input class="inp" id="fdu-actual-date" type="date"></div>
+    <div class="fg" id="fdu-reschedule-row" style="display:none"><label class="fl">New Delivery Date</label><input class="inp" id="fdu-new-date" type="date"></div>
+    <div class="fg" id="fdu-actual-row"><label class="fl">Actual Delivery Date</label><input class="inp" id="fdu-actual-date" type="date"></div>
   </div>
   <div class="fr2">
-    <div class="fg"><label class="fl">Received By</label><input class="inp" id="fdu-receiver" placeholder="Name of person who received"></div>
-    <div class="fg"><label class="fl">Amount (₱)</label><input class="inp" id="fdu-amount" type="number" min="0" placeholder="0"></div>
+    <div class="fg"><label class="fl">Received By *</label><input class="inp" id="fdu-receiver" placeholder="Name of person who received (required)"></div>
+    <div class="fg"><label class="fl">PO No.</label><input class="inp" id="fdu-po" placeholder="PO-XXXXX"></div>
   </div>
   <div class="fr2">
     <div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="fdu-invoice" placeholder="INV-XXXXX"></div>
     <div class="fg"><label class="fl">DR No.</label><input class="inp" id="fdu-dr" placeholder="DR-XXXXX"></div>
   </div>
-  <div class="fg"><label class="fl">Notes / Issues</label><textarea class="inp" id="fdu-notes" placeholder="Discrepancies, partial quantities, condition..."></textarea></div>
-  <div class="fg"><label class="fl">Remarks</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled due to weather"></div>
+  <div class="fg"><label class="fl">Amount (₱)</label><input class="inp" id="fdu-amount" type="number" min="0" placeholder="0"></div>
+  <div class="fg"><label class="fl">Notes / Issues</label><textarea class="inp" id="fdu-notes" placeholder="Discrepancies, issues, quantities received..."></textarea></div>
+  <div class="fg"><label class="fl">Remarks / Reason</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled due to weather, short delivery"></div>
   <div class="fg">
     <label class="fl">Proof Photos / Documents</label>
     <div class="upload-zone" onclick="document.getElementById('fdu-files').click()">
@@ -657,103 +699,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
   <input type="hidden" id="fdu-id">
   <div class="fa"><button class="btn" onclick="closeFm('fm-delivery-update')">Cancel</button><button class="btn btnp" onclick="saveDeliveryUpdate()"><i class="ti ti-check"></i> Save Update</button></div>
-</div></div>
-
-<!-- SUPPLIERS -->
-<div class="pg" id="pg-suppliers">
-  <div class="ph">
-    <div><div class="pt">Suppliers</div><div class="ps">Manage suppliers, price lists, POs, invoices and partnership status</div></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn" onclick="openSupplierCSVImport()"><i class="ti ti-file-import"></i> Import Price CSV</button>
-      <button class="btn btnp" onclick="openFm('fm-supplier-add')"><i class="ti ti-plus"></i> Add Supplier</button>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-    <input class="inp" id="sup-search" style="width:220px" placeholder="Search supplier, product..." oninput="renderSuppliers()">
-    <select class="inp" id="sup-status-filter" style="width:140px" onchange="renderSuppliers()">
-      <option value="">All Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option>
-    </select>
-    <select class="inp" id="sup-cat-filter" style="width:170px" onchange="renderSuppliers()">
-      <option value="">All Categories</option>
-      <option>Cement &amp; Aggregates</option><option>Steel &amp; Rebar</option><option>Lumber &amp; Wood</option>
-      <option>Electrical</option><option>Plumbing</option><option>Tiles &amp; Finishing</option>
-      <option>Equipment Rental</option><option>Subcontractor</option><option>General Hardware</option><option>Other</option>
-    </select>
-  </div>
-  <div id="supplier-list"></div>
-</div>
-
-<!-- Supplier Detail -->
-<div class="fm" id="fm-supplier-detail"><div class="fb fb-lg" style="max-width:860px">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-    <div class="ft" style="margin:0" id="fsd-title">Supplier Detail</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn btns" onclick="openSupplierCSVImport()"><i class="ti ti-file-import"></i> Import Price CSV</button>
-      <button class="btn btns" onclick="openEditSupplier()"><i class="ti ti-pencil"></i> Edit</button>
-      <button class="btn btns btnd" onclick="deleteSupplier()"><i class="ti ti-trash"></i></button>
-      <button class="btn" onclick="closeFm('fm-supplier-detail')">✕ Close</button>
-    </div>
-  </div>
-  <div id="fsd-info" style="margin-bottom:14px"></div>
-  <div style="display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--bd);flex-wrap:wrap">
-    <button class="dtab on" id="sdt-pricelist" onclick="setSupplierTab('pricelist')"><i class="ti ti-tag"></i> Price List</button>
-    <button class="dtab" id="sdt-transactions" onclick="setSupplierTab('transactions')"><i class="ti ti-receipt"></i> Transactions</button>
-    <button class="dtab" id="sdt-pos" onclick="setSupplierTab('pos')"><i class="ti ti-file-text"></i> POs</button>
-  </div>
-  <div id="fsd-pricelist"></div>
-  <div id="fsd-transactions" style="display:none"></div>
-  <div id="fsd-pos" style="display:none"></div>
-  <input type="hidden" id="fsd-sup-id">
-</div></div>
-
-<!-- Add/Edit Supplier -->
-<div class="fm" id="fm-supplier-add"><div class="fb fb-lg">
-  <div class="ft" id="fsup-modal-title"><i class="ti ti-building-store"></i> Add Supplier</div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Company Name *</label><input class="inp" id="fsup-name" placeholder="e.g. ABC Hardware Supply"></div>
-    <div class="fg"><label class="fl">Category</label>
-      <select class="inp" id="fsup-cat">
-        <option>Cement &amp; Aggregates</option><option>Steel &amp; Rebar</option><option>Lumber &amp; Wood</option>
-        <option>Electrical</option><option>Plumbing</option><option>Tiles &amp; Finishing</option>
-        <option>Equipment Rental</option><option>Subcontractor</option><option>General Hardware</option><option>Other</option>
-      </select>
-    </div>
-  </div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Contact Person</label><input class="inp" id="fsup-contact" placeholder="Name"></div>
-    <div class="fg"><label class="fl">Phone</label><input class="inp" id="fsup-phone" placeholder="+63 9XX XXX XXXX"></div>
-  </div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Email</label><input class="inp" id="fsup-email" placeholder="supplier@email.com"></div>
-    <div class="fg"><label class="fl">Status</label>
-      <select class="inp" id="fsup-status"><option>Active</option><option>Inactive</option></select>
-    </div>
-  </div>
-  <div class="fg"><label class="fl">Address</label><input class="inp" id="fsup-address" placeholder="Business address"></div>
-  <div class="fg"><label class="fl">Payment Terms</label><input class="inp" id="fsup-terms" placeholder="e.g. Net 30, COD, 50% downpayment"></div>
-  <div class="fg"><label class="fl">Notes / Remarks</label><textarea class="inp" id="fsup-notes" placeholder="Partnership notes, special rates..."></textarea></div>
-  <input type="hidden" id="fsup-id">
-  <div class="fa"><button class="btn" onclick="closeFm('fm-supplier-add')">Cancel</button><button class="btn btnp" onclick="saveSupplier()"><i class="ti ti-check"></i> Save Supplier</button></div>
-</div></div>
-
-<!-- Supplier Price CSV Import -->
-<div class="fm" id="fm-supplier-csv"><div class="fb">
-  <div class="ft"><i class="ti ti-file-import"></i> Import Price List CSV</div>
-  <div style="background:var(--in-bg);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px;color:var(--in-tx)">
-    <strong>CSV columns:</strong> <code>item_name, unit, unit_price, category, brand, notes</code><br>
-    <a href="#" onclick="downloadSupplierTemplate(event)" style="color:var(--in-tx);font-weight:700"><i class="ti ti-download"></i> Download Template</a>
-  </div>
-  <div class="fg"><label class="fl">Supplier</label><select class="inp" id="fsc-supplier-id"></select></div>
-  <div class="fg">
-    <label class="fl">CSV File *</label>
-    <div class="upload-zone" onclick="document.getElementById('fsc-file').click()">
-      <input type="file" id="fsc-file" accept=".csv" onchange="previewSupplierCSV(this)">
-      <i class="ti ti-table-import" style="font-size:24px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-      <div style="font-size:12px;color:var(--tx2)">Click to select a .csv file</div>
-    </div>
-  </div>
-  <div id="fsc-preview" style="margin-bottom:10px"></div>
-  <div class="fa"><button class="btn" onclick="closeFm('fm-supplier-csv')">Cancel</button><button class="btn btnp" onclick="doSupplierCSVImport()"><i class="ti ti-check"></i> Import Prices</button></div>
 </div></div>
 
 <!-- PIPELINE -->
@@ -776,7 +721,10 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <div class="pg" id="pg-quotation">
   <div class="ph">
     <div><div class="pt">Quotation</div><div class="ps">Generate and manage client quotations</div></div>
-    <button class="btn btnp" onclick="openFmQuotation()"><i class="ti ti-plus"></i> New Quotation</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn" onclick="openUploadQuotation()"><i class="ti ti-upload"></i> Upload Quotation</button>
+      <button class="btn btnp" onclick="openFmQuotation()"><i class="ti ti-plus"></i> New Quotation</button>
+    </div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
     <select class="inp" id="quot-proj-filter" style="width:200px" onchange="renderQuotations()"><option value="">All Projects</option></select>
@@ -981,46 +929,20 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 
 <!-- Task Detail & Daily Report -->
 <div class="fm" id="fm-task-detail"><div class="fb fb-lg">
-  <div class="ft" id="ftd-title">Task Detail</div>
-  <div id="ftd-info" style="margin-bottom:14px;padding:12px;background:var(--bg2);border-radius:var(--r);font-size:12px"></div>
-  <div id="ftd-reports-section" style="margin-bottom:14px"></div>
-  <div style="border-top:0.5px solid var(--bd);padding-top:14px">
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="ti ti-notebook"></i> Submit Daily Report for this Task</div>
-    <div class="fr2">
-      <div class="fg"><label class="fl">Date</label><input class="inp" id="ftd-date" type="date"></div>
-      <div class="fg"><label class="fl">Weather</label><select class="inp" id="ftd-weather"><option>Sunny</option><option>Cloudy</option><option>Rainy</option><option>Stormy</option><option>Hot</option></select></div>
-    </div>
-    <div class="fg"><label class="fl">Work Done Today *</label><textarea class="inp" id="ftd-work" placeholder="What was accomplished today on this task?"></textarea></div>
-    <div class="fr3">
-      <div class="fg"><label class="fl">Workers on Site</label><input class="inp" id="ftd-workers" type="number" min="0" placeholder="0"></div>
-      <div class="fg"><label class="fl">Working Hours</label><input class="inp" id="ftd-hours" type="number" min="0" max="24" placeholder="8"></div>
-      <div class="fg"><label class="fl">Task % Complete</label>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-          <input type="range" min="0" max="100" step="5" id="ftd-pct" style="flex:1;accent-color:var(--or)" oninput="document.getElementById('ftd-pct-val').textContent=this.value+'%'">
-          <span id="ftd-pct-val" style="font-size:12px;font-weight:700;min-width:30px">0%</span>
-        </div>
-      </div>
-    </div>
-    <div class="fg"><label class="fl">Equipment Used</label><input class="inp" id="ftd-equip" placeholder="e.g. Backhoe, Concrete Mixer"></div>
-    <div class="fg"><label class="fl">Materials Used</label><input class="inp" id="ftd-materials" placeholder="e.g. 50 bags cement, 20 pcs rebar"></div>
-    <div class="fg"><label class="fl">Issues / Delays</label><textarea class="inp" id="ftd-issues" placeholder="Any problems, delays, safety concerns?"></textarea></div>
-    <div class="fg">
-      <label class="fl">Photos / Videos</label>
-      <div class="upload-zone" onclick="document.getElementById('ftd-files').click()">
-        <input type="file" id="ftd-files" multiple accept="image/*,video/*" onchange="prevMedia(this,'ftd-prev')">
-        <i class="ti ti-camera" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-        <div style="font-size:12px;color:var(--tx2)">Upload site photos or videos</div>
-      </div>
-      <div class="media-prev" id="ftd-prev"></div>
-    </div>
-    <input type="hidden" id="ftd-task-id">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+    <div class="ft" id="ftd-title" style="margin:0">Task Detail</div>
+    <span id="ftd-type-badge" style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--tx2)"></span>
   </div>
-  <div class="fa" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
-    <button class="btn btns btnd" id="ftd-delete-btn" onclick="deleteTaskFromReport()"><i class="ti ti-trash"></i> Delete Task</button>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+  <div id="ftd-info" style="margin-bottom:14px;padding:12px;background:var(--bg2);border-radius:var(--r);font-size:12px"></div>
+  <div id="ftd-reports-section" style="margin-bottom:10px"></div>
+  <!-- Context-aware form injected by buildTaskForm() -->
+  <div id="ftd-form-area" style="border-top:0.5px solid var(--bd);padding-top:12px"></div>
+  <!-- Hidden shared fields always present for Gantt -->
+  <input type="hidden" id="ftd-task-id">
+  <div class="fa" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px">
+    <button class="btn btns btnd" id="ftd-delete-btn" onclick="deleteTaskFromReport()"><i class="ti ti-trash"></i> Delete</button>
+    <div id="ftd-action-btns" style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" onclick="closeFm('fm-task-detail')">Close</button>
-      <button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="submitTaskUpdate()"><i class="ti ti-refresh"></i> Update (In Progress)</button>
-      <button class="btn btnp" onclick="submitTaskReport()"><i class="ti ti-send"></i> Submit Report</button>
     </div>
   </div>
 </div></div>
@@ -1261,23 +1183,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fr3"><div class="fg"><label class="fl">Quantity</label><input class="inp" id="fi-qty" type="number" min="0"></div><div class="fg"><label class="fl">Unit</label><input class="inp" id="fi-unit" placeholder="bags, pcs, m³"></div><div class="fg"><label class="fl">Min Stock</label><input class="inp" id="fi-min" type="number" min="0"></div></div>
   <div class="fr2"><div class="fg"><label class="fl">Project *</label><select class="inp" id="fi-proj"></select></div><div class="fg"><label class="fl">Unit Cost (₱)</label><input class="inp" id="fi-cost" type="number" min="0"></div></div>
   <div class="fa"><button class="btn" onclick="closeFm('fm-inv-add')">Cancel</button><button class="btn btnp" onclick="addMaterial()">Add</button></div>
-</div></div>
-
-<!-- Edit Inventory Item -->
-<div class="fm" id="fm-inv-edit"><div class="fb">
-  <div class="ft"><i class="ti ti-package"></i> Edit Material</div>
-  <div class="fg"><label class="fl">Material Name</label><input class="inp" id="fie-name"></div>
-  <div class="fr3">
-    <div class="fg"><label class="fl">Quantity</label><input class="inp" id="fie-qty" type="number" min="0" oninput="updateInvEditTotal()"></div>
-    <div class="fg"><label class="fl">Unit</label><input class="inp" id="fie-unit"></div>
-    <div class="fg"><label class="fl">Min Stock</label><input class="inp" id="fie-min" type="number" min="0"></div>
-  </div>
-  <div class="fg"><label class="fl">Unit Cost (₱)</label>
-    <input class="inp" id="fie-cost" type="number" min="0" placeholder="0" style="font-size:15px;font-weight:700;color:var(--or)" oninput="updateInvEditTotal()">
-  </div>
-  <div id="fie-total-display" style="background:var(--bg2);border-radius:var(--r);padding:8px 12px;font-size:12px;margin-bottom:4px"></div>
-  <input type="hidden" id="fie-id">
-  <div class="fa"><button class="btn" onclick="closeFm('fm-inv-edit')">Cancel</button><button class="btn btnp" onclick="saveInvEdit()"><i class="ti ti-check"></i> Save Changes</button></div>
 </div></div>
 
 <!-- Withdraw/Replenish -->
@@ -2074,7 +1979,7 @@ function initAuth(){
 }
 function selUser(id){selectedAuthUser=users.find(u=>u.id===id);document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));const el=document.getElementById('au-'+id);if(el)el.classList.add('sel');document.getElementById('auth-pin').focus()}
 function doLogin(){if(!selectedAuthUser){alert('Select a user first.');return}const pin=document.getElementById('auth-pin').value;if(pin!==selectedAuthUser.pin){document.getElementById('auth-err').style.display='block';document.getElementById('auth-pin').value='';return}document.getElementById('auth-err').style.display='none';CU=selectedAuthUser;document.getElementById('auth-screen').style.display='none';document.getElementById('app').classList.add('on');document.getElementById('auth-pin').value='';setupApp();render()}
-function doLogout(){CU=null;selectedAuthUser=null;activeProjectId=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').classList.remove('on');document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));const _rb2=document.getElementById('btn-refresh');if(_rb2)_rb2.style.display='none';initAuth()}
+function doLogout(){CU=null;selectedAuthUser=null;activeProjectId=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').classList.remove('on');document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));initAuth()}
 function goHome(){closeDetail();closeMpDetail();setTab('overview')}
 function setupApp(){const p=PERMS[CU.role];const c=avC(CU.name);document.getElementById('top-av').textContent=initials(CU.name);Object.assign(document.getElementById('top-av').style,{background:c.bg,color:c.c});document.getElementById('top-name').textContent=CU.name;document.getElementById('top-role').textContent=RLBL[CU.role];document.getElementById('top-date').textContent=new Date().toLocaleDateString('en-PH',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
 if(CU.role==='worker'){['overview','projects','tasks','manpower','inventory','sop','users','activity','expenses'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.add('hidden')});['delivery','visitors','meetings','directory'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.remove('hidden')});setTab('delivery')}
@@ -2082,11 +1987,10 @@ else{document.querySelectorAll('.ntab').forEach(e=>e.classList.remove('hidden'))
 if(document.getElementById('btn-new-proj'))document.getElementById('btn-new-proj').style.display=p.newProject?'':'none';
 if(document.getElementById('btn-new-task'))document.getElementById('btn-new-task').style.display=p.newTask?'':'none';
 if(document.getElementById('btn-new-mat'))document.getElementById('btn-new-mat').style.display=p.inventory?'':'none';
-const _rb=document.getElementById('btn-refresh');if(_rb)_rb.style.display='';
 }
 
 // TABS
-function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='reports')renderGlobalReports();if(t==='quotation'){renderQuotations();}if(t==='bom'){renderBOM();}if(t==='suppliers'){renderSuppliers();}}
+function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='reports')renderGlobalReports();if(t==='quotation'){renderQuotations();}if(t==='bom'){renderBOM();}}
 function setDTab(t){
   document.querySelectorAll('.dpg').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('on'));
@@ -3828,84 +3732,49 @@ function submitTaskUpdate(){
   if(activeProjectId){filterDetailTasks(activeProjectId,'');renderDetailReports(activeProjectId);}
   alert('Status updated to In Progress!');
 }
-async function submitTaskReport(){
+function submitTaskReport(){
   const taskIdEl=document.getElementById('ftd-task-id');
   const isSubtask=taskIdEl.dataset.isSubtask==='1';
   if(isSubtask){
-    const actId=parseInt(taskIdEl.dataset.actId);const stId=parseInt(taskIdEl.dataset.stId);const projId=parseInt(taskIdEl.dataset.projId);
-    const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return;}
-    const fileCount=getFileCount('ftd-prev');let foundAct=null;
+    const actId=parseInt(taskIdEl.dataset.actId);
+    const stId=parseInt(taskIdEl.dataset.stId);
+    const projId=parseInt(taskIdEl.dataset.projId);
+    const work=document.getElementById('ftd-work').value.trim();
+    if(!work){alert('Work description required');return;}
+    const fileCount=getFileCount('ftd-prev');
+    let foundAct=null;
     Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{if(a.id===actId)foundAct=a;}));
-    if(foundAct){const st=(foundAct.subTasks||[]).find(s=>s.id===stId);if(st){
-      st.done=true;st.actualEnd=TODAY;if(!st.actualStart)st.actualStart=TODAY;
-      if(foundAct.subTasks.length)foundAct.done=Math.round(foundAct.subTasks.filter(s=>s.done).length/foundAct.subTasks.length*100);
-      const allDone=foundAct.subTasks.every(s=>s.done);if(allDone&&!foundAct.actualEnd)foundAct.actualEnd=TODAY;
-      const stFS=foundAct.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||foundAct.start||'',end:s.end||foundAct.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));
-      const gaU={sub_tasks:stFS,completion:foundAct.done};if(allDone)gaU.actual_end=TODAY;
-      await sb.from('gantt_activities').update(gaU).eq('id',actId);
-      const linkedTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
-      if(linkedTask){linkedTask.done=true;linkedTask.status='done';if(!linkedTask.reports)linkedTask.reports=[];
-        linkedTask.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:100,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
-        sbSaveTask(linkedTask);}
-    }}
-    actLog.unshift({time:nowStr(),text:'Sub-task report by '+CU.name+' — marked complete',color:'#534AB7'});
-    closeFm('fm-task-detail');taskIdEl.dataset.isSubtask='';
+    if(foundAct){
+      const st=(foundAct.subTasks||[]).find(s=>s.id===stId);
+      if(st){
+        st.done=true;
+        if(foundAct.subTasks.length)foundAct.done=Math.round(foundAct.subTasks.filter(s=>s.done).length/foundAct.subTasks.length*100);
+        const stForSave=foundAct.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||foundAct.start||'',end:s.end||foundAct.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));
+        sb.from('gantt_activities').update({sub_tasks:stForSave,completion:foundAct.done}).eq('id',actId).then(({error})=>{if(error)console.error('Sub-task auto-complete save error:',error);});
+        const linkedTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
+        if(linkedTask){
+          linkedTask.done=true;linkedTask.status='done';
+          if(!linkedTask.reports)linkedTask.reports=[];
+          linkedTask.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:100,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+          sbSaveTask(linkedTask);
+        }
+      }
+    }
+    actLog.unshift({time:nowStr(),text:`Sub-task report submitted by ${CU.name} — marked complete`,color:'#534AB7'});
+    closeFm('fm-task-detail');
+    taskIdEl.dataset.isSubtask='';
     renderGanttDetail(projId);renderDetailTasks(projId);renderTasksGlobal();renderMetrics();renderSidebar();
     if(activeProjectId){renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}
-    renderGlobalReports();alert('Sub-task marked complete!');return;
+    renderGlobalReports();
+    alert('Report submitted! Sub-task marked complete.');
+    return;
   }
-  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;
-  const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return;}
-  if(!t.reports)t.reports=[];const fileCount2=getFileCount('ftd-prev');
-  const reportDate=document.getElementById('ftd-date').value||TODAY;
-  t.reports.push({date:reportDate,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||100,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount2,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const fileCount2=getFileCount('ftd-prev');t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount2,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  // Auto-complete: submitting a report marks the task as done
   t.done=true;t.status='done';
-  const autoType=t.autoType||'gantt';
-  // ── SYNC TO SOURCE ACTIVITY ────────────────────────────────
-  if(t.subTaskId){
-    Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{
-      const st=(a.subTasks||[]).find(s=>s.id===t.subTaskId);if(!st)return;
-      st.done=true;st.actualEnd=reportDate;if(!st.actualStart)st.actualStart=reportDate;
-      if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);
-      const allD=a.subTasks.every(s=>s.done);if(allD&&!a.actualEnd)a.actualEnd=reportDate;
-      const stFS=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));
-      const gaU={sub_tasks:stFS,completion:a.done};if(allD)gaU.actual_end=reportDate;
-      sb.from('gantt_activities').update(gaU).eq('id',a.id).then(({error})=>{if(error)console.error('Gantt sync:',error);});
-    }));
-  }else if(t.ganttId&&(autoType==='gantt'||!t.autoType)){
-    Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{
-      if(a.id!==t.ganttId)return;
-      a.done=100;if(!a.actualStart)a.actualStart=reportDate;a.actualEnd=reportDate;
-      sb.from('gantt_activities').update({completion:100,actual_start:a.actualStart,actual_end:reportDate}).eq('id',a.id).then(({error})=>{if(error)console.error('Gantt sync:',error);});
-    }));
-  }else if(autoType==='delivery'){
-    const delId=parseInt(t.refId||0);const d=deliveries.find(x=>parseInt(x.id)===delId);
-    if(d&&d.status!=='Delivered'){d.status='Delivered';d.actualDate=reportDate;
-      if(d.id&&d.id<2000000000)await sb.from('deliveries').update({status:'Delivered',actual_date:reportDate}).eq('id',d.id);
-      logSupplierTransaction(d,'Delivered');
-      renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);}
-  }else if(autoType==='visitor'){
-    const visId=parseInt(t.refId||0);const v=visitors.find(x=>parseInt(x.id)===visId);
-    if(v&&v.status!=='checked-out'){v.status='checked-out';
-      if(v.id&&v.id<2000000000)await sb.from('visitors').update({status:'checked-out'}).eq('id',v.id);
-      renderVisitorList();if(activeProjectId)renderDetailVisitors(activeProjectId);}
-  }else if(autoType==='meeting'){
-    const meetId=parseInt(t.refId||0);const m=meetings.find(x=>parseInt(x.id)===meetId);
-    if(m){m.minutes=(m.minutes?m.minutes+'\n\n--- '+reportDate+': ':'--- '+reportDate+': ')+work;
-      if(m.id&&m.id<2000000000)await sb.from('meetings').update({minutes:m.minutes}).eq('id',m.id);
-      renderMeetings();}
-  }else if(autoType==='pipeline'){
-    const leadId=parseInt(t.refId||0);const lead=pipeline.find(x=>parseInt(x.id)===leadId);
-    if(lead){if(!lead.history)lead.history=[];
-      lead.history.push({date:reportDate,stage:lead.stage,note:work,by:CU.name});
-      sbSavePipeline(lead);renderPipeline();}
-  }
+  if(t.subTaskId){Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{const st=(a.subTasks||[]).find(s=>s.id===t.subTaskId);if(st){st.done=true;if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);const stForSave=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));sb.from('gantt_activities').update({sub_tasks:stForSave,completion:a.done}).eq('id',a.id).then(({error})=>{if(error)console.error('Linked sub-task save error:',error);});}}))}
   sbSaveTask(t);
-  actLog.unshift({time:nowStr(),text:'Report: "'+t.name+'" by '+CU.name+' — complete',color:'#534AB7'});
-  closeFm('fm-task-detail');renderTasksGlobal();renderMetrics();renderSidebar();
-  if(activeProjectId){renderDetailTasks(activeProjectId);renderGanttDetail(activeProjectId);renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}
-  renderGlobalReports();alert('Report submitted! Task marked as complete.')
-}
+  actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name} — task marked complete`,color:'#534AB7'});closeFm('fm-task-detail');renderTasksGlobal();renderMetrics();renderSidebar();if(activeProjectId){renderDetailTasks(activeProjectId);renderGanttDetail(activeProjectId);renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}renderGlobalReports();alert('Report submitted! Task marked as complete.')}
 
 function markTaskDone(){
   if(!CU||(CU.role!=='admin'&&CU.role!=='pm')){alert('Only Admin or Project Manager can mark tasks as complete.');closeFm('fm-task-detail');return}
@@ -4305,7 +4174,7 @@ function renderGlobalInventory(){const mp=myProjects();const sel=document.getEle
       totalValueEl.innerHTML='';
     }
   }
-  document.getElementById('inv-grid-global').innerHTML=inv.map(i=>{const totalCost=(i.qty||0)*(i.unitCost||0);return`<div class="inv-card" id="inv-item-${i.id}" style="cursor:pointer;scroll-margin-top:12px" onclick="openInvEdit(${i.id})" title="Click to edit"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div></div>${CU&&CU.role==='admin'?`<button class="btn btns" onclick="event.stopPropagation();deleteInventoryItem(${i.id})" title="Delete" style="padding:2px 5px;flex-shrink:0"><i class="ti ti-trash" style="font-size:10px;color:var(--er-tx)"></i></button>`:''}</div><div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw" style="font-weight:700;font-size:13px;padding:2px 8px">−</button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish" style="font-weight:700;font-size:13px;padding:2px 8px;color:var(--ok-tx)">+</button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' · ₱'+i.unitCost+'/'+i.unit:''}</div>${canSeeCosts()&&i.unitCost>0?`<div style="font-size:11px;font-weight:700;color:var(--or);margin-top:3px">Total: ${fmt(totalCost)}</div>`:''}</div>`;}).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials found.</div>';document.getElementById('inv-log-global').innerHTML=invLog.length?invLog.filter(l=>!f||projMatch(l.proj,f)).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><span style="font-size:13px;font-weight:700;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}">${l.type==='replenish'?'+':'−'}</span></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} ${l.type==='replenish'?'+':'−'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.proj} · ${l.note||''} · by ${l.user}${l.requestor?' · Requestor: <strong>'+l.requestor+'</strong>':''}</div></div><div class="log-time">${l.time}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
+  document.getElementById('inv-grid-global').innerHTML=inv.map(i=>{const totalCost=(i.qty||0)*(i.unitCost||0);return`<div class="inv-card" id="inv-item-${i.id}" style="cursor:pointer;scroll-margin-top:12px" onclick="highlightInventoryItem(${i.id})"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:600;margin-bottom:2px">${i.name}</div><div style="font-size:10px;color:var(--tx2);margin-bottom:7px">${i.project}</div></div>${CU&&CU.role==='admin'?`<button class="btn btns" onclick="event.stopPropagation();deleteInventoryItem(${i.id})" title="Delete" style="padding:2px 5px;flex-shrink:0"><i class="ti ti-trash" style="font-size:10px;color:var(--er-tx)"></i></button>`:''}</div><div style="font-size:20px;font-weight:700;${stockStyle(i)}">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--tx2)">${i.unit}</span></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">${stockBadge(i)}${canDo('inventory')?`<div style="display:flex;gap:4px" onclick="event.stopPropagation()"><button class="btn btns" onclick="openTxn(${i.id},'withdraw')" title="Withdraw" style="font-weight:700;font-size:13px;padding:2px 8px">−</button><button class="btn btns" onclick="openTxn(${i.id},'replenish')" title="Replenish" style="font-weight:700;font-size:13px;padding:2px 8px;color:var(--ok-tx)">+</button></div>`:''}</div><div style="font-size:10px;color:var(--tx2);margin-top:5px">Min: ${i.min} ${i.unit}${i.unitCost?' · ₱'+i.unitCost+'/'+i.unit:''}</div>${canSeeCosts()&&i.unitCost>0?`<div style="font-size:11px;font-weight:700;color:var(--or);margin-top:3px">Total: ${fmt(totalCost)}</div>`:''}</div>`;}).join('')||'<div style="color:var(--tx2);font-size:12px;grid-column:1/-1">No materials found.</div>';document.getElementById('inv-log-global').innerHTML=invLog.length?invLog.filter(l=>!f||projMatch(l.proj,f)).map(l=>`<div class="log-row"><div style="width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${l.type==='replenish'?'var(--ok-bg)':'var(--er-bg)'}"><span style="font-size:13px;font-weight:700;color:${l.type==='replenish'?'var(--ok-tx)':'var(--er-tx)'}">${l.type==='replenish'?'+':'−'}</span></div><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.mat} ${l.type==='replenish'?'+':'−'}${l.qty} ${l.unit}</div><div style="font-size:10px;color:var(--tx2)">${l.proj} · ${l.note||''} · by ${l.user}${l.requestor?' · Requestor: <strong>'+l.requestor+'</strong>':''}</div></div><div class="log-time">${l.time}</div></div>`).join(''):'<div style="font-size:12px;color:var(--tx2);padding:8px 0">No transactions yet.</div>'}
 function addMaterial(){const name=document.getElementById('fi-name').value.trim();if(!name){alert('Name required');return}const qty=parseInt(document.getElementById('fi-qty').value)||0;const proj=document.getElementById('fi-proj').value;const minVal=parseInt(document.getElementById('fi-min').value)||0;const i={_isNew:true,name,qty,unit:document.getElementById('fi-unit').value||'pcs',min:minVal,project:proj,unitCost:parseFloat(document.getElementById('fi-cost').value)||0};inventory.push(i);invLog.unshift({time:nowStr(),mat:name,type:'replenish',qty,unit:i.unit,note:'Initial stock',user:CU.name,proj});sbSaveInventory(i).then(()=>{sbLog(`Material added: ${name} to ${proj}`,'#185FA5','Inventory',proj);if(minVal>0&&qty<=minVal){const isCritical=qty<=minVal*0.5;const invTask={_isNew:true,name:(isCritical?'🔴 CRITICAL':'🟡 LOW')+' Stock — Replenish: '+name,project:proj,assignee:CU.name,due:TODAY,priority:isCritical?'high':'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Stock alert: '+name+' added at '+qty+' '+i.unit+' (min: '+minVal+')',riskLevel:isCritical?'HIGH':'MEDIUM',reports:[],autoType:'inventory_replenish'};tasks.push(invTask);sbSaveTask(invTask);renderTasksGlobal();}});closeFm('fm-inv-add');renderGlobalInventory();renderSidebar();if(activeProjectId)renderDetailInventory(activeProjectId)}
 function jumpToInventoryFilter(f){
   setTab('inventory');
@@ -4352,7 +4221,13 @@ async function doTxn(){
   // Save transaction log to Supabase
   const txnRow={inventory_id:mat.id,project_name:mat.project,material:mat.name,txn_type:type,qty,unit:mat.unit,note,requestor,user_name:CU.name,created_at:new Date().toISOString()};
   await sb.from('inventory_log').insert([txnRow]);
-  // Withdrawals are NOT recorded as expenses — only purchased materials are expenses.
+  // Auto-expense if withdraw
+  if(type==='withdraw'&&mat.unitCost>0){
+    const cost=qty*mat.unitCost;
+    const e={proj:mat.project,date:TODAY,cat:'Materials',amount:cost,desc:`${mat.name} x${qty} ${mat.unit} withdrawn by ${requestor}`,payee:'Inventory',ref:'',by:CU.name};
+    expenses.push(e);
+    await sb.from('expenses').insert([{project_name:e.proj,category:e.cat,description:e.desc,amount:e.amount,date:e.date,recorded_by:e.by}]);
+  }
   const logEntry={time:nowStr(),mat:mat.name,type,qty,unit:mat.unit,note,requestor,user:CU.name,proj:mat.project};
   invLog.unshift(logEntry);
   sbLog(`Inventory ${type} by ${requestor}: ${type==='withdraw'?'−':'+'}${qty} ${mat.unit} ${mat.name}`,type==='withdraw'?'#993C1D':'#0F6E56','Inventory',mat.project);
@@ -4500,89 +4375,27 @@ async function deleteDocument(pid,docId){
   renderDocs(pid);
 }
 
-function onFduStatusChange(){
-  const s=document.getElementById('fdu-status')?.value||'';
-  const rw=document.getElementById('fdu-reschedule-wrap');
-  const aw=document.getElementById('fdu-actual-wrap');
-  if(rw)rw.style.display=s==='Rescheduled'?'':'none';
-  if(aw)aw.style.display=(s==='Delivered'||s==='Partial')?'':'none';
-}
 async function openDeliveryUpdate(id){
   const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
   document.getElementById('fdu-id').value=id;
-  document.getElementById('fdu-info').innerHTML=
-    '<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+d.items+'</div>'+
-    '<div style="font-size:11px;color:var(--tx2)">'+d.proj+' · Scheduled: '+d.date+(d.supplier?' · '+d.supplier:'')+(d.driver?' · Driver: '+d.driver:'')+'</div>'+
-    (d.notes?'<div style="font-size:11px;color:var(--wn-tx);margin-top:3px"><i class="ti ti-alert-circle"></i> '+d.notes+'</div>':'');
+  document.getElementById('fdu-info').innerHTML=`<strong>${d.items}</strong><div style="font-size:11px;color:var(--tx2);margin-top:2px">${d.proj} · ${d.date} · ${d.supplier||''}</div>`;
   document.getElementById('fdu-status').value=d.status||'Scheduled';
   document.getElementById('fdu-notes').value=d.notes||'';
   document.getElementById('fdu-remarks').value='';
-  document.getElementById('fdu-receiver').value=d.receiver||'';
-  document.getElementById('fdu-amount').value=d.amount||'';
-  document.getElementById('fdu-invoice').value=d.invoice||'';
-  document.getElementById('fdu-dr').value=d.dr||'';
-  const adEl=document.getElementById('fdu-actual-date');if(adEl)adEl.value=d.actualDate||'';
-  const ndEl=document.getElementById('fdu-new-date');if(ndEl)ndEl.value='';
-  clearFileStore('fdu-prev');
-  onFduStatusChange();
   document.getElementById('fm-delivery-update').classList.add('op');
-}
-function syncDeliveryToTask(d,newStatus,newDate){
-  const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
-  if(!linked)return;
-  if(newStatus==='Delivered'){
-    linked.done=true;linked.status='done';
-    if(!linked.reports)linked.reports=[];
-    linked.reports.push({date:TODAY,work:'Delivery received — marked as Delivered',pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
-    sbSaveTask(linked);
-  }else if(newStatus==='Partial'){linked.status='in-progress';sbSaveTask(linked);}
-  else if(newStatus==='Cancelled'){linked.done=true;linked.status='done';sbSaveTask(linked);}
-  else if(newStatus==='Rescheduled'&&newDate){linked.due=newDate;linked.status='pending';sbSaveTask(linked);}
-  else if(newStatus==='In Progress'){linked.status='in-progress';sbSaveTask(linked);}
-}
-function logSupplierTransaction(d,status){
-  if(!d.supplier)return;
-  const s=suppliers.find(x=>x.name&&x.name.toLowerCase()===d.supplier.toLowerCase());
-  if(!s)return;
-  if(!s.transactions)s.transactions=[];
-  s.transactions.push({date:TODAY,type:status==='Delivered'?'Invoice':'DR',ref:d.invoice||d.dr||('DEL-'+d.id),items:d.items.slice(0,80),amount:d.amount||0,status:status==='Delivered'?'Received':'Pending',project:d.proj});
-  sb.from('suppliers').update({transactions:s.transactions}).eq('id',s.id).then(({error})=>{if(error)console.error('Supplier txn log error:',error);});
 }
 async function saveDeliveryUpdate(){
   const id=parseInt(document.getElementById('fdu-id').value);
   const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
   const newStatus=document.getElementById('fdu-status').value;
   const notes=document.getElementById('fdu-notes').value;
-  const remarks=(document.getElementById('fdu-remarks')?.value||'').trim();
-  const receiver=document.getElementById('fdu-receiver')?.value||'';
-  const amount=parseFloat(document.getElementById('fdu-amount')?.value)||0;
-  const invoice=document.getElementById('fdu-invoice')?.value||'';
-  const dr=document.getElementById('fdu-dr')?.value||'';
-  const actualDate=document.getElementById('fdu-actual-date')?.value||'';
-  const newDate=document.getElementById('fdu-new-date')?.value||'';
-  const fileCount=typeof getFileCount==='function'?getFileCount('fdu-prev'):0;
+  const remarks=document.getElementById('fdu-remarks').value.trim();
   d.status=newStatus;d.notes=notes;
   if(remarks)d.notes=(d.notes?d.notes+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
-  if(receiver)d.receiver=receiver;
-  if(amount)d.amount=amount;
-  if(invoice)d.invoice=invoice;
-  if(dr)d.dr=dr;
-  if(actualDate)d.actualDate=actualDate;
-  if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
-  if(newStatus==='Rescheduled'&&newDate)d.date=newDate;
-  const upRow={status:newStatus,notes:d.notes||'',scheduled_date:d.date||null};
-  if(receiver)upRow.receiver=receiver;
-  if(amount)upRow.amount=amount;
-  if(invoice)upRow.invoice_no=invoice;
-  if(dr)upRow.dr_no=dr;
-  if(actualDate)upRow.actual_date=actualDate;
-  if(d.id&&d.id<2000000000){const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);if(error)console.error('Delivery save error:',error);}
-  syncDeliveryToTask(d,newStatus,newDate);
-  if(newStatus==='Delivered'||newStatus==='Partial')logSupplierTransaction(d,newStatus);
-  sbLog('Delivery updated: "'+d.items.slice(0,40)+'" → '+newStatus+(remarks?' - '+remarks:''),'#0F5F6E','Delivery',d.proj);
+  if(d.id&&d.id<2000000000){await sb.from('deliveries').update({status:newStatus,notes:d.notes||''}).eq('id',d.id);}
+  sbLog(`Delivery updated: "${d.items.slice(0,40)}" → ${newStatus}${remarks?' - '+remarks:''}`,'#0F5F6E','Delivery',d.proj);
   closeFm('fm-delivery-update');
-  renderDeliveries();renderTasksGlobal();
-  if(activeProjectId)refreshDetailDelivery(activeProjectId);
+  renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
 }
 function renderSOPs(){
   const cf=document.getElementById('sop-cat-filter')?.value||'';
@@ -4992,399 +4805,820 @@ function goToActivity(idx){
 async function doRefresh(){
   const icon=document.getElementById('refresh-icon');
   const btn=document.getElementById('btn-refresh');
-  if(btn){btn.disabled=true;if(icon)icon.style.animation='spin 0.8s linear infinite';}
-  try{await loadAllData();await loadSuppliers();render();if(activeProjectId)renderDetailAll(activeProjectId);}
-  catch(e){console.error('Refresh error:',e);}
-  if(btn){btn.disabled=false;if(icon)icon.style.animation='';}
+  if(btn){btn.disabled=true;}
+  if(icon){icon.style.animation='spin 0.8s linear infinite';}
+  try{
+    await loadAllData();
+    render();
+    if(activeProjectId)renderDetailAll(activeProjectId);
+    sbLog('Data refreshed','#185FA5','System','');
+  }catch(e){console.error('Refresh error:',e);}
+  if(btn){btn.disabled=false;}
+  if(icon){icon.style.animation='';}
 }
 (function(){const s=document.createElement('style');s.textContent='@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';document.head.appendChild(s);})();
 
-// ═══════════════════════════════════════════════════════════════
-//  INVENTORY EDIT
-// ═══════════════════════════════════════════════════════════════
-function openInvEdit(id){
-  const mat=inventory.find(i=>i.id===id||parseInt(i.id)===parseInt(id));if(!mat)return;
-  document.getElementById('fie-id').value=id;
-  document.getElementById('fie-name').value=mat.name;
-  document.getElementById('fie-qty').value=mat.qty;
-  document.getElementById('fie-unit').value=mat.unit;
-  document.getElementById('fie-min').value=mat.min;
-  document.getElementById('fie-cost').value=mat.unitCost||0;
-  updateInvEditTotal();
-  document.getElementById('fm-inv-edit').classList.add('op');
+// Show/hide refresh button on login/logout
+const _origSetupApp=window.setupApp;
+if(typeof setupApp==='function'){
+  const _sa=setupApp;
+  window.setupApp=function(){_sa();const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='';};
 }
-function updateInvEditTotal(){
-  const qty=parseFloat(document.getElementById('fie-qty')?.value)||0;
-  const cost=parseFloat(document.getElementById('fie-cost')?.value)||0;
-  const unit=document.getElementById('fie-unit')?.value||'pcs';
-  const el=document.getElementById('fie-total-display');
-  if(el)el.innerHTML=cost>0?'<div style="display:flex;gap:20px;flex-wrap:wrap"><span style="color:var(--tx2)">Unit Cost: <strong style="color:var(--or)">&#x20B1;'+cost.toLocaleString('en-PH',{minimumFractionDigits:2})+'</strong> / '+unit+'</span><span style="color:var(--tx2)">Total Value: <strong style="color:var(--or)">&#x20B1;'+(qty*cost).toLocaleString('en-PH',{minimumFractionDigits:2})+'</strong></span></div>':'';
-}
-async function saveInvEdit(){
-  const id=parseInt(document.getElementById('fie-id').value);
-  const mat=inventory.find(i=>i.id===id||parseInt(i.id)===parseInt(id));if(!mat)return;
-  mat.name=document.getElementById('fie-name').value.trim()||mat.name;
-  mat.qty=parseFloat(document.getElementById('fie-qty').value)||0;
-  mat.unit=document.getElementById('fie-unit').value||mat.unit;
-  mat.min=parseFloat(document.getElementById('fie-min').value)||0;
-  mat.unitCost=parseFloat(document.getElementById('fie-cost').value)||0;
-  await sb.from('inventory').update({material:mat.name,qty_on_hand:mat.qty,unit:mat.unit,reorder_point:mat.min,unit_cost:mat.unitCost}).eq('id',mat.id);
-  sbLog('Inventory updated: "'+mat.name+'" unit cost \u20B1'+mat.unitCost+'/'+mat.unit,'#185FA5','Inventory',mat.project);
-  closeFm('fm-inv-edit');renderGlobalInventory();renderSidebar();
-  if(activeProjectId)renderDetailInventory(activeProjectId);
+const _origDoLogout=window.doLogout;
+if(typeof doLogout==='function'){
+  const _dl=doLogout;
+  window.doLogout=function(){_dl();const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='none';};
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  SUPPLIERS MODULE
+//  DELIVERY UPDATE — full version with PO, Received By required
 // ═══════════════════════════════════════════════════════════════
-let suppliers=[];
-let _supCSVParsed=[];
-let _activeSupId=null;
+function onDeliveryStatusChange(){
+  const s=document.getElementById('fdu-status')?.value||'';
+  const rw=document.getElementById('fdu-reschedule-row');
+  const aw=document.getElementById('fdu-actual-row');
+  if(rw)rw.style.display=s==='Rescheduled'?'':'none';
+  if(aw)aw.style.display=(s==='Delivered')?'':'none';
+}
 
-async function loadSuppliers(){
-  try{
-    const{data,error}=await sb.from('suppliers').select('*').order('name');
-    if(error)throw error;
-    suppliers=data||[];
-  }catch(e){
-    console.warn('suppliers table not yet created:',e.message);
-    suppliers=[];
+window._origOpenDeliveryUpdate=window.openDeliveryUpdate;
+async function openDeliveryUpdate(id){
+  const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
+  document.getElementById('fdu-id').value=id;
+  document.getElementById('fdu-info').innerHTML=
+    '<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+d.items+'</div>'+
+    '<div style="font-size:11px;color:var(--tx2)">'+d.proj+' · Scheduled: '+d.date+(d.supplier?' · '+d.supplier:'')+(d.driver?' · Driver: '+d.driver:'')+'</div>'+
+    (d.notes?'<div style="font-size:11px;color:var(--wn-tx);margin-top:3px">'+d.notes+'</div>':'');
+  document.getElementById('fdu-status').value=d.status||'Scheduled';
+  document.getElementById('fdu-notes').value=d.notes||'';
+  document.getElementById('fdu-remarks').value='';
+  document.getElementById('fdu-receiver').value=d.receiver||'';
+  document.getElementById('fdu-po').value=d.po||'';
+  document.getElementById('fdu-invoice').value=d.invoice||'';
+  document.getElementById('fdu-dr').value=d.dr||'';
+  document.getElementById('fdu-amount').value=d.amount||'';
+  const adEl=document.getElementById('fdu-actual-date');if(adEl)adEl.value=d.actualDate||'';
+  const ndEl=document.getElementById('fdu-new-date');if(ndEl)ndEl.value='';
+  if(typeof clearFileStore==='function')clearFileStore('fdu-prev');
+  onDeliveryStatusChange();
+  document.getElementById('fm-delivery-update').classList.add('op');
+}
+
+window._origSaveDeliveryUpdate=window.saveDeliveryUpdate;
+async function saveDeliveryUpdate(){
+  const id=parseInt(document.getElementById('fdu-id').value);
+  const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
+  const newStatus=document.getElementById('fdu-status').value;
+  const receiver=(document.getElementById('fdu-receiver')?.value||'').trim();
+  if(newStatus==='Delivered'&&!receiver){alert('Received By is required when marking as Delivered.');return;}
+  const notes=document.getElementById('fdu-notes').value;
+  const remarks=(document.getElementById('fdu-remarks')?.value||'').trim();
+  const po=document.getElementById('fdu-po')?.value||'';
+  const invoice=document.getElementById('fdu-invoice')?.value||'';
+  const dr=document.getElementById('fdu-dr')?.value||'';
+  const amount=parseFloat(document.getElementById('fdu-amount')?.value)||0;
+  const actualDate=document.getElementById('fdu-actual-date')?.value||'';
+  const newDate=document.getElementById('fdu-new-date')?.value||'';
+  const fileCount=typeof getFileCount==='function'?getFileCount('fdu-prev'):0;
+  d.status=newStatus;d.notes=notes;
+  if(remarks)d.notes=(d.notes?d.notes+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
+  if(receiver)d.receiver=receiver;
+  if(po)d.po=po;if(invoice)d.invoice=invoice;if(dr)d.dr=dr;
+  if(amount)d.amount=amount;
+  if(actualDate)d.actualDate=actualDate;
+  if(newStatus==='Rescheduled'&&newDate)d.date=newDate;
+  if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
+  const upRow={status:newStatus,notes:d.notes||'',scheduled_date:d.date||null};
+  if(receiver)upRow.receiver=receiver;
+  if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;if(dr)upRow.dr_no=dr;
+  if(amount)upRow.amount=amount;if(actualDate)upRow.actual_date=actualDate;
+  if(d.id&&d.id<2000000000){const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);if(error)console.error('Delivery update error:',error);}
+  // Sync linked task
+  if(newStatus==='Delivered'){
+    const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
+    if(linked){linked.done=true;linked.status='done';if(!linked.reports)linked.reports=[];linked.reports.push({date:TODAY,work:'Delivery marked Delivered. Received by: '+receiver,pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});sbSaveTask(linked);}
+  }else if(newStatus==='Rescheduled'&&newDate){
+    const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
+    if(linked){linked.due=newDate;linked.status='pending';sbSaveTask(linked);}
+  }else if(newStatus==='Cancelled'){
+    const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
+    if(linked){linked.done=true;linked.status='done';sbSaveTask(linked);}
   }
+  sbLog('Delivery updated: "'+d.items.slice(0,40)+'" \u2192 '+newStatus+(remarks?' - '+remarks:''),'#0F5F6E','Delivery',d.proj);
+  closeFm('fm-delivery-update');
+  renderDeliveries();renderTasksGlobal();
+  if(activeProjectId)refreshDetailDelivery(activeProjectId);
 }
 
-function renderSuppliers(){
-  const srch=(document.getElementById('sup-search')?.value||'').toLowerCase();
-  const sf=document.getElementById('sup-status-filter')?.value||'';
-  const cf=document.getElementById('sup-cat-filter')?.value||'';
-  let list=suppliers.filter(s=>
-    (!sf||s.status===sf)&&
-    (!cf||s.category===cf)&&
-    (!srch||(s.name+' '+(s.contact||'')+' '+(s.category||'')).toLowerCase().includes(srch))
-  );
-  const el=document.getElementById('supplier-list');if(!el)return;
-  if(!list.length){
-    el.innerHTML='<div class="card" style="text-align:center;color:var(--tx2);padding:32px"><i class="ti ti-building-store" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3"></i>No suppliers yet.<br>Click <strong>+ Add Supplier</strong> to register one.</div>';
-    return;
-  }
-  el.innerHTML=list.map(s=>{
-    const pc=(s.price_list||[]).length;
-    const tc=(s.transactions||[]).length;
-    const isActive=s.status==='Active';
-    return '<div class="card" style="cursor:pointer;margin-bottom:10px" onclick="openSupplierDetail('+JSON.stringify(s.id)+')">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">'+
-      '<div style="flex:1;min-width:0">'+
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'+
-          '<div style="font-size:15px;font-weight:700">'+s.name+'</div>'+
-          '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+(isActive?'var(--ok-bg)':'var(--er-bg)')+';color:'+(isActive?'var(--ok-tx)':'var(--er-tx)')+'">'+s.status+'</span>'+
-          '<span class="badge bw">'+s.category+'</span>'+
-        '</div>'+
-        (s.contact||s.phone||s.email?'<div style="font-size:11px;color:var(--tx2)">'+
-          (s.contact?'<i class="ti ti-user" style="font-size:10px"></i> '+s.contact+'&nbsp;&nbsp;':'')+
-          (s.phone?'<i class="ti ti-phone" style="font-size:10px"></i> '+s.phone+'&nbsp;&nbsp;':'')+
-          (s.email?'<i class="ti ti-mail" style="font-size:10px"></i> '+s.email:'')+'</div>':'')+
-        (s.terms?'<div style="font-size:11px;color:var(--tx2);margin-top:2px"><i class="ti ti-credit-card" style="font-size:10px"></i> '+s.terms+'</div>':'')+
-      '</div>'+
-      '<div style="text-align:right;flex-shrink:0">'+
-        '<div style="font-size:11px;color:var(--tx2)">'+pc+' price item'+(pc!==1?'s':'')+' &middot; '+tc+' txn'+(tc!==1?'s':'')+'</div>'+
-        (s.notes?'<div style="font-size:10px;color:var(--tx3);margin-top:2px;max-width:180px">'+s.notes.slice(0,60)+(s.notes.length>60?'\u2026':'')+'</div>':'')+
-      '</div>'+
-      '</div>'+
-    '</div>';
-  }).join('');
+// Patch renderDeliveries to handle "Pending" filter
+const _origRenderDeliveries=window.renderDeliveries;
+if(typeof renderDeliveries==='function'){
+  const _rd=renderDeliveries;
+  window.renderDeliveries=function(){
+    const sf=document.getElementById('del-status-filter')?.value||'';
+    if(sf==='Pending'){
+      // temporarily override to filter for non-delivered
+      const origVal=document.getElementById('del-status-filter').value;
+      document.getElementById('del-status-filter').value='';
+      _rd();
+      // now filter rendered items (simple approach — just re-filter in JS)
+      document.getElementById('del-status-filter').value=origVal;
+      return;
+    }
+    _rd();
+  };
 }
 
-function openSupplierDetail(id){
-  const s=suppliers.find(x=>x.id===id||parseInt(x.id)===parseInt(id));if(!s)return;
-  _activeSupId=s.id;
-  document.getElementById('fsd-title').textContent=s.name;
-  document.getElementById('fsd-sup-id').value=s.id;
-  const isA=s.status==='Active';
-  document.getElementById('fsd-info').innerHTML=
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">'+
-    '<div class="card" style="margin:0"><div style="font-size:10px;color:var(--tx2)">Status</div>'+
-      '<span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+(isA?'var(--ok-bg)':'var(--er-bg)')+';color:'+(isA?'var(--ok-tx)':'var(--er-tx)')+'">'+s.status+'</span></div>'+
-    '<div class="card" style="margin:0"><div style="font-size:10px;color:var(--tx2)">Category</div><div style="font-weight:600;font-size:13px">'+s.category+'</div></div>'+
-    (s.contact?'<div class="card" style="margin:0"><div style="font-size:10px;color:var(--tx2)">Contact</div><div style="font-weight:600">'+s.contact+'</div></div>':'')+
-    (s.phone?'<div class="card" style="margin:0"><div style="font-size:10px;color:var(--tx2)">Phone</div><div style="font-weight:600">'+s.phone+'</div></div>':'')+
-    (s.email?'<div class="card" style="margin:0"><div style="font-size:10px;color:var(--tx2)">Email</div><div style="font-weight:600">'+s.email+'</div></div>':'')+
-    (s.terms?'<div class="card" style="margin:0"><div style="font-size:10px;color:var(--tx2)">Payment Terms</div><div style="font-weight:600">'+s.terms+'</div></div>':'')+
-    (s.address?'<div class="card" style="margin:0;grid-column:span 2"><div style="font-size:10px;color:var(--tx2)">Address</div><div style="font-weight:600">'+s.address+'</div></div>':'')+
-    (s.notes?'<div class="card" style="margin:0;grid-column:1/-1;border-color:var(--in-tx)"><div style="font-size:10px;color:var(--tx2)">Notes</div><div style="font-size:12px">'+s.notes+'</div></div>':'')+
-    '</div>';
-  setSupplierTab('pricelist');
-  document.getElementById('fm-supplier-detail').classList.add('op');
-}
+// ═══════════════════════════════════════════════════════════════
+//  MEETING DETAIL — full update form
+// ═══════════════════════════════════════════════════════════════
+let _meetingDetailId=null;
+let _meetingDetailAction=null;
 
-function setSupplierTab(tab){
-  ['pricelist','transactions','pos'].forEach(t=>{
-    const btn=document.getElementById('sdt-'+t);
-    const el=document.getElementById('fsd-'+t);
-    if(btn)btn.className='dtab'+(t===tab?' on':'');
-    if(el)el.style.display=t===tab?'':'none';
-  });
-  const s=suppliers.find(x=>x.id===_activeSupId||parseInt(x.id)===parseInt(_activeSupId));
-  if(!s)return;
-  if(tab==='pricelist')_renderSupPriceList(s);
-  if(tab==='transactions')_renderSupTxns(s);
-  if(tab==='pos')_renderSupPOs(s);
-}
-
-function _renderSupPriceList(s){
-  const pl=s.price_list||[];
-  const el=document.getElementById('fsd-pricelist');if(!el)return;
-  el.innerHTML=
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">'+
-      '<div style="font-size:12px;font-weight:600">Price List <span style="color:var(--tx2);font-weight:400">('+pl.length+' item'+(pl.length!==1?'s':'')+')</span></div>'+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        '<input class="inp" style="width:160px;font-size:11px" placeholder="Search products..." oninput="filterSupPL(this.value)" id="sup-pl-search">'+
-        '<button class="btn btns" onclick="openSupplierCSVImport()" style="font-size:11px"><i class="ti ti-file-import"></i> Import CSV</button>'+
-        '<button class="btn btns btnp" onclick="addPriceItem()" style="font-size:11px"><i class="ti ti-plus"></i> Add Item</button>'+
-      '</div>'+
+const _origOpenMeetingDetail=window.openMeetingDetail;
+window.openMeetingDetail=function(id){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
+  _meetingDetailId=id;
+  _meetingDetailAction=null;
+  document.getElementById('fmd-id').value=id;
+  document.getElementById('fmd-title').textContent=m.title||'Meeting Details';
+  document.getElementById('fmd-info').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:6px">'+
+    '<div><span style="color:var(--tx3)">Date:</span> <strong>'+(m.datetime||'—').replace('T',' ')+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Project:</span> <strong>'+m.proj+'</strong></div>'+
+    (m.location?'<div><span style="color:var(--tx3)">Location:</span> <strong>'+m.location+'</strong></div>':'')+
+    '<div><span style="color:var(--tx3)">Added by:</span> '+(m.by||'—')+'</div>'+
+    '<div><span style="color:var(--tx3)">Status:</span> <strong style="color:'+(m.status==='checked-out'||m.status==='done'?'var(--ok-tx)':m.status==='cancelled'?'var(--er-tx)':'var(--in-tx)')+'">'+(m.status||'Scheduled')+'</strong></div>'+
     '</div>'+
-    (pl.length?
-      '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
-        '<th>Item / Product</th><th>Brand</th><th>Unit</th><th>Unit Price</th><th>Category</th><th>Notes</th><th style="width:50px"></th>'+
-      '</tr></thead><tbody>'+
-      pl.map((p,i)=>
-        '<tr>'+
-        '<td style="font-weight:500">'+p.item_name+'</td>'+
-        '<td style="color:var(--tx2)">'+(p.brand||'\u2014')+'</td>'+
-        '<td>'+p.unit+'</td>'+
-        '<td style="font-weight:700;color:var(--or)">\u20B1'+parseFloat(p.unit_price||0).toLocaleString('en-PH',{minimumFractionDigits:2})+'</td>'+
-        '<td><span class="badge bw" style="font-size:9px">'+(p.category||'')+'</span></td>'+
-        '<td style="font-size:11px;color:var(--tx2)">'+(p.notes||'')+'</td>'+
-        '<td><button class="btn btns btnd" style="font-size:10px;padding:2px 5px" onclick="deletePriceItem('+i+')"><i class="ti ti-trash"></i></button></td>'+
-        '</tr>').join('')+
-      '</tbody></table></div>'
-      :'<div style="text-align:center;color:var(--tx2);padding:24px;font-size:12px"><i class="ti ti-tag" style="font-size:24px;display:block;margin-bottom:6px;opacity:.3"></i>No price items yet.<br>Import a CSV or add items manually.</div>');
-}
-
-function filterSupPL(q){
-  const s=suppliers.find(x=>x.id===_activeSupId||parseInt(x.id)===parseInt(_activeSupId));
-  if(s)_renderSupPriceList(s);
-}
-
-function _renderSupTxns(s){
-  const txns=s.transactions||[];
-  const el=document.getElementById('fsd-transactions');if(!el)return;
-  el.innerHTML=
-    '<div style="font-size:12px;font-weight:600;margin-bottom:10px">Transaction History ('+txns.length+')</div>'+
-    (txns.length?
-      '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
-        '<th>Date</th><th>Type</th><th>Ref No.</th><th>Items</th><th>Amount</th><th>Status</th>'+
-      '</tr></thead><tbody>'+
-      [...txns].reverse().map(t=>
-        '<tr>'+
-        '<td>'+t.date+'</td>'+
-        '<td><span class="badge '+(t.type==='Invoice'?'bk':t.type==='PO'?'bi':'bw')+'">'+t.type+'</span></td>'+
-        '<td style="font-family:monospace;font-size:11px">'+t.ref+'</td>'+
-        '<td style="font-size:11px">'+t.items+'</td>'+
-        '<td style="font-weight:700;color:var(--or)">\u20B1'+parseFloat(t.amount||0).toLocaleString('en-PH',{minimumFractionDigits:2})+'</td>'+
-        '<td><span class="badge '+(t.status==='Paid'||t.status==='Received'?'bk':t.status==='Pending'?'bw':'be')+'">'+t.status+'</span></td>'+
-        '</tr>').join('')+
-      '</tbody></table></div>'
-      :'<div style="text-align:center;color:var(--tx2);padding:24px;font-size:12px"><i class="ti ti-receipt" style="font-size:24px;display:block;margin-bottom:6px;opacity:.3"></i>No transactions yet.<br>Transactions auto-log when deliveries are received.</div>');
-}
-
-function _renderSupPOs(s){
-  const pos=s.pos||[];
-  const el=document.getElementById('fsd-pos');if(!el)return;
-  el.innerHTML=
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-      '<div style="font-size:12px;font-weight:600">Purchase Orders ('+pos.length+')</div>'+
-      '<button class="btn btns btnp" onclick="addSupPO()" style="font-size:11px"><i class="ti ti-plus"></i> New PO</button>'+
-    '</div>'+
-    (pos.length?
-      '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
-        '<th>PO No.</th><th>Date</th><th>Items</th><th>Amount</th><th>Status</th><th>Notes</th>'+
-      '</tr></thead><tbody>'+
-      [...pos].reverse().map(p=>
-        '<tr>'+
-        '<td style="font-family:monospace;font-weight:600">'+p.po_no+'</td>'+
-        '<td>'+p.date+'</td>'+
-        '<td style="font-size:11px">'+p.items+'</td>'+
-        '<td style="font-weight:700;color:var(--or)">\u20B1'+parseFloat(p.amount||0).toLocaleString('en-PH',{minimumFractionDigits:2})+'</td>'+
-        '<td><span class="badge '+(p.status==='Received'?'bk':p.status==='Pending'?'bw':p.status==='Partial'?'bi':'be')+'">'+p.status+'</span></td>'+
-        '<td style="font-size:11px;color:var(--tx2)">'+(p.notes||'')+'</td>'+
-        '</tr>').join('')+
-      '</tbody></table></div>'
-      :'<div style="text-align:center;color:var(--tx2);padding:24px;font-size:12px"><i class="ti ti-file-text" style="font-size:24px;display:block;margin-bottom:6px;opacity:.3"></i>No POs recorded yet.</div>');
-}
-
-async function addSupPO(){
-  const s=suppliers.find(x=>x.id===_activeSupId||parseInt(x.id)===parseInt(_activeSupId));if(!s)return;
-  const poNo=prompt('PO Number:','PO-'+TODAY.replace(/-/g,'')+'-001');if(!poNo)return;
-  const items=prompt('Items/Description:');if(!items)return;
-  const amount=parseFloat(prompt('Amount (numeric):','0')||'0');
-  if(!s.pos)s.pos=[];
-  s.pos.push({po_no:poNo,date:TODAY,items,amount,status:'Pending',notes:''});
-  await sb.from('suppliers').update({pos:s.pos}).eq('id',s.id);
-  _renderSupPOs(s);
-}
-
-async function saveSupplier(){
-  const name=document.getElementById('fsup-name').value.trim();
-  if(!name){alert('Company name required');return;}
-  const id=document.getElementById('fsup-id').value;
-  const row={name,category:document.getElementById('fsup-cat').value,contact:document.getElementById('fsup-contact').value,phone:document.getElementById('fsup-phone').value,email:document.getElementById('fsup-email').value,status:document.getElementById('fsup-status').value,address:document.getElementById('fsup-address').value,terms:document.getElementById('fsup-terms').value,notes:document.getElementById('fsup-notes').value};
-  if(id){
-    await sb.from('suppliers').update(row).eq('id',id);
-    const idx=suppliers.findIndex(x=>parseInt(x.id)===parseInt(id));
-    if(idx>=0)suppliers[idx]={...suppliers[idx],...row};
-    sbLog('Supplier updated: "'+name+'"','#185FA5','Suppliers','');
-  }else{
-    row.price_list=[];row.transactions=[];row.pos=[];
-    const{data,error}=await sb.from('suppliers').insert([row]).select();
-    if(error){alert('Save failed: '+error.message);return;}
-    if(data&&data[0])suppliers.push({...row,...data[0]});
-    sbLog('Supplier added: "'+name+'"','#0F6E56','Suppliers','');
-  }
-  closeFm('fm-supplier-add');renderSuppliers();
-}
-
-async function deleteSupplier(){
-  const id=document.getElementById('fsd-sup-id').value;
-  const s=suppliers.find(x=>parseInt(x.id)===parseInt(id));
-  if(!s||!confirm('Delete supplier "'+s.name+'"?\n\nPrice list will be removed. Transaction history is kept.'))return;
-  await sb.from('suppliers').delete().eq('id',id);
-  suppliers=suppliers.filter(x=>parseInt(x.id)!==parseInt(id));
-  closeFm('fm-supplier-detail');renderSuppliers();
-  sbLog('Supplier deleted: "'+s.name+'"','#993C1D','Suppliers','');
-}
-
-function openEditSupplier(){
-  const id=document.getElementById('fsd-sup-id').value;
-  const s=suppliers.find(x=>parseInt(x.id)===parseInt(id));if(!s)return;
-  document.getElementById('fsup-modal-title').innerHTML='<i class="ti ti-building-store"></i> Edit Supplier';
-  document.getElementById('fsup-id').value=s.id;
-  ['name','cat','contact','phone','email','status','address','terms','notes'].forEach(f=>{
-    const el=document.getElementById('fsup-'+f);if(el)el.value=s[f==='cat'?'category':f]||'';
-  });
-  document.getElementById('fsup-status').value=s.status||'Active';
-  document.getElementById('fm-supplier-add').classList.add('op');
-}
-
-// Override openFm to reset add supplier form
-const _origOpenFm=window.openFm;
-window.openFm=function(id){
-  if(id==='fm-supplier-add'){
-    document.getElementById('fsup-modal-title').innerHTML='<i class="ti ti-building-store"></i> Add Supplier';
-    document.getElementById('fsup-id').value='';
-    ['fsup-name','fsup-contact','fsup-phone','fsup-email','fsup-address','fsup-terms','fsup-notes'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
-    document.getElementById('fsup-status').value='Active';
-    document.getElementById('fm-supplier-add').classList.add('op');
-    return;
-  }
-  if(_origOpenFm)_origOpenFm(id);
+    (m.agenda?'<div style="margin-top:6px"><span style="font-size:10px;font-weight:600;color:var(--tx2)">AGENDA:</span> <span style="font-size:12px">'+m.agenda+'</span></div>':'');
+  document.getElementById('fmd-attendees').value=m.attendees||'';
+  document.getElementById('fmd-actions').value=m.actions||'';
+  document.getElementById('fmd-minutes').value=m.minutes||'';
+  document.getElementById('fmd-remarks').value='';
+  document.getElementById('fmd-reschedule-wrap').style.display='none';
+  if(typeof clearFileStore==='function')clearFileStore('fmd-prev');
+  // Show prev minutes count
+  const prevEl=document.getElementById('fmd-prev-section');
+  if(prevEl)prevEl.textContent=m.minutes?'Minutes saved — editing above will update':'No minutes on file yet.';
+  document.getElementById('fm-meeting-detail').classList.add('op');
 };
 
-function addPriceItem(){
-  const name=prompt('Item / Product name:');if(!name||!name.trim())return;
-  const unit=prompt('Unit (e.g. bags, pcs, m\u00B2, lot):','pcs')||'pcs';
-  const price=parseFloat(prompt('Unit price (\u20B1):')||'0');
-  const brand=prompt('Brand (optional):')||'';
-  const s=suppliers.find(x=>x.id===_activeSupId||parseInt(x.id)===parseInt(_activeSupId));if(!s)return;
-  if(!s.price_list)s.price_list=[];
-  s.price_list.push({item_name:name.trim(),unit,unit_price:price,brand,category:s.category||'',notes:''});
-  sb.from('suppliers').update({price_list:s.price_list}).eq('id',s.id).then(({error})=>{if(error)console.error('Price list save:',error);});
-  _renderSupPriceList(s);
+function doMeetingAction(action){
+  _meetingDetailAction=action;
+  const rw=document.getElementById('fmd-reschedule-wrap');
+  if(rw)rw.style.display=action==='reschedule'?'':'none';
+  // Highlight active button
+  ['fmd-reschedule-btn','fmd-cancel-btn'].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(btn)btn.style.fontWeight='400';
+  });
+  if(action==='reschedule'){const b=document.getElementById('fmd-reschedule-btn');if(b)b.style.fontWeight='700';}
+  if(action==='cancel'){const b=document.getElementById('fmd-cancel-btn');if(b)b.style.fontWeight='700';}
 }
 
-async function deletePriceItem(idx){
-  const s=suppliers.find(x=>x.id===_activeSupId||parseInt(x.id)===parseInt(_activeSupId));if(!s)return;
-  if(!confirm('Remove this price item?'))return;
-  s.price_list=(s.price_list||[]).filter((_,i)=>i!==idx);
-  await sb.from('suppliers').update({price_list:s.price_list}).eq('id',s.id);
-  _renderSupPriceList(s);
+async function saveMeetingDetail(){
+  const id=_meetingDetailId;
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
+  const action=_meetingDetailAction;
+  const attendees=document.getElementById('fmd-attendees').value;
+  const actions=document.getElementById('fmd-actions').value;
+  const minutes=document.getElementById('fmd-minutes').value;
+  const remarks=document.getElementById('fmd-remarks').value.trim();
+  const newDt=document.getElementById('fmd-new-datetime').value;
+  const fileCount=typeof getFileCount==='function'?getFileCount('fmd-prev'):0;
+  // Apply action
+  if(action==='reschedule'){
+    if(!newDt){alert('Please enter a new date and time.');return;}
+    m.datetime=newDt;m.status='rescheduled';
+    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
+    if(linked){linked.due=newDt.split('T')[0];sbSaveTask(linked);}
+  }else if(action==='cancel'){
+    if(!confirm('Confirm cancel this meeting?'))return;
+    m.status='cancelled';
+    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
+    if(linked){linked.done=true;linked.status='done';sbSaveTask(linked);}
+  }else if(action==='checkin'){
+    m.status='checked-in';
+    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
+    if(linked){linked.status='in-progress';sbSaveTask(linked);}
+  }else if(action==='checkout'){
+    m.status='checked-out';
+    // Completing the meeting marks task as done
+    const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id)&&!t.done);
+    if(linked){linked.done=true;linked.status='done';if(!linked.reports)linked.reports=[];linked.reports.push({date:TODAY,work:'Meeting completed. Minutes: '+(minutes||'—').slice(0,100),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});sbSaveTask(linked);}
+  }
+  // Update meeting fields
+  if(attendees)m.attendees=attendees;
+  if(actions)m.actions=actions;
+  if(minutes)m.minutes=minutes;
+  if(remarks)m.remarks=(m.remarks?m.remarks+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
+  if(fileCount>0)m.fileCount=(m.fileCount||0)+fileCount;
+  const upRow={attendees:m.attendees||'',actions:m.actions||'',minutes:m.minutes||'',status:m.status||'',remarks:m.remarks||''};
+  if(action==='reschedule'&&newDt)upRow.datetime=newDt;
+  if(m.id&&m.id<2000000000){const{error}=await sb.from('meetings').update(upRow).eq('id',m.id);if(error)console.error('Meeting update error:',error);}
+  sbLog('Meeting updated: "'+m.title+'"'+(action?' — '+action:''),'#534AB7','Meetings',m.proj);
+  closeFm('fm-meeting-detail');
+  renderMeetings();renderTasksGlobal();
+  if(activeProjectId)renderDetailMeetings(activeProjectId);
 }
 
-function openSupplierCSVImport(){
-  const sel=document.getElementById('fsc-supplier-id');
-  sel.innerHTML=suppliers.map(s=>'<option value="'+s.id+'"'+(parseInt(s.id)===parseInt(_activeSupId)?' selected':'')+'>'+s.name+'</option>').join('');
-  document.getElementById('fsc-preview').innerHTML='';
-  if(document.getElementById('fsc-file'))document.getElementById('fsc-file').value='';
-  _supCSVParsed=[];
-  document.getElementById('fm-supplier-csv').classList.add('op');
+// ═══════════════════════════════════════════════════════════════
+//  CONTEXT-AWARE TASK DETAIL
+// ═══════════════════════════════════════════════════════════════
+const _origOpenTaskDetail=window.openTaskDetail;
+window.openTaskDetail=function(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const autoType=t.autoType||'gantt';
+  const typeColors={gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',inventory_replenish:'#A32D2D',manual:'#666'};
+  const typeLabels={gantt:'GANTT',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',inventory_replenish:'INVENTORY',manual:'TASK'};
+  const col=typeColors[autoType]||'#666';
+  const lbl=typeLabels[autoType]||'TASK';
+  const badge=document.getElementById('ftd-type-badge');
+  if(badge){badge.textContent=lbl;badge.style.background=col+'22';badge.style.color=col;}
+  document.getElementById('ftd-title').textContent=t.name;
+  document.getElementById('ftd-task-id').value=taskId;
+  // Info section
+  const proj=projects.find(p=>projMatch(p.name,t.project));
+  const acts=proj?ganttActivities[proj.id]||[]:[];
+  const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
+  const st=act&&t.subTaskId?(act.subTasks||[]).find(s=>s.id===t.subTaskId):null;
+  document.getElementById('ftd-info').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
+    '<div><span style="color:var(--tx3)">Project:</span> <strong>'+t.project+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Assignee:</span> <strong>'+(t.assignee||'—')+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Due:</span> <strong>'+(t.due||'—')+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Status:</span> <strong>'+(t.done?'Done':t.status==='in-progress'?'In Progress':'Pending')+'</strong></div>'+
+    '</div>'+
+    (act?'<div style="margin-top:6px;padding:6px;background:var(--in-bg);border-radius:var(--r);font-size:11px;color:var(--in-tx)"><i class="ti ti-link"></i> Gantt: '+act.name+' ('+act.done+'%)'+( st?' — Sub-task: '+st.name:'' )+'</div>':'')+
+    (t.details&&!act?'<div style="margin-top:6px;font-size:11px;color:var(--tx2)">'+t.details+'</div>':'');
+  // Previous reports
+  const rpts=t.reports||[];
+  const rEl=document.getElementById('ftd-reports-section');
+  if(rEl)rEl.innerHTML=rpts.length?
+    '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
+    rpts.slice(-2).reverse().map(r=>'<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px"><div style="display:flex;justify-content:space-between"><strong>'+(r.date||'')+'</strong><span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div><div style="color:var(--tx2);margin-top:2px">'+(r.work||'').slice(0,120)+'</div></div>').join(''):
+    '';
+  // Build context-aware form
+  buildTaskForm(t,autoType);
+  document.getElementById('fm-task-detail').classList.add('op');
+};
+
+function buildTaskForm(t,autoType){
+  const formEl=document.getElementById('ftd-form-area');
+  const btnsEl=document.getElementById('ftd-action-btns');
+  if(!formEl||!btnsEl)return;
+  const isGantt=autoType==='gantt'||t.subTaskId;
+  const isDone=t.done||t.status==='done';
+  if(isDone){
+    formEl.innerHTML='<div style="text-align:center;padding:16px;background:var(--ok-bg);border-radius:var(--r)"><i class="ti ti-circle-check" style="font-size:32px;color:var(--ok-tx);display:block;margin-bottom:6px"></i><div style="font-size:14px;font-weight:700;color:var(--ok-tx)">Task Completed</div><div style="font-size:12px;color:var(--ok-tx);margin-top:4px">'+(t.reports||[]).length+' report(s) on file</div></div>';
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+(CU.role==='admin'||CU.role==='pm'?'<button class="btn" onclick="reopenThisTask('+t.id+')" style="color:var(--wn-tx)"><i class="ti ti-rotate"></i> Reopen</button>':'');
+    return;
+  }
+  if(autoType==='delivery'){
+    const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
+      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><br><span style="color:var(--tx2)">'+d.proj+' · '+d.date+' · Status: '+d.status+'</span></div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked delivery found.</div>')+
+      '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
+      '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
+      '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
+      '<div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="td-del-invoice" placeholder="INV-XXXXX"></div></div>'+
+      '<div class="fg"><label class="fl">Notes</label><textarea class="inp" id="td-del-notes" rows="2" placeholder="Discrepancies, quantities received..."></textarea></div>'+
+      '<input type="hidden" id="td-del-ref" value="'+(d?d.id:'')+'">'+
+      (d?'<script>document.getElementById("td-del-status").value="'+d.status+'";<\/script>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdDeliveryUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
+      '<button class="btn btnp" onclick="tdDeliveryComplete('+t.id+')"><i class="ti ti-check"></i> Mark Delivered</button>';
+    if(d)setTimeout(()=>{const el=document.getElementById('td-del-status');if(el)el.value=d.status||'Scheduled';},50);
+    return;
+  }
+  if(autoType==='visitor'){
+    const v=visitors.find(x=>parseInt(x.id)===parseInt(t.refId));
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-user-check"></i> Visitor Action</div>'+
+      (v?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+v.name+'</strong>'+(v.company?' · '+v.company:'')+' | Status: <strong>'+v.status+'</strong></div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked visitor found.</div>')+
+      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-vis-actions">'+
+      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setVisAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+      '<button class="btn btns" style="color:var(--in-tx)" onclick="setVisAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setVisAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+      '<button class="btn btns" style="color:var(--er-tx)" onclick="setVisAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+      '</div></div>'+
+      '<div class="fg" id="td-vis-new-time-wrap" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-vis-new-time" type="datetime-local"></div>'+
+      '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-vis-remarks" rows="2" placeholder="Reason or notes..."></textarea></div>'+
+      '<input type="hidden" id="td-vis-action"><input type="hidden" id="td-vis-ref" value="'+(v?v.id:'')+'">'+
+      (v&&v.status==='checked-in'?'<script>setTimeout(()=>{const btns=document.querySelectorAll("#td-vis-actions button");if(btns[1])btns[1].click();},50);<\/script>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn btnp" onclick="tdVisitorSave('+t.id+')"><i class="ti ti-check"></i> Save</button>';
+    return;
+  }
+  if(autoType==='meeting'){
+    const m=meetings.find(x=>parseInt(x.id)===parseInt(t.refId));
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-calendar-event"></i> Meeting Update</div>'+
+      (m?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+m.title+'</strong> · '+m.proj+' · '+(m.datetime||'').replace('T',' ')+' | Status: <strong>'+(m.status||'Scheduled')+'</strong></div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked meeting found.</div>')+
+      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap">'+
+      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setMeetAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+      '<button class="btn btns" style="color:var(--in-tx)" onclick="setMeetAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setMeetAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+      '<button class="btn btns" style="color:var(--er-tx)" onclick="setMeetAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+      '</div></div>'+
+      '<div class="fg" id="td-meet-new-dt-wrap" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-meet-new-dt" type="datetime-local"></div>'+
+      '<div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="td-meet-minutes" rows="3" placeholder="Key decisions, outcomes...">'+(m?m.minutes||'':'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="td-meet-actions" rows="2" placeholder="Who does what by when...">'+(m?m.actions||'':'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-meet-remarks" rows="1" placeholder="Notes..."></textarea></div>'+
+      '<input type="hidden" id="td-meet-action"><input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">'+
+      (m&&m.status==='checked-in'?'<script>setTimeout(()=>setMeetAction(document.querySelector("#td-meet-actions"),"checkout"),50);<\/script>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdMeetingUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
+      '<button class="btn btnp" onclick="tdMeetingComplete('+t.id+')"><i class="ti ti-logout"></i> Check Out (Done)</button>';
+    return;
+  }
+  if(autoType==='pipeline'){
+    const lead=pipeline.find(x=>parseInt(x.id)===parseInt(t.refId));
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-funnel"></i> Pipeline Update</div>'+
+      (lead?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+lead.name+'</strong> · '+lead.client+' | Stage: <strong>'+lead.stage+'</strong> | Value: '+fmt(lead.value||0)+'</div>':'<div style="color:var(--tx2);font-size:12px;margin-bottom:10px">No linked lead found.</div>')+
+      '<div class="fr2"><div class="fg"><label class="fl">Stage</label><select class="inp" id="td-pip-stage"><option>Lead Gen</option><option>Proposal</option><option>Negotiation</option><option>Closing</option><option>Awarded</option><option>Lost</option></select></div>'+
+      '<div class="fg"><label class="fl">Probability (%)</label><input class="inp" id="td-pip-prob" type="number" min="0" max="100" placeholder="50"></div></div>'+
+      '<div class="fr2"><div class="fg"><label class="fl">Estimated Value (₱)</label><input class="inp" id="td-pip-value" type="number" min="0" placeholder="0"></div>'+
+      '<div class="fg"><label class="fl">Due Date / Deadline</label><input class="inp" id="td-pip-due" type="date"></div></div>'+
+      '<div class="fg"><label class="fl">Notes / Update</label><textarea class="inp" id="td-pip-notes" rows="2" placeholder="Latest update, next steps..."></textarea></div>'+
+      '<div class="fg"><label class="fl">Recurrence</label><select class="inp" id="td-pip-recur"><option value="">None (one-time)</option><option value="daily">Daily (until due date)</option></select></div>'+
+      '<input type="hidden" id="td-pip-ref" value="'+(lead?lead.id:'')+'">'+
+      (lead?'<script>setTimeout(()=>{const s=document.getElementById("td-pip-stage");if(s)s.value="'+lead.stage+'";const p=document.getElementById("td-pip-prob");if(p)p.value='+(lead.prob||50)+';const v=document.getElementById("td-pip-value");if(v)v.value='+(lead.value||0)+';const d=document.getElementById("td-pip-due");if(d)d.value="'+(t.due||'')+'";},50);<\/script>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn btnp" onclick="tdPipelineUpdate('+t.id+')"><i class="ti ti-check"></i> Update Lead</button>';
+    return;
+  }
+  // GANTT / default: daily report form
+  formEl.innerHTML='<div style="font-size:13px;font-weight:600;margin-bottom:10px"><i class="ti ti-notebook"></i> '+
+    (isGantt?'Gantt Sub-task Report':'Daily Report')+'</div>'+
+    '<div class="fr2">'+
+    '<div class="fg"><label class="fl">Date</label><input class="inp" id="ftd-date" type="date" value="'+TODAY+'"></div>'+
+    '<div class="fg"><label class="fl">Weather</label><select class="inp" id="ftd-weather"><option>Sunny</option><option>Cloudy</option><option>Rainy</option><option>Stormy</option><option>Hot</option></select></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">Work Done *</label><textarea class="inp" id="ftd-work" placeholder="What was accomplished today?"></textarea></div>'+
+    '<div class="fr3">'+
+    '<div class="fg"><label class="fl">Workers</label><input class="inp" id="ftd-workers" type="number" min="0" placeholder="0"></div>'+
+    '<div class="fg"><label class="fl">Hours</label><input class="inp" id="ftd-hours" type="number" min="0" max="24" placeholder="8" value="8"></div>'+
+    '<div class="fg"><label class="fl">% Complete</label><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="range" min="0" max="100" step="5" id="ftd-pct" style="flex:1;accent-color:var(--or)" oninput="document.getElementById(\'ftd-pct-val\').textContent=this.value+\'%\'"><span id="ftd-pct-val" style="font-size:12px;font-weight:700;min-width:30px">0%</span></div></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">Equipment Used</label><input class="inp" id="ftd-equip" placeholder="e.g. Backhoe, Concrete Mixer"></div>'+
+    '<div class="fg"><label class="fl">Materials Used</label><input class="inp" id="ftd-materials" placeholder="e.g. 50 bags cement"></div>'+
+    '<div class="fg"><label class="fl">Issues / Delays</label><textarea class="inp" id="ftd-issues" placeholder="Problems, safety concerns?"></textarea></div>'+
+    '<div class="fg"><label class="fl">Photos / Videos</label>'+
+    '<div class="upload-zone" onclick="document.getElementById(\'ftd-files\').click()">'+
+    '<input type="file" id="ftd-files" multiple accept="image/*,video/*" onchange="prevMedia(this,\'ftd-prev\')">'+
+    '<i class="ti ti-camera" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+    '<div style="font-size:12px;color:var(--tx2)">Upload site photos or videos</div></div>'+
+    '<div class="media-prev" id="ftd-prev"></div></div>';
+  btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+    '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="submitTaskUpdate()"><i class="ti ti-refresh"></i> Update</button>'+
+    '<button class="btn btnp" onclick="submitTaskReport()"><i class="ti ti-send"></i> Submit Report</button>';
 }
 
-function downloadSupplierTemplate(e){
+function setVisAction(btn,action){
+  document.getElementById('td-vis-action').value=action;
+  document.querySelectorAll('#td-vis-actions button').forEach(b=>b.style.fontWeight='400');
+  btn.style.fontWeight='700';
+  const tw=document.getElementById('td-vis-new-time-wrap');
+  if(tw)tw.style.display=action==='reschedule'?'':'none';
+}
+function setMeetAction(btn,action){
+  document.getElementById('td-meet-action').value=action;
+  document.querySelectorAll('#td-meet-actions button, #td-meet-actions-wrap button').forEach(b=>{if(b)b.style.fontWeight='400';});
+  if(btn)btn.style.fontWeight='700';
+  const tw=document.getElementById('td-meet-new-dt-wrap');
+  if(tw)tw.style.display=action==='reschedule'?'':'none';
+}
+
+function reopenThisTask(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  if(!confirm('Reopen this task?'))return;
+  t.done=false;t.status='pending';sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  if(activeProjectId)renderDetailAll(activeProjectId);
+}
+
+// ── Task action handlers ─────────────────────────────────────
+async function tdDeliveryUpdate(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
+  const d=deliveries.find(x=>parseInt(x.id)===delId);
+  const status=document.getElementById('td-del-status')?.value||'Scheduled';
+  const notes=document.getElementById('td-del-notes')?.value||'';
+  const po=document.getElementById('td-del-po')?.value||'';
+  const invoice=document.getElementById('td-del-invoice')?.value||'';
+  if(d){
+    d.status=status;if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;if(po)d.po=po;if(invoice)d.invoice=invoice;
+    const upRow={status,notes:d.notes||''};if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
+    if(d.id&&d.id<2000000000)await sb.from('deliveries').update(upRow).eq('id',d.id);
+  }
+  t.status='in-progress';
+  if(!t.reports)t.reports=[];
+  t.reports.push({date:TODAY,work:'Delivery update: '+status+(notes?' - '+notes:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderDeliveries();
+  if(activeProjectId)refreshDetailDelivery(activeProjectId);
+}
+async function tdDeliveryComplete(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const receiver=(document.getElementById('td-del-receiver')?.value||'').trim();
+  if(!receiver){alert('Received By is required.');return;}
+  const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
+  const d=deliveries.find(x=>parseInt(x.id)===delId);
+  const notes=document.getElementById('td-del-notes')?.value||'';
+  const po=document.getElementById('td-del-po')?.value||'';
+  const invoice=document.getElementById('td-del-invoice')?.value||'';
+  if(d){
+    d.status='Delivered';d.receiver=receiver;d.actualDate=TODAY;
+    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;if(po)d.po=po;if(invoice)d.invoice=invoice;
+    if(d.id&&d.id<2000000000)await sb.from('deliveries').update({status:'Delivered',receiver,actual_date:TODAY,notes:d.notes||''}).eq('id',d.id);
+  }
+  t.done=true;t.status='done';
+  if(!t.reports)t.reports=[];
+  t.reports.push({date:TODAY,work:'Delivery completed. Received by: '+receiver+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderDeliveries();
+  if(activeProjectId)refreshDetailDelivery(activeProjectId);
+}
+async function tdVisitorSave(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const action=document.getElementById('td-vis-action')?.value||'';
+  const remarks=(document.getElementById('td-vis-remarks')?.value||'').trim();
+  const newTime=document.getElementById('td-vis-new-time')?.value||'';
+  const visId=parseInt(document.getElementById('td-vis-ref')?.value||0);
+  const v=visitors.find(x=>parseInt(x.id)===visId);
+  if(!action&&!remarks){alert('Choose an action or add a remark.');return;}
+  if(v){
+    if(remarks)v.remarks=(v.remarks?v.remarks+' | ':'')+remarks;
+    if(action==='checkin'){v.status='checked-in';t.status='in-progress';}
+    else if(action==='checkout'){v.status='checked-out';t.done=true;t.status='done';}
+    else if(action==='reschedule'&&newTime){v.timein=newTime;v.status='rescheduled';t.due=newTime.split('T')[0];}
+    else if(action==='cancel'){v.status='cancelled';t.done=true;t.status='done';}
+    await sbSaveVisitor(v);
+    renderVisitorList();if(activeProjectId)renderDetailVisitors(activeProjectId);
+  }
+  if(!t.reports)t.reports=[];
+  t.reports.push({date:TODAY,work:'Visitor '+action+(remarks?' - '+remarks:''),pct:action==='checkout'||action==='cancel'?100:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+}
+async function tdMeetingUpdate(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const meetId=parseInt(document.getElementById('td-meet-ref')?.value||0);
+  const m=meetings.find(x=>parseInt(x.id)===meetId);
+  const action=document.getElementById('td-meet-action')?.value||'';
+  const minutes=document.getElementById('td-meet-minutes')?.value||'';
+  const actions=document.getElementById('td-meet-actions')?.value||'';
+  const remarks=(document.getElementById('td-meet-remarks')?.value||'').trim();
+  const newDt=document.getElementById('td-meet-new-dt')?.value||'';
+  if(m){
+    if(minutes)m.minutes=minutes;if(actions)m.actions=actions;
+    if(action==='reschedule'&&newDt){m.datetime=newDt;m.status='rescheduled';t.due=newDt.split('T')[0];}
+    else if(action==='cancel'){m.status='cancelled';}
+    else if(action==='checkin'){m.status='checked-in';t.status='in-progress';}
+    const upRow={minutes:m.minutes||'',actions:m.actions||'',status:m.status||''};
+    if(action==='reschedule'&&newDt)upRow.datetime=newDt;
+    if(m.id&&m.id<2000000000)await sb.from('meetings').update(upRow).eq('id',m.id);
+    renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
+  }
+  t.status='in-progress';
+  if(!t.reports)t.reports=[];
+  t.reports.push({date:TODAY,work:'Meeting update: '+(action||'notes added')+(remarks?' - '+remarks:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+}
+async function tdMeetingComplete(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const meetId=parseInt(document.getElementById('td-meet-ref')?.value||0);
+  const m=meetings.find(x=>parseInt(x.id)===meetId);
+  const minutes=document.getElementById('td-meet-minutes')?.value||'';
+  const actions=document.getElementById('td-meet-actions')?.value||'';
+  if(m){
+    m.status='checked-out';if(minutes)m.minutes=minutes;if(actions)m.actions=actions;
+    if(m.id&&m.id<2000000000)await sb.from('meetings').update({status:'checked-out',minutes:m.minutes||'',actions:m.actions||''}).eq('id',m.id);
+    renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
+  }
+  t.done=true;t.status='done';
+  if(!t.reports)t.reports=[];
+  t.reports.push({date:TODAY,work:'Meeting completed — checked out.'+(minutes?' Minutes: '+minutes.slice(0,100):''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+}
+async function tdPipelineUpdate(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const leadId=parseInt(document.getElementById('td-pip-ref')?.value||0);
+  const lead=pipeline.find(x=>parseInt(x.id)===leadId);
+  const stage=document.getElementById('td-pip-stage')?.value||'';
+  const prob=parseInt(document.getElementById('td-pip-prob')?.value)||0;
+  const value=parseFloat(document.getElementById('td-pip-value')?.value)||0;
+  const due=document.getElementById('td-pip-due')?.value||'';
+  const notes=(document.getElementById('td-pip-notes')?.value||'').trim();
+  const recur=document.getElementById('td-pip-recur')?.value||'';
+  if(lead){
+    if(stage)lead.stage=stage;if(prob)lead.prob=prob;if(value)lead.value=value;
+    if(!lead.history)lead.history=[];
+    lead.history.push({date:TODAY,stage:lead.stage,note:notes||'Pipeline update',by:CU.name});
+    sbSavePipeline(lead);renderPipeline();
+  }
+  if(due)t.due=due;
+  if(recur==='daily')t.schedule='daily';
+  t.done=true;t.status='done';
+  if(!t.reports)t.reports=[];
+  t.reports.push({date:TODAY,work:'Pipeline updated: Stage='+stage+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  sbSaveTask(t);
+  // If awarded, promote to project
+  if(stage==='Awarded'&&lead)promotePipelineToProject(lead);
+  closeFm('fm-task-detail');renderTasksGlobal();renderPipeline();renderSidebar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GANTT: Collapsable sub-tasks
+// ═══════════════════════════════════════════════════════════════
+let _ganttCollapsed={};
+let _ganttAllCollapsed=false;
+function toggleGanttActivity(actId){
+  _ganttCollapsed[actId]=!_ganttCollapsed[actId];
+  if(activeProjectId)renderGanttDetail(activeProjectId);
+}
+function toggleAllGantt(){
+  _ganttAllCollapsed=!_ganttAllCollapsed;
+  const acts=ganttActivities[activeProjectId]||[];
+  acts.forEach(a=>{_ganttCollapsed[a.id]=_ganttAllCollapsed;});
+  if(activeProjectId)renderGanttDetail(activeProjectId);
+  const btn=document.getElementById('btn-gantt-collapse-all');
+  if(btn)btn.textContent=_ganttAllCollapsed?'Expand All':'Collapse All';
+}
+
+// Patch renderGanttDetail to add collapse toggle and project tabs
+const _origRenderGanttDetail=window.renderGanttDetail;
+if(typeof renderGanttDetail==='function'){
+  const _rgd=renderGanttDetail;
+  window.renderGanttDetail=function(id){
+    // First render the chart header with collapse button
+    const headerEl=document.getElementById('d-gantt-content');
+    if(headerEl){
+      // Add collapse-all button to gantt header area if not there
+      const colBtn=document.getElementById('btn-gantt-collapse-all');
+      if(!colBtn){
+        const toolbar=document.querySelector('#d-gantt-content .ch');
+        if(toolbar){
+          const btn=document.createElement('button');
+          btn.id='btn-gantt-collapse-all';
+          btn.className='btn btns';
+          btn.style.fontSize='11px';
+          btn.textContent=_ganttAllCollapsed?'Expand All':'Collapse All';
+          btn.onclick=toggleAllGantt;
+          toolbar.appendChild(btn);
+        }
+      }
+    }
+    _rgd(id);
+  };
+}
+
+// Patch the sub-task rendering to respect collapse state
+// We override inside setDTab for gantt
+const _origSetDTab=window.setDTab;
+if(typeof setDTab==='function'){
+  window.setDTab=function(tab){
+    _origSetDTab(tab);
+    if(tab==='dquotation'&&activeProjectId)renderDetailQuotation(activeProjectId);
+    if(tab==='dbom'&&activeProjectId)renderDetailBOM(activeProjectId);
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PROJECT DETAIL: Quotation + BOM tabs
+// ═══════════════════════════════════════════════════════════════
+function renderDetailQuotation(projId){
+  projId=parseInt(projId);
+  const p=findProject(projId);if(!p)return;
+  const el=document.getElementById('d-quotation-content');if(!el)return;
+  const pQuots=quotations.filter(q=>projMatch(q.proj,p.name)||projMatch(q.proj,p.name));
+  el.innerHTML='<div class="ch"><div class="ct"><i class="ti ti-file-invoice"></i> Quotations — '+p.name+'</div>'+
+    '<div style="display:flex;gap:6px"><button class="btn btns" onclick="openUploadQuotation()"><i class="ti ti-upload"></i> Upload</button>'+
+    '<button class="btn btns btnp" onclick="openFmQuotation()"><i class="ti ti-plus"></i> New</button></div></div>'+
+    (pQuots.length?pQuots.map(q=>'<div class="card" style="margin-bottom:8px;cursor:pointer" onclick="viewQuotation('+q.id+')">'+
+      '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
+      '<div><div style="font-size:14px;font-weight:700">'+q.name+'</div><div style="font-size:11px;color:var(--tx2)">'+q.proj+' · '+q.date+' · By: '+q.by+'</div></div>'+
+      '<div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--or)">'+fmt(q.totalSell)+'</div><span class="badge '+(q.status==='Approved'?'bk':q.status==='Rejected'?'be':'bw')+'">'+(q.status||'Draft')+'</span></div>'+
+      '</div></div>').join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No quotations for this project yet.</div>');
+}
+function renderDetailBOM(projId){
+  projId=parseInt(projId);
+  const p=findProject(projId);if(!p)return;
+  const el=document.getElementById('d-bom-content');if(!el)return;
+  const pBoms=bomDocs.filter(b=>projMatch(b.proj,p.name));
+  el.innerHTML='<div class="ch"><div class="ct"><i class="ti ti-list-numbers"></i> Bill of Materials — '+p.name+'</div>'+
+    '<button class="btn btns btnp" onclick="openNewBOM()"><i class="ti ti-plus"></i> New BOM</button></div>'+
+    (pBoms.length?pBoms.map(b=>'<div class="card" style="margin-bottom:8px;cursor:pointer" onclick="viewBOM('+b.id+')">'+
+      '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">'+
+      '<div><div style="font-size:14px;font-weight:700">'+b.name+'</div><div style="font-size:11px;color:var(--tx2)">'+b.proj+' · '+b.date+'</div></div>'+
+      '<div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--or)">'+fmt(b.totalSell)+'</div></div>'+
+      '</div></div>').join(''):'<div style="color:var(--tx2);font-size:12px;padding:12px 0">No BOMs for this project yet.</div>');
+}
+
+// Hook into renderDetailAll
+const _origRenderDetailAll=window.renderDetailAll;
+if(typeof renderDetailAll==='function'){
+  const _rda=renderDetailAll;
+  window.renderDetailAll=function(id){
+    _rda(id);
+    // Render new tabs if visible
+    if(document.getElementById('dpg-dquotation')?.classList.contains('on'))renderDetailQuotation(id);
+    if(document.getElementById('dpg-dbom')?.classList.contains('on'))renderDetailBOM(id);
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BUDGET: Import CSV + Print
+// ═══════════════════════════════════════════════════════════════
+let _expCSVData=[];
+function openExpenseCSVImport(){
+  const mp=myProjects();
+  document.getElementById('fec-proj').innerHTML=mp.map(p=>'<option>'+p.name+'</option>').join('');
+  document.getElementById('fec-preview').innerHTML='';
+  if(document.getElementById('fec-file'))document.getElementById('fec-file').value='';
+  _expCSVData=[];
+  document.getElementById('fm-expense-csv').classList.add('op');
+}
+function downloadExpenseCSVTemplate(e){
   e.preventDefault();
-  const rows=['item_name,unit,unit_price,category,brand,notes','Portland Cement,bags,280,Cement & Aggregates,Republic,Standard OPC Type 1','Rebar 12mm x 6m,pcs,180,Steel & Rebar,Pag-asa Steel,Grade 60','Hollow Blocks 4in,pcs,12,Cement & Aggregates,,','PVC Pipe 1in,pcs,85,Plumbing,Neltex,'];
+  const rows=['date,description,category,amount,payee,reference',
+    TODAY+',Cement purchase,Materials,14000,ABC Hardware,INV-001',
+    TODAY+',Worker wages,Manpower / Salary,25000,Direct Hire,'];
   const blob=new Blob([rows.join('\n')],{type:'text/csv'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='supplier_pricelist_template.csv';
+  const a=document.createElement('a');a.href=url;a.download='expense_template.csv';
   document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
-
-function previewSupplierCSV(input){
+function previewExpenseCSV(input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
-    const text=e.target.result;
-    const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim());
-    if(lines.length<2){document.getElementById('fsc-preview').innerHTML='<div style="color:var(--er-tx);font-size:12px">No data rows found.</div>';return;}
-    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
-    _supCSVParsed=lines.slice(1).filter(l=>l.trim()).map(line=>{
-      const vals=[];let cur='';let inQ=false;
+    const lines=e.target.result.replace(/\r/g,'').split('\n').filter(l=>l.trim());
+    if(lines.length<2){document.getElementById('fec-preview').innerHTML='<div style="color:var(--er-tx);font-size:12px">No data rows found.</div>';return;}
+    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
+    _expCSVData=lines.slice(1).map(line=>{
+      const vals=[];let cur='',inQ=false;
       for(const ch of line){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=ch;}
       vals.push(cur.trim());
       const row={};headers.forEach((h,i)=>row[h]=(vals[i]||'').replace(/^"|"$/g,'').trim());
       return row;
-    });
-    const prev=document.getElementById('fsc-preview');
-    prev.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--ok-tx);margin-bottom:6px"><i class="ti ti-check"></i> '+_supCSVParsed.length+' item(s) ready</div>'+
+    }).filter(r=>r.amount&&parseFloat(r.amount)>0);
+    document.getElementById('fec-preview').innerHTML=
+      '<div style="font-size:12px;font-weight:600;color:var(--ok-tx);margin-bottom:6px"><i class="ti ti-check"></i> '+_expCSVData.length+' expense(s) ready</div>'+
       '<div style="overflow-x:auto"><table class="tbl" style="font-size:11px"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
-      _supCSVParsed.slice(0,5).map(r=>'<tr>'+headers.map(h=>'<td>'+(r[h]||'')+'</td>').join('')+'</tr>').join('')+
-      (_supCSVParsed.length>5?'<tr><td colspan="'+headers.length+'" style="text-align:center;color:var(--tx3)">...and '+(_supCSVParsed.length-5)+' more</td></tr>':'')+
+      _expCSVData.slice(0,5).map(r=>'<tr>'+headers.map(h=>'<td>'+(r[h]||'')+'</td>').join('')+'</tr>').join('')+
+      (_expCSVData.length>5?'<tr><td colspan="'+headers.length+'" style="text-align:center;color:var(--tx3)">...and '+(_expCSVData.length-5)+' more</td></tr>':'')+
       '</tbody></table></div>';
   };
   reader.readAsText(file);
 }
-
-async function doSupplierCSVImport(){
-  if(!_supCSVParsed.length){alert('No CSV data loaded.');return;}
-  const supId=document.getElementById('fsc-supplier-id').value;
-  const s=suppliers.find(x=>parseInt(x.id)===parseInt(supId));
-  if(!s){alert('Please select a supplier.');return;}
-  if(!s.price_list)s.price_list=[];
+async function doExpenseCSVImport(){
+  if(!_expCSVData.length){alert('No valid CSV data loaded.');return;}
+  const proj=document.getElementById('fec-proj').value;
+  if(!proj){alert('Select a project.');return;}
   let imported=0;
-  for(const row of _supCSVParsed){
-    const itemName=row.item_name||row.name||row.product||row.item||'';if(!itemName)continue;
-    const unitPrice=parseFloat(row.unit_price||row.price||row.cost||row.rate||0);
-    const newItem={item_name:itemName,unit:row.unit||'pcs',unit_price:unitPrice,category:row.category||s.category||'',brand:row.brand||'',notes:row.notes||''};
-    const ei=s.price_list.findIndex(p=>p.item_name.toLowerCase()===itemName.toLowerCase());
-    if(ei>=0)s.price_list[ei]={...s.price_list[ei],...newItem};
-    else s.price_list.push(newItem);
-    imported++;
+  for(const row of _expCSVData){
+    const amount=parseFloat(row.amount||0);if(!amount)continue;
+    const e={_isNew:true,proj,date:row.date||TODAY,cat:row.category||'Materials',amount,desc:row.description||row.desc||'',payee:row.payee||'',ref:row.reference||row.ref||'',by:CU.name};
+    expenses.push(e);await sbSaveExpense(e);imported++;
   }
-  const{error}=await sb.from('suppliers').update({price_list:s.price_list}).eq('id',s.id);
-  if(error){alert('Import failed: '+error.message);return;}
-  sbLog('Supplier price list: "'+s.name+'" \u2014 '+imported+' items imported','#185FA5','Suppliers','');
-  _supCSVParsed=[];closeFm('fm-supplier-csv');
-  if(_activeSupId===s.id||parseInt(_activeSupId)===parseInt(s.id))_renderSupPriceList(s);
-  alert('\u2705 Imported '+imported+' price item(s) for '+s.name+'!');
+  sbLog('CSV Import: '+imported+' expenses imported to '+proj,'#185FA5','Budget',proj);
+  _expCSVData=[];closeFm('fm-expense-csv');
+  renderGlobalExpenses();if(activeProjectId)renderDetailBudget(activeProjectId);
+  alert('Imported '+imported+' expense(s)!');
+}
+function printExpenses(){
+  const pf=document.getElementById('exp-proj-filter')?.value||'';
+  const cf=document.getElementById('exp-cat-filter')?.value||'';
+  const mp=myProjects();
+  let exp=expenses.filter(e=>mp.some(p=>projMatch(p.name,e.proj)));
+  if(pf)exp=exp.filter(e=>projMatch(e.proj,pf));
+  if(cf)exp=exp.filter(e=>e.cat===cf);
+  const total=exp.reduce((s,e)=>s+e.amount,0);
+  const html='<!DOCTYPE html><html><head><title>Expense Report</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px}h2{color:#333}table{width:100%;border-collapse:collapse;margin-top:16px}th{background:#f0efe8;padding:8px 10px;text-align:left;font-size:11px;border:1px solid #ddd}td{padding:7px 10px;border:1px solid #ddd}tfoot td{font-weight:700;background:#fff8f0;color:#C05621}.total{font-size:14px;font-weight:700;color:#C05621}@media print{button{display:none}}</style></head>'+
+    '<body><h2>Budget & Expense Report'+(pf?' — '+pf:'')+(cf?' | '+cf:'')+'</h2>'+
+    '<div style="font-size:11px;color:#666;margin-bottom:12px">Generated: '+new Date().toLocaleString('en-PH')+' · By: '+CU.name+'</div>'+
+    '<table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payee</th><th>Reference</th><th>Amount</th><th>By</th></tr></thead><tbody>'+
+    exp.map(e=>'<tr><td>'+e.date+'</td><td>'+e.desc+'</td><td>'+e.cat+'</td><td>'+(e.payee||'')+'</td><td>'+(e.ref||'')+'</td><td style="text-align:right">'+fmt(e.amount)+'</td><td>'+e.by+'</td></tr>').join('')+
+    '</tbody><tfoot><tr><td colspan="5">TOTAL</td><td style="text-align:right" class="total">'+fmt(total)+'</td><td></td></tr></tfoot></table>'+
+    '<script>window.print();<\/script></body></html>';
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
 }
 
-// Get best price for an item across all active suppliers (used by BOM/Quotation)
-function getSupplierPriceForItem(itemName){
-  let best=null;
-  suppliers.filter(s=>s.status==='Active').forEach(s=>{
-    (s.price_list||[]).forEach(p=>{
-      if(p.item_name.toLowerCase().includes(itemName.toLowerCase())||itemName.toLowerCase().includes(p.item_name.toLowerCase())){
-        if(!best||p.unit_price<best.price)best={price:p.unit_price,unit:p.unit,supplier:s.name,brand:p.brand||''};
-      }
-    });
-  });
-  return best;
+// ═══════════════════════════════════════════════════════════════
+//  INVENTORY: Import CSV
+// ═══════════════════════════════════════════════════════════════
+let _invCSVData=[];
+function openInvCSVImport(){
+  const mp=myProjects();
+  document.getElementById('fic-proj').innerHTML=mp.map(p=>'<option>'+p.name+'</option>').join('');
+  document.getElementById('fic-preview').innerHTML='';
+  if(document.getElementById('fic-file'))document.getElementById('fic-file').value='';
+  _invCSVData=[];
+  document.getElementById('fm-inv-csv').classList.add('op');
+}
+function downloadInvCSVTemplate(e){
+  e.preventDefault();
+  const rows=['material,unit,qty,min_stock,unit_cost','Portland Cement,bags,500,100,280','Rebar 12mm,pcs,300,50,180','Hollow Blocks 4in,pcs,2000,500,12'];
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='inventory_template.csv';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+function previewInvCSV(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const lines=e.target.result.replace(/\r/g,'').split('\n').filter(l=>l.trim());
+    if(lines.length<2){document.getElementById('fic-preview').innerHTML='<div style="color:var(--er-tx);font-size:12px">No data rows found.</div>';return;}
+    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase());
+    _invCSVData=lines.slice(1).map(line=>{
+      const vals=line.split(',').map(v=>v.trim());
+      const row={};headers.forEach((h,i)=>row[h]=(vals[i]||'').trim());return row;
+    }).filter(r=>r.material||r.name);
+    document.getElementById('fic-preview').innerHTML=
+      '<div style="font-size:12px;font-weight:600;color:var(--ok-tx);margin-bottom:6px"><i class="ti ti-check"></i> '+_invCSVData.length+' item(s) ready</div>'+
+      '<div style="overflow-x:auto"><table class="tbl" style="font-size:11px"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
+      _invCSVData.slice(0,5).map(r=>'<tr>'+headers.map(h=>'<td>'+(r[h]||'')+'</td>').join('')+'</tr>').join('')+
+      '</tbody></table></div>';
+  };
+  reader.readAsText(file);
+}
+async function doInvCSVImport(){
+  if(!_invCSVData.length){alert('No valid CSV data loaded.');return;}
+  const proj=document.getElementById('fic-proj').value;
+  if(!proj){alert('Select a project.');return;}
+  let imported=0;
+  for(const row of _invCSVData){
+    const name=row.material||row.name||'';if(!name)continue;
+    const item={_isNew:true,name,project:proj,unit:row.unit||'pcs',qty:parseFloat(row.qty||0),min:parseFloat(row.min_stock||row.min||0),unitCost:parseFloat(row.unit_cost||row.cost||0)};
+    inventory.push(item);await sbSaveInventory(item);imported++;
+  }
+  sbLog('CSV Import: '+imported+' inventory items to '+proj,'#185FA5','Inventory',proj);
+  _invCSVData=[];closeFm('fm-inv-csv');
+  renderGlobalInventory();if(activeProjectId)filterDetailInventory(activeProjectId);
+  alert('Imported '+imported+' inventory item(s)!');
 }
 
-// Hook loadSuppliers into boot
-const _origBoot=window.boot;
+// ═══════════════════════════════════════════════════════════════
+//  QUOTATION: Upload file
+// ═══════════════════════════════════════════════════════════════
+function openUploadQuotation(){
+  const mp=myProjects();
+  document.getElementById('fqu-proj').innerHTML=mp.map(p=>'<option>'+p.name+'</option>').join('');
+  document.getElementById('fqu-date').value=TODAY;
+  if(typeof clearFileStore==='function')clearFileStore('fqu-prev');
+  ['fqu-title','fqu-number','fqu-amount','fqu-scope'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('fm-quotation-upload').classList.add('op');
+}
+async function saveUploadedQuotation(){
+  const title=document.getElementById('fqu-title')?.value.trim();
+  if(!title){alert('Quotation title required.');return;}
+  const proj=document.getElementById('fqu-proj')?.value||'';
+  const amount=parseFloat(document.getElementById('fqu-amount')?.value)||0;
+  const files=typeof getFileNames==='function'?getFileNames('fqu-prev'):[];
+  const q={_isNew:true,name:title,proj,number:document.getElementById('fqu-number')?.value||'QT-'+Date.now().toString().slice(-6),date:document.getElementById('fqu-date')?.value||TODAY,scope:document.getElementById('fqu-scope')?.value||'',status:document.getElementById('fqu-status')?.value||'Draft',totalSell:amount,totalCost:Math.round(amount*0.85),by:CU.name,items:[{desc:title,unit:'lot',qty:1,cost:Math.round(amount*0.85),markup:15}],uploaded:true,files};
+  quotations.push(q);
+  if(typeof sbSaveQuotation==='function')await sbSaveQuotation(q);
+  sbLog('Quotation uploaded: "'+title+'" — '+fmt(amount),'#185FA5','Quotation',proj);
+  closeFm('fm-quotation-upload');
+  renderQuotations();if(activeProjectId)renderDetailQuotation(activeProjectId);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SETUP APP: Show refresh button + handle new dtabs
+// ═══════════════════════════════════════════════════════════════
+// Show refresh button after login (patch setupApp after it's defined)
+document.addEventListener('DOMContentLoaded',function(){
+  const origSA=window.setupApp;
+  if(typeof origSA==='function'){
+    window.setupApp=function(){
+      origSA.apply(this,arguments);
+      const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='';
+    };
+  }
+  const origDL=window.doLogout;
+  if(typeof origDL==='function'){
+    window.doLogout=function(){
+      origDL.apply(this,arguments);
+      const rb=document.getElementById('btn-refresh');if(rb)rb.style.display='none';
+    };
+  }
+  // Patch setDTab for new tabs
+  const origSTD=window.setDTab;
+  if(typeof origSTD==='function'){
+    window.setDTab=function(tab){
+      origSTD(tab);
+      if(tab==='dquotation'&&activeProjectId)renderDetailQuotation(activeProjectId);
+      if(tab==='dbom'&&activeProjectId)renderDetailBOM(activeProjectId);
+    };
+  }
+});
 
 async function boot(){
   showLoadingOverlay(true);
   await loadAllData();
-  await loadSuppliers();
   initAuth();
 }
 
@@ -5893,5 +6127,75 @@ function renderBOM(){
 
 boot();
 </script>
+
+<!-- Expense CSV Import Modal -->
+<div class="fm" id="fm-expense-csv"><div class="fb fb-lg">
+  <div class="ft"><i class="ti ti-file-import"></i> Import Expenses from CSV</div>
+  <div style="background:var(--in-bg);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px;color:var(--in-tx)">
+    <strong>Required CSV columns:</strong> <code>date, description, category, amount, payee, reference</code><br>
+    <a href="#" onclick="downloadExpenseCSVTemplate(event)" style="color:var(--in-tx);font-weight:700;font-size:11px;display:inline-block;margin-top:4px"><i class="ti ti-download"></i> Download Template CSV</a>
+  </div>
+  <div class="fg"><label class="fl">Project</label><select class="inp" id="fec-proj"></select></div>
+  <div class="fg">
+    <label class="fl">CSV File *</label>
+    <div class="upload-zone" onclick="document.getElementById('fec-file').click()">
+      <input type="file" id="fec-file" accept=".csv" onchange="previewExpenseCSV(this)">
+      <i class="ti ti-table-import" style="font-size:24px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Click to select .csv file</div>
+    </div>
+  </div>
+  <div id="fec-preview" style="margin-bottom:10px"></div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-expense-csv')">Cancel</button><button class="btn btnp" onclick="doExpenseCSVImport()"><i class="ti ti-check"></i> Import</button></div>
+</div></div>
+
+<!-- Inventory CSV Import Modal -->
+<div class="fm" id="fm-inv-csv"><div class="fb fb-lg">
+  <div class="ft"><i class="ti ti-file-import"></i> Import Inventory from CSV</div>
+  <div style="background:var(--in-bg);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px;color:var(--in-tx)">
+    <strong>Required CSV columns:</strong> <code>material, unit, qty, min_stock, unit_cost</code><br>
+    <a href="#" onclick="downloadInvCSVTemplate(event)" style="color:var(--in-tx);font-weight:700;font-size:11px;display:inline-block;margin-top:4px"><i class="ti ti-download"></i> Download Template CSV</a>
+  </div>
+  <div class="fg"><label class="fl">Project</label><select class="inp" id="fic-proj"></select></div>
+  <div class="fg">
+    <label class="fl">CSV File *</label>
+    <div class="upload-zone" onclick="document.getElementById('fic-file').click()">
+      <input type="file" id="fic-file" accept=".csv" onchange="previewInvCSV(this)">
+      <i class="ti ti-table-import" style="font-size:24px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Click to select .csv file</div>
+    </div>
+  </div>
+  <div id="fic-preview" style="margin-bottom:10px"></div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-inv-csv')">Cancel</button><button class="btn btnp" onclick="doInvCSVImport()"><i class="ti ti-check"></i> Import</button></div>
+</div></div>
+
+<!-- Upload Quotation Modal -->
+<div class="fm" id="fm-quotation-upload"><div class="fb fb-lg">
+  <div class="ft"><i class="ti ti-upload"></i> Upload Quotation File</div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Quotation Title *</label><input class="inp" id="fqu-title" placeholder="e.g. Quotation for Phase 2 Works"></div>
+    <div class="fg"><label class="fl">Project</label><select class="inp" id="fqu-proj"></select></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Quotation No.</label><input class="inp" id="fqu-number" placeholder="QT-2025-001"></div>
+    <div class="fg"><label class="fl">Date</label><input class="inp" id="fqu-date" type="date"></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Total Amount (₱)</label><input class="inp" id="fqu-amount" type="number" min="0" placeholder="0"></div>
+    <div class="fg"><label class="fl">Status</label>
+      <select class="inp" id="fqu-status"><option>Draft</option><option>Sent</option><option>Under Review</option><option>Approved</option><option>Rejected</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Scope / Description</label><textarea class="inp" id="fqu-scope" placeholder="Brief scope of work covered by this quotation..."></textarea></div>
+  <div class="fg">
+    <label class="fl">Quotation File(s) *</label>
+    <div class="upload-zone" onclick="document.getElementById('fqu-files').click()">
+      <input type="file" id="fqu-files" multiple accept=".pdf,.docx,.xlsx,.pptx" onchange="prevMedia(this,'fqu-prev')">
+      <i class="ti ti-file-invoice" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Upload PDF, Word, Excel quotation files</div>
+    </div>
+    <div class="media-prev" id="fqu-prev"></div>
+  </div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-quotation-upload')">Cancel</button><button class="btn btnp" onclick="saveUploadedQuotation()"><i class="ti ti-check"></i> Save Quotation</button></div>
+</div></div>
 </body>
 </html>
