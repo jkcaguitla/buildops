@@ -403,14 +403,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
     <select class="inp" id="del-proj-filter" style="width:175px" onchange="renderDeliveries()"><option value="">All Projects</option></select>
-    <div style="display:flex;gap:4px;flex-wrap:wrap" id="del-status-btns">
-      <button class="btn btns" id="delbtn-all" onclick="setDelFilter(this,'')" style="font-weight:700;font-size:11px">All</button>
-      <button class="btn btns" id="delbtn-scheduled" onclick="setDelFilter(this,'Scheduled')" style="font-size:11px">Scheduled</button>
-      <button class="btn btns" id="delbtn-delivered" onclick="setDelFilter(this,'Delivered')" style="font-size:11px;color:var(--ok-tx)">Delivered</button>
-      <button class="btn btns" id="delbtn-cancelled" onclick="setDelFilter(this,'Cancelled')" style="font-size:11px;color:var(--er-tx)">Cancelled</button>
-      <button class="btn btns" id="delbtn-rescheduled" onclick="setDelFilter(this,'Rescheduled')" style="font-size:11px;color:var(--wn-tx)">Rescheduled</button>
-    </div>
-    <input type="hidden" id="del-status-filter" value="">
+    <select class="inp" id="del-status-filter" style="width:130px" onchange="renderDeliveries()"><option value="">All Status</option><option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option></select>
     <input class="inp" id="del-search" style="width:170px" placeholder="Search supplier, items..." oninput="renderDeliveries()">
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
@@ -629,38 +622,16 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 </div></div>
 
 <!-- Delivery Update -->
-<div class="fm" id="fm-delivery-update"><div class="fb fb-lg">
+<div class="fm" id="fm-delivery-update"><div class="fb">
   <div class="ft"><i class="ti ti-truck"></i> Update Delivery</div>
   <div id="fdu-info" style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px"></div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Status *</label>
-      <select class="inp" id="fdu-status" onchange="onFduStatusChange()">
-        <option>Scheduled</option><option>Delivered</option><option>Cancelled</option><option>Rescheduled</option>
-      </select>
-    </div>
-    <div class="fg" id="fdu-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="fdu-new-date" type="date"></div>
-    <div class="fg" id="fdu-actual-row"><label class="fl">Actual Delivery Date</label><input class="inp" id="fdu-actual-date" type="date"></div>
+  <div class="fg"><label class="fl">Status</label>
+    <select class="inp" id="fdu-status">
+      <option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option>
+    </select>
   </div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Received By *</label><input class="inp" id="fdu-receiver" placeholder="Name of person who received (required for Delivered)"></div>
-    <div class="fg"><label class="fl">PO No.</label><input class="inp" id="fdu-po" placeholder="PO-XXXXX"></div>
-  </div>
-  <div class="fr2">
-    <div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="fdu-invoice" placeholder="INV-XXXXX"></div>
-    <div class="fg"><label class="fl">DR No.</label><input class="inp" id="fdu-dr" placeholder="DR-XXXXX"></div>
-  </div>
-  <div class="fg"><label class="fl">Amount (₱)</label><input class="inp" id="fdu-amount" type="number" min="0" placeholder="0"></div>
-  <div class="fg"><label class="fl">Notes / Issues</label><textarea class="inp" id="fdu-notes" placeholder="Discrepancies, issues, quantities received..."></textarea></div>
-  <div class="fg"><label class="fl">Remarks / Reason</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled due to weather"></div>
-  <div class="fg">
-    <label class="fl">Proof Photos / Documents</label>
-    <div class="upload-zone" onclick="document.getElementById('fdu-files').click()">
-      <input type="file" id="fdu-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,'fdu-prev')">
-      <i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-      <div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, or proof photos</div>
-    </div>
-    <div class="media-prev" id="fdu-prev"></div>
-  </div>
+  <div class="fg"><label class="fl">Notes / Issues</label><textarea class="inp" id="fdu-notes" placeholder="Discrepancies, issues, quantities..."></textarea></div>
+  <div class="fg"><label class="fl">Remarks (Cancellation / Reschedule reason)</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled to next week due to weather"></div>
   <input type="hidden" id="fdu-id">
   <div class="fa"><button class="btn" onclick="closeFm('fm-delivery-update')">Cancel</button><button class="btn btnp" onclick="saveDeliveryUpdate()"><i class="ti ti-check"></i> Save Update</button></div>
 </div></div>
@@ -3516,6 +3487,8 @@ function filterDetailTasks(id,statusFilter){
   var list=tasks.filter(function(t){
     if(!t||!t.name)return false;
     if((t.project||'').trim().toLowerCase()!==pName)return false;
+    // Exclude Gantt MAIN activity tasks — only sub-tasks appear
+    if((t.autoType||'')==='gantt' && t.ganttId && !t.subTaskId)return false;
     return(CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name);
   });
   console.log('[filterDetailTasks]',p.name,'pid:',pid,'total tasks:',tasks.length,'matched:',list.length,'filter:',sf);
@@ -3608,7 +3581,9 @@ function taskSourceBadge(t){
     'manual':['#666','#f0efe8','Task'],
   };
   const [col,bg,lbl]=map[src]||map['manual'];
-  return '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:'+bg+';color:'+col+';white-space:nowrap">'+lbl+'</span>';
+  // Sub-tasks are labelled "Gantt Sub-task" to distinguish from main activities
+  const displayLbl=(src==='gantt'&&t.subTaskId)?'Gantt Sub-task':lbl;
+  return '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:'+bg+';color:'+col+';white-space:nowrap">'+displayLbl+'</span>';
 }
 function renderTasksGlobal(){
   const mp=myProjects();
@@ -3620,6 +3595,9 @@ function renderTasksGlobal(){
   let list=tasks.filter(t=>{
     if(!t||!t.name)return false;
     const proj=(t.project||'').trim();
+    // Exclude Gantt MAIN activity tasks — only sub-tasks appear in Tasks tab
+    // Main activity tasks have autoType==='gantt' and ganttId set but NO subTaskId
+    if((t.autoType||'')==='gantt' && t.ganttId && !t.subTaskId)return false;
     // Admin/PM/Engineer see all tasks in their projects; workers only see assigned tasks
     const inMyProjects=mpNames.has(proj)||(CU.role==='admin'&&proj);
     const canView=isManager||t.assignee===CU.name;
@@ -4758,415 +4736,235 @@ function goToActivity(idx){
 
 // INIT
 
-// ═══════════════════════════════════════════════════════════════
-//  DELIVERY FILTER BUTTONS
-// ═══════════════════════════════════════════════════════════════
-let _delFilter='';
-function setDelFilter(btn,val){
-  _delFilter=val;
-  document.querySelectorAll('#del-status-btns button').forEach(b=>b.style.fontWeight='400');
-  if(btn)btn.style.fontWeight='700';
-  const hid=document.getElementById('del-status-filter');if(hid)hid.value=val;
-  renderDeliveries();
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  DELIVERY UPDATE MODAL — full version
-// ═══════════════════════════════════════════════════════════════
-function onFduStatusChange(){
-  const s=document.getElementById('fdu-status')?.value||'';
-  const rr=document.getElementById('fdu-reschedule-row');
-  const ar=document.getElementById('fdu-actual-row');
-  if(rr)rr.style.display=s==='Rescheduled'?'':'none';
-  if(ar)ar.style.display=(s==='Delivered')?'':'none';
-}
-
-window._origOpenDeliveryUpdate=window.openDeliveryUpdate;
-async function openDeliveryUpdate(id){
-  const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
-  document.getElementById('fdu-id').value=id;
-  document.getElementById('fdu-info').innerHTML=
-    '<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+d.items+'</div>'+
-    '<div style="font-size:11px;color:var(--tx2)">'+d.proj+' · Scheduled: '+d.date+
-    (d.supplier?' · '+d.supplier:'')+(d.driver?' · Driver: '+d.driver:'')+'</div>'+
-    (d.notes?'<div style="margin-top:4px;font-size:11px;color:var(--wn-tx)">'+d.notes+'</div>':'');
-  document.getElementById('fdu-status').value=d.status||'Scheduled';
-  document.getElementById('fdu-notes').value=d.notes||'';
-  document.getElementById('fdu-remarks').value='';
-  document.getElementById('fdu-receiver').value=d.receiver||'';
-  document.getElementById('fdu-po').value=d.po||'';
-  document.getElementById('fdu-invoice').value=d.invoice||'';
-  document.getElementById('fdu-dr').value=d.dr||'';
-  document.getElementById('fdu-amount').value=d.amount||'';
-  const adEl=document.getElementById('fdu-actual-date');if(adEl)adEl.value=d.actualDate||'';
-  const ndEl=document.getElementById('fdu-new-date');if(ndEl)ndEl.value='';
-  clearFileStore('fdu-prev');
-  onFduStatusChange();
-  document.getElementById('fm-delivery-update').classList.add('op');
-}
-
-async function saveDeliveryUpdate(){
-  const id=parseInt(document.getElementById('fdu-id').value);
-  const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
-  const newStatus=document.getElementById('fdu-status').value;
-  const receiver=(document.getElementById('fdu-receiver')?.value||'').trim();
-  if(newStatus==='Delivered'&&!receiver){alert('Received By is required when marking as Delivered.');return;}
-  const newDate=document.getElementById('fdu-new-date')?.value||'';
-  if(newStatus==='Rescheduled'&&!newDate){alert('Please enter the rescheduled date.');return;}
-  const notes=document.getElementById('fdu-notes').value;
-  const remarks=(document.getElementById('fdu-remarks')?.value||'').trim();
-  const po=document.getElementById('fdu-po')?.value||'';
-  const invoice=document.getElementById('fdu-invoice')?.value||'';
-  const dr=document.getElementById('fdu-dr')?.value||'';
-  const amount=parseFloat(document.getElementById('fdu-amount')?.value)||0;
-  const actualDate=document.getElementById('fdu-actual-date')?.value||'';
-  const fileCount=typeof getFileCount==='function'?getFileCount('fdu-prev'):0;
-  // Update delivery object
-  d.status=newStatus;d.notes=notes;
-  if(remarks)d.notes=(d.notes?d.notes+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
-  if(receiver)d.receiver=receiver;
-  if(po)d.po=po;if(invoice)d.invoice=invoice;if(dr)d.dr=dr;
-  if(amount)d.amount=amount;if(actualDate)d.actualDate=actualDate;
-  if(newStatus==='Rescheduled'&&newDate)d.date=newDate;
-  if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
-  // Save to Supabase
-  const upRow={status:newStatus,notes:d.notes||'',scheduled_date:d.date||null};
-  if(receiver)upRow.receiver=receiver;
-  if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;if(dr)upRow.dr_no=dr;
-  if(amount)upRow.amount=amount;if(actualDate)upRow.actual_date=actualDate;
-  if(d.id&&d.id<2000000000){
-    const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);
-    if(error)console.error('Delivery update error:',error);
+// ════════════════════════════════════════════════════════════════
+//  TASK DETAIL — context-aware form (replaces generic form)
+// ════════════════════════════════════════════════════════════════
+const _origOpenTaskDetail = window.openTaskDetail;
+window.openTaskDetail = function(taskId){
+  const t = tasks.find(x => x.id === taskId);
+  if(!t) return;
+  const autoType = t.autoType || 'gantt';
+  // Type badge colors/labels
+  const typeColors = {gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',inventory_replenish:'#A32D2D',manual:'#666'};
+  const typeLabels = {gantt:'GANTT SUB-TASK',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',inventory_replenish:'INVENTORY',manual:'TASK'};
+  // -- title + badge --
+  document.getElementById('ftd-title').textContent = t.name;
+  const badge = document.getElementById('ftd-type-badge');
+  if(badge){
+    const col = typeColors[autoType]||'#666';
+    badge.textContent = (autoType==='gantt'&&t.subTaskId) ? 'GANTT SUB-TASK' : (typeLabels[autoType]||'TASK');
+    badge.style.background = col+'22'; badge.style.color = col;
   }
-  // ── Sync linked task ────────────────────────────────────────
-  const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id)&&!t.done);
-  if(linked){
-    if(newStatus==='Delivered'){
-      linked.done=true;linked.status='done';
-      if(!linked.reports)linked.reports=[];
-      linked.reports.push({date:TODAY,work:'Delivery received. Received by: '+receiver+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
-      sbSaveTask(linked);
-    }else if(newStatus==='Rescheduled'&&newDate){
-      linked.due=newDate;linked.status='pending';
-      sbSaveTask(linked);
-    }else if(newStatus==='Cancelled'){
-      linked.done=true;linked.status='done';
-      sbSaveTask(linked);
-    }
-    renderTasksGlobal();
-  }
-  sbLog('Delivery updated: "'+d.items.slice(0,40)+'" \u2192 '+newStatus+(remarks?' - '+remarks:''),'#0F5F6E','Delivery',d.proj);
-  closeFm('fm-delivery-update');
-  renderDeliveries();
-  if(activeProjectId)refreshDetailDelivery(activeProjectId);
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  VISITOR → TASK SYNC (from Visitor tab / modal)
-// ═══════════════════════════════════════════════════════════════
-// Wrap saveVisitorAction to sync task after save
-const _origSaveVisitorAction=window.saveVisitorAction;
-window.saveVisitorAction=async function(){
-  // Get current state before calling original
-  const id=parseInt(document.getElementById('fva-id').value);
-  const v=visitors.find(x=>parseInt(x.id)===parseInt(id));
-  const action=_visitorPendingAction;
-  const newTime=document.getElementById('fva-new-time')?.value||'';
-  // Call original
-  await _origSaveVisitorAction.apply(this,arguments);
-  // Now sync task
-  if(!v||!action)return;
-  const linked=tasks.find(t=>t.autoType==='visitor'&&parseInt(t.refId)===parseInt(v.id));
-  if(!linked)return;
-  if(action==='checkout'){
-    linked.done=true;linked.status='done';
-    if(!linked.reports)linked.reports=[];
-    linked.reports.push({date:TODAY,work:'Visitor checked out from Visitor tab.',pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
-    sbSaveTask(linked);renderTasksGlobal();
-  }else if(action==='cancel'){
-    linked.done=true;linked.status='done';
-    sbSaveTask(linked);renderTasksGlobal();
-  }else if(action==='reschedule'&&newTime){
-    linked.due=newTime.split('T')[0];linked.status='pending';
-    sbSaveTask(linked);renderTasksGlobal();
-  }else if(action==='checkin'){
-    linked.status='in-progress';
-    sbSaveTask(linked);renderTasksGlobal();
-  }
-};
-
-// ═══════════════════════════════════════════════════════════════
-//  MEETING → TASK SYNC (from Meeting tab / modal)
-// ═══════════════════════════════════════════════════════════════
-// Wrap openMeetingDetail to replace view-only with update form
-const _origOpenMeetingDetail=window.openMeetingDetail;
-window.openMeetingDetail=function(id){
-  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
-  _curMeetingId=id;
-  // Build a full update form inside fmd-body
-  const el=document.getElementById('fmd-body');
-  el.innerHTML=
-    '<div style="margin-bottom:12px">'+
-      '<div style="font-size:18px;font-weight:700;margin-bottom:4px">'+m.title+'</div>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--tx2)">'+
-        '<span><i class="ti ti-calendar"></i> '+(m.datetime||'').replace('T',' ')+'</span>'+
-        (m.location?'<span><i class="ti ti-map-pin"></i> '+m.location+'</span>':'')+
-        '<span><i class="ti ti-folder"></i> '+m.proj+'</span>'+
-        '<span>Status: <strong style="color:'+(m.status==='checked-out'||m.status==='done'?'var(--ok-tx)':m.status==='cancelled'?'var(--er-tx)':'var(--in-tx)')+'">'+( m.status||'Scheduled')+'</strong></span>'+
-      '</div>'+
-    '</div>'+
-    // Action buttons
-    '<div class="fg" style="margin-bottom:10px"><label class="fl">Action</label>'+
-    '<div style="display:flex;gap:6px;flex-wrap:wrap" id="fmd-action-btns">'+
-      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setMeetingAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
-      '<button class="btn btns" style="color:var(--in-tx)" onclick="setMeetingAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
-      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setMeetingAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
-      '<button class="btn btns" style="color:var(--er-tx)" onclick="setMeetingAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
-    '</div></div>'+
-    '<div id="fmd-reschedule-row" style="display:none;margin-bottom:10px"><label class="fl">New Date &amp; Time</label><input class="inp" id="fmd-new-datetime" type="datetime-local"></div>'+
-    '<div class="fr2">'+
-      '<div class="fg"><label class="fl">Attendees</label><textarea class="inp" id="fmd-attendees" rows="2" placeholder="List attendees...">'+(m.attendees||'')+'</textarea></div>'+
-      '<div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="fmd-actions" rows="2" placeholder="Who does what by when...">'+(m.actions||'')+'</textarea></div>'+
-    '</div>'+
-    '<div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="fmd-minutes" rows="4" placeholder="Key decisions, outcomes, discussion points...">'+(m.minutes||'')+'</textarea></div>'+
-    '<div class="fg">'+
-      '<label class="fl">Attach Files</label>'+
-      '<div class="upload-zone" onclick="document.getElementById(\'fmd-files\').click()">'+
-        '<input type="file" id="fmd-files" multiple onchange="prevMedia(this,\'fmd-prev\')">'+
-        '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
-        '<div style="font-size:12px;color:var(--tx2)">Upload MOM files, references</div>'+
-      '</div>'+
-      '<div class="media-prev" id="fmd-prev"></div>'+
-    '</div>'+
-    '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="fmd-remarks" rows="2" placeholder="Additional notes...">'+(m.remarks||'')+'</textarea></div>'+
-    '<input type="hidden" id="fmd-meeting-action" value="">';
-  // Replace footer buttons
-  const fa=document.querySelector('#fm-meeting-detail .fa');
-  if(fa){
-    fa.innerHTML='<button class="btn" onclick="closeFm(\'fm-meeting-detail\')">Close</button>'+
-      '<button class="btn btnp" onclick="saveMeetingFromDetail()"><i class="ti ti-check"></i> Save Meeting Update</button>';
-  }
-  clearFileStore('fmd-prev');
-  document.getElementById('fm-meeting-detail').classList.add('op');
-};
-
-function setMeetingAction(btn,action){
-  document.getElementById('fmd-meeting-action').value=action;
-  document.querySelectorAll('#fmd-action-btns button').forEach(b=>b.style.fontWeight='400');
-  if(btn)btn.style.fontWeight='700';
-  const rr=document.getElementById('fmd-reschedule-row');
-  if(rr)rr.style.display=action==='reschedule'?'':'none';
-}
-
-async function saveMeetingFromDetail(){
-  const m=meetings.find(x=>parseInt(x.id)===parseInt(_curMeetingId));if(!m)return;
-  const action=document.getElementById('fmd-meeting-action')?.value||'';
-  const newDt=document.getElementById('fmd-new-datetime')?.value||'';
-  const attendees=document.getElementById('fmd-attendees')?.value||'';
-  const actions=document.getElementById('fmd-actions')?.value||'';
-  const minutes=document.getElementById('fmd-minutes')?.value||'';
-  const remarks=document.getElementById('fmd-remarks')?.value||'';
-  const fileCount=typeof getFileCount==='function'?getFileCount('fmd-prev'):0;
-  // Apply action
-  if(action==='checkin'){m.status='checked-in';}
-  else if(action==='checkout'){m.status='checked-out';}
-  else if(action==='reschedule'){
-    if(!newDt){alert('Please enter a new date and time.');return;}
-    m.datetime=newDt;m.status='rescheduled';
-  }else if(action==='cancel'){
-    if(!confirm('Confirm cancel this meeting?'))return;
-    m.status='cancelled';
-  }
-  if(attendees)m.attendees=attendees;
-  if(actions)m.actions=actions;
-  if(minutes)m.minutes=minutes;
-  if(remarks)m.remarks=(m.remarks?m.remarks+'\n':'')+'['+TODAY+' '+CU.name+']: '+remarks;
-  if(fileCount>0)m.fileCount=(m.fileCount||0)+fileCount;
-  // Save to Supabase
-  const upRow={status:m.status,attendees:m.attendees||'',actions:m.actions||'',minutes:m.minutes||'',remarks:m.remarks||''};
-  if(action==='reschedule'&&newDt)upRow.datetime=newDt;
-  if(m.id&&m.id<2000000000){
-    const{error}=await sb.from('meetings').update(upRow).eq('id',m.id);
-    if(error)console.error('Meeting update error:',error);
-  }
-  // ── Sync linked task ────────────────────────────────────────
-  const linked=tasks.find(t=>t.autoType==='meeting'&&parseInt(t.refId)===parseInt(m.id));
-  if(linked){
-    if(action==='checkout'){
-      if(!linked.done){
-        linked.done=true;linked.status='done';
-        if(!linked.reports)linked.reports=[];
-        linked.reports.push({date:TODAY,work:'Meeting completed (Checked Out). Minutes: '+(minutes||'—').slice(0,120),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
-        sbSaveTask(linked);renderTasksGlobal();
-      }
-    }else if(action==='cancel'){
-      linked.done=true;linked.status='done';sbSaveTask(linked);renderTasksGlobal();
-    }else if(action==='reschedule'&&newDt){
-      linked.due=newDt.split('T')[0];linked.status='pending';sbSaveTask(linked);renderTasksGlobal();
-    }else if(action==='checkin'){
-      linked.status='in-progress';sbSaveTask(linked);renderTasksGlobal();
-    }
-  }
-  sbLog('Meeting updated: "'+m.title+'"'+(action?' \u2192 '+action:''),'#534AB7','Meetings',m.proj);
-  closeFm('fm-meeting-detail');
-  renderMeetings();
-  if(activeProjectId)renderDetailMeetings(activeProjectId);
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  CONTEXT-AWARE TASK DETAIL
-// ═══════════════════════════════════════════════════════════════
-const _origOpenTaskDetail=window.openTaskDetail;
-window.openTaskDetail=function(taskId){
-  const t=tasks.find(x=>x.id===taskId);if(!t)return;
-  const autoType=t.autoType||'gantt';
-  const typeColors={gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',inventory_replenish:'#A32D2D',manual:'#666'};
-  const typeLabels={gantt:'GANTT',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',inventory_replenish:'INVENTORY',manual:'TASK'};
-  const col=typeColors[autoType]||'#666';
-  document.getElementById('ftd-title').textContent=t.name;
-  const badge=document.getElementById('ftd-type-badge');
-  if(badge){badge.textContent=typeLabels[autoType]||'TASK';badge.style.background=col+'22';badge.style.color=col;}
-  document.getElementById('ftd-task-id').value=taskId;
-  // Info
-  const proj=projects.find(p=>projMatch(p.name,t.project));
-  const acts=proj?ganttActivities[proj.id]||[]:[];
-  const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
-  const st=act&&t.subTaskId?(act.subTasks||[]).find(s=>s.id===t.subTaskId):null;
-  document.getElementById('ftd-info').innerHTML=
+  document.getElementById('ftd-task-id').value = taskId;
+  // -- info section --
+  const proj = projects.find(p => projMatch(p.name, t.project));
+  const acts = proj ? ganttActivities[proj.id]||[] : [];
+  const act = t.ganttId ? acts.find(a => a.id === t.ganttId) : null;
+  const st = act && t.subTaskId ? (act.subTasks||[]).find(s => s.id === t.subTaskId) : null;
+  document.getElementById('ftd-info').innerHTML =
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
     '<div><span style="color:var(--tx3)">Project:</span> <strong>'+t.project+'</strong></div>'+
     '<div><span style="color:var(--tx3)">Assignee:</span> <strong>'+(t.assignee||'—')+'</strong></div>'+
     '<div><span style="color:var(--tx3)">Due:</span> <strong>'+(t.due||'—')+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Status:</span> <strong>'+(t.done?'Done':t.status==='in-progress'?'In Progress':'Pending')+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Status:</span> <strong>'+(t.done?'✅ Done':t.status==='in-progress'?'🔵 In Progress':'⏳ Pending')+'</strong></div>'+
     '</div>'+
-    (act?'<div style="margin-top:6px;padding:6px;background:var(--in-bg);border-radius:var(--r);font-size:11px;color:var(--in-tx)"><i class="ti ti-link"></i> Gantt: '+act.name+' ('+act.done+'%)'+( st?' — Sub-task: '+st.name:'')+'</div>':'')+
+    (act?'<div style="margin-top:6px;padding:6px;background:var(--in-bg);border-radius:var(--r);font-size:11px;color:var(--in-tx)">'+
+      '<i class="ti ti-link"></i> Gantt: <strong>'+act.name+'</strong> ('+act.done+'%)'+
+      (st?' — Sub-task: <strong>'+st.name+'</strong>':'')+'</div>':'')+
     (t.details&&!act?'<div style="margin-top:6px;font-size:11px;color:var(--tx2)">'+t.details+'</div>':'');
-  // Previous reports
-  const rpts=t.reports||[];
-  const rEl=document.getElementById('ftd-reports-section');
-  if(rEl)rEl.innerHTML=rpts.length?
+  // -- previous reports --
+  const rpts = t.reports||[];
+  const rEl = document.getElementById('ftd-reports-section');
+  if(rEl) rEl.innerHTML = rpts.length ?
     '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:5px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
-    rpts.slice(-2).reverse().map(r=>
+    rpts.slice(-2).reverse().map(r =>
       '<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px">'+
       '<div style="display:flex;justify-content:space-between;margin-bottom:2px"><strong>'+(r.date||'')+'</strong>'+
       '<span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div>'+
-      '<div style="color:var(--tx2)">'+(r.work||'').slice(0,120)+'</div></div>').join(''):'';
-  // Build context-aware form
-  buildTaskForm(t,autoType);
+      '<div style="color:var(--tx2)">'+(r.work||'').slice(0,120)+'</div></div>'
+    ).join('') : '';
+  // -- build context form --
+  buildTaskContextForm(t, autoType);
   document.getElementById('fm-task-detail').classList.add('op');
 };
 
-function buildTaskForm(t,autoType){
-  const formEl=document.getElementById('ftd-form-area');
-  const btnsEl=document.getElementById('ftd-action-btns');
-  if(!formEl||!btnsEl)return;
-  const isDone=t.done||t.status==='done';
+function buildTaskContextForm(t, autoType){
+  const formEl = document.getElementById('ftd-form-area');
+  const btnsEl = document.getElementById('ftd-action-btns');
+  if(!formEl || !btnsEl) return;
+  const isDone = t.done || t.status === 'done';
   if(isDone){
-    formEl.innerHTML='<div style="text-align:center;padding:16px;background:var(--ok-bg);border-radius:var(--r)"><i class="ti ti-circle-check" style="font-size:32px;color:var(--ok-tx);display:block;margin-bottom:6px"></i><div style="font-size:14px;font-weight:700;color:var(--ok-tx)">Task Completed</div><div style="font-size:12px;color:var(--ok-tx);margin-top:4px">'+(t.reports||[]).length+' report(s) on file</div></div>';
-    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+((CU.role==='admin'||CU.role==='pm')?'<button class="btn" onclick="reopenTask('+t.id+')" style="color:var(--wn-tx)"><i class="ti ti-rotate"></i> Reopen</button>':'');
+    formEl.innerHTML = '<div style="text-align:center;padding:16px;background:var(--ok-bg);border-radius:var(--r)">'+
+      '<i class="ti ti-circle-check" style="font-size:32px;color:var(--ok-tx);display:block;margin-bottom:6px"></i>'+
+      '<div style="font-size:14px;font-weight:700;color:var(--ok-tx)">Task Completed</div>'+
+      '<div style="font-size:12px;color:var(--ok-tx);margin-top:4px">'+(t.reports||[]).length+' report(s) on file</div></div>';
+    btnsEl.innerHTML = '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      ((CU.role==='admin'||CU.role==='pm')
+        ? '<button class="btn" onclick="tdReopenTask('+t.id+')" style="color:var(--wn-tx)"><i class="ti ti-rotate"></i> Reopen</button>'
+        : '');
     return;
   }
-  // ── DELIVERY ──────────────────────────────────────────────
-  if(autoType==='delivery'){
-    const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML=
+
+  // ── DELIVERY ─────────────────────────────────────────────────
+  if(autoType === 'delivery'){
+    const d = deliveries.find(x => parseInt(x.id) === parseInt(t.refId));
+    formEl.innerHTML =
       '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
-      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
-      '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status" onchange="onTdDelStatusChange()"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
-      '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
-      '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
-      '<div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="td-del-invoice" placeholder="INV-XXXXX"></div></div>'+
-      '<div class="fg" id="td-del-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="td-del-new-date" type="date"></div>'+
-      '<div class="fg"><label class="fl">Notes</label><textarea class="inp" id="td-del-notes" rows="2" placeholder="Issues, discrepancies..."></textarea></div>'+
+      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
+        '<strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+
+        d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
+      '<div class="fr2"><div class="fg"><label class="fl">Status</label>'+
+        '<select class="inp" id="td-del-status" onchange="onTdDelStatusChange()">'+
+        '<option>Scheduled</option><option value="Delivered">Delivered</option>'+
+        '<option>Cancelled</option><option>Rescheduled</option></select></div>'+
+      '<div class="fg"><label class="fl">Received By *</label>'+
+        '<input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
+      '<div class="fr2"><div class="fg"><label class="fl">PO No.</label>'+
+        '<input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
+      '<div class="fg"><label class="fl">Invoice No.</label>'+
+        '<input class="inp" id="td-del-invoice" placeholder="INV-XXXXX"></div></div>'+
+      '<div class="fg" id="td-del-reschedule-row" style="display:none">'+
+        '<label class="fl">Rescheduled Date *</label>'+
+        '<input class="inp" id="td-del-new-date" type="date"></div>'+
+      '<div class="fg"><label class="fl">Notes</label>'+
+        '<textarea class="inp" id="td-del-notes" rows="2" placeholder="Issues, discrepancies..."></textarea></div>'+
       '<div class="fg"><label class="fl">Attach Files / Proof</label>'+
-      '<div class="upload-zone" onclick="document.getElementById(\'td-del-files\').click()">'+
-      '<input type="file" id="td-del-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,\'td-del-prev\')">'+
-      '<i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
-      '<div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div></div>'+
-      '<div class="media-prev" id="td-del-prev"></div></div>'+
+        '<div class="upload-zone" onclick="document.getElementById(\'td-del-files\').click()">'+
+        '<input type="file" id="td-del-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,\'td-del-prev\')">'+
+        '<i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+        '<div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div></div>'+
+        '<div class="media-prev" id="td-del-prev"></div></div>'+
       '<input type="hidden" id="td-del-ref" value="'+(d?d.id:'')+'">'+
-      (d?'<script>setTimeout(()=>{const el=document.getElementById("td-del-status");if(el)el.value="'+d.status+'";},10);<\/script>':'');
-    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      (d?'<script>setTimeout(()=>{var el=document.getElementById("td-del-status");if(el)el.value="'+d.status+'";},10);<\/script>':'');
+    btnsEl.innerHTML =
+      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdDeliveryUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
       '<button class="btn btnp" onclick="tdDeliveryComplete('+t.id+')"><i class="ti ti-check"></i> Mark Delivered</button>';
     return;
   }
-  // ── VISITOR ──────────────────────────────────────────────
-  if(autoType==='visitor'){
-    const v=visitors.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML=
+
+  // ── VISITOR ──────────────────────────────────────────────────
+  if(autoType === 'visitor'){
+    const v = visitors.find(x => parseInt(x.id) === parseInt(t.refId));
+    formEl.innerHTML =
       '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-user-check"></i> Visitor Action</div>'+
-      (v?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+v.name+'</strong>'+(v.company?' · '+v.company:'')+' | Status: <strong>'+v.status+'</strong></div>':'')+
-      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-vis-action-btns">'+
-      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdVisAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
-      '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdVisAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
-      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdVisAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
-      '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdVisAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
-      '</div></div>'+
-      '<div class="fg" id="td-vis-reschedule-row" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-vis-new-time" type="datetime-local"></div>'+
-      '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-vis-remarks" rows="2" placeholder="Reason or notes..."></textarea></div>'+
-      '<input type="hidden" id="td-vis-action" value=""><input type="hidden" id="td-vis-ref" value="'+(v?v.id:'')+'">';
-    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      (v?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
+        '<strong>'+v.name+'</strong>'+(v.company?' · '+v.company:'')+
+        ' | Status: <strong>'+v.status+'</strong></div>':'')+
+      '<div class="fg"><label class="fl">Action</label>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap" id="td-vis-action-btns">'+
+        '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdVisAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+        '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdVisAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+        '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdVisAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+        '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdVisAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+        '</div></div>'+
+      '<div class="fg" id="td-vis-reschedule-row" style="display:none">'+
+        '<label class="fl">New Date &amp; Time</label>'+
+        '<input class="inp" id="td-vis-new-time" type="datetime-local"></div>'+
+      '<div class="fg"><label class="fl">Remarks</label>'+
+        '<textarea class="inp" id="td-vis-remarks" rows="2" placeholder="Reason or notes..."></textarea></div>'+
+      '<input type="hidden" id="td-vis-action" value="">'+
+      '<input type="hidden" id="td-vis-ref" value="'+(v?v.id:'')+'">'+
+      (v&&v.status==='checked-in'?'<script>setTimeout(()=>{var b=document.querySelector("#td-vis-action-btns button:nth-child(2)");if(b){setTdVisAction(b,"checkout");}},10);<\/script>':'');
+    btnsEl.innerHTML =
+      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn btnp" onclick="tdVisitorSave('+t.id+')"><i class="ti ti-check"></i> Save</button>';
     return;
   }
-  // ── MEETING ──────────────────────────────────────────────
-  if(autoType==='meeting'){
-    const m=meetings.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML=
+
+  // ── MEETING ──────────────────────────────────────────────────
+  if(autoType === 'meeting'){
+    const m = meetings.find(x => parseInt(x.id) === parseInt(t.refId));
+    formEl.innerHTML =
       '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-calendar-event"></i> Meeting Update</div>'+
-      (m?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+m.title+'</strong> | '+m.proj+' | '+(m.datetime||'').replace('T',' ')+' | Status: <strong>'+(m.status||'Scheduled')+'</strong></div>':'')+
-      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-meet-action-btns">'+
-      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdMeetAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
-      '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdMeetAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
-      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdMeetAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
-      '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdMeetAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
-      '</div></div>'+
-      '<div class="fg" id="td-meet-reschedule-row" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-meet-new-dt" type="datetime-local"></div>'+
-      '<div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="td-meet-minutes" rows="3" placeholder="Key decisions, outcomes...">'+(m?m.minutes||'':'')+'</textarea></div>'+
-      '<div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="td-meet-actions" rows="2" placeholder="Who does what by when...">'+(m?m.actions||'':'')+'</textarea></div>'+
-      '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-meet-remarks" rows="1" placeholder="Notes..."></textarea></div>'+
-      '<input type="hidden" id="td-meet-action" value=""><input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">';
-    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      (m?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
+        '<strong>'+m.title+'</strong> | '+m.proj+' | '+(m.datetime||'').replace('T',' ')+
+        ' | Status: <strong>'+(m.status||'Scheduled')+'</strong></div>':'')+
+      '<div class="fg"><label class="fl">Action</label>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap" id="td-meet-action-btns">'+
+        '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdMeetAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+        '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdMeetAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+        '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdMeetAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+        '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdMeetAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+        '</div></div>'+
+      '<div class="fg" id="td-meet-reschedule-row" style="display:none">'+
+        '<label class="fl">New Date &amp; Time</label>'+
+        '<input class="inp" id="td-meet-new-dt" type="datetime-local"></div>'+
+      '<div class="fg"><label class="fl">Minutes of Meeting</label>'+
+        '<textarea class="inp" id="td-meet-minutes" rows="3" placeholder="Key decisions, outcomes...">'+(m?m.minutes||'':'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Action Items</label>'+
+        '<textarea class="inp" id="td-meet-actions" rows="2" placeholder="Who does what by when...">'+(m?m.actions||'':'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Remarks</label>'+
+        '<textarea class="inp" id="td-meet-remarks" rows="1" placeholder="Notes..."></textarea></div>'+
+      '<input type="hidden" id="td-meet-action" value="">'+
+      '<input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">'+
+      (m&&m.status==='checked-in'?'<script>setTimeout(()=>{var b=document.querySelector("#td-meet-action-btns button:nth-child(2)");if(b)setTdMeetAction(b,"checkout");},10);<\/script>':'');
+    btnsEl.innerHTML =
+      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdMeetingUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
       '<button class="btn btnp" onclick="tdMeetingCheckOut('+t.id+')"><i class="ti ti-logout"></i> Check Out (Done)</button>';
     return;
   }
-  // ── PIPELINE ──────────────────────────────────────────────
-  if(autoType==='pipeline'){
-    const lead=pipeline.find(x=>parseInt(x.id)===parseInt(t.refId));
-    formEl.innerHTML=
+
+  // ── PIPELINE ─────────────────────────────────────────────────
+  if(autoType === 'pipeline'){
+    const lead = pipeline.find(x => parseInt(x.id) === parseInt(t.refId));
+    const curStage = lead ? lead.stage : '';
+    formEl.innerHTML =
       '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-funnel"></i> Pipeline Update</div>'+
-      (lead?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+lead.name+'</strong> · '+lead.client+' | Stage: <strong>'+lead.stage+'</strong> | Value: '+fmt(lead.value||0)+'</div>':'')+
+      (lead?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
+        '<strong>'+lead.name+'</strong> · '+lead.client+' | Current Stage: <strong style="color:var(--or)">'+lead.stage+'</strong> | Value: '+fmt(lead.value||0)+'</div>':'')+
       '<div class="fr2">'+
-      '<div class="fg"><label class="fl">Stage</label><select class="inp" id="td-pip-stage"><option>Lead Gen</option><option>Proposal</option><option>Negotiation</option><option>Closing</option><option>Awarded</option><option>Lost</option></select></div>'+
-      '<div class="fg"><label class="fl">Probability (%)</label><input class="inp" id="td-pip-prob" type="number" min="0" max="100"></div>'+
+      '<div class="fg"><label class="fl">Stage <span style="font-size:9px;color:var(--tx3)">(change to advance lead)</span></label>'+
+        '<select class="inp" id="td-pip-stage">'+
+        '<option>Lead Gen</option><option>Proposal</option><option>Negotiation</option>'+
+        '<option>Closing</option><option>Awarded</option><option>Lost</option></select></div>'+
+      '<div class="fg"><label class="fl">Probability (%)</label>'+
+        '<input class="inp" id="td-pip-prob" type="number" min="0" max="100"></div>'+
       '</div>'+
       '<div class="fr2">'+
-      '<div class="fg"><label class="fl">Estimated Value (₱)</label><input class="inp" id="td-pip-value" type="number" min="0"></div>'+
-      '<div class="fg"><label class="fl">Due Date</label><input class="inp" id="td-pip-due" type="date"></div>'+
+      '<div class="fg"><label class="fl">Estimated Value (₱)</label>'+
+        '<input class="inp" id="td-pip-value" type="number" min="0"></div>'+
+      '<div class="fg"><label class="fl">Due Date</label>'+
+        '<input class="inp" id="td-pip-due" type="date"></div>'+
       '</div>'+
-      '<div class="fg"><label class="fl">Notes / Update</label><textarea class="inp" id="td-pip-notes" rows="2" placeholder="Latest update, next steps..."></textarea></div>'+
-      '<div class="fg"><label class="fl">Recurrence</label><select class="inp" id="td-pip-recur"><option value="">None (one-time update)</option><option value="daily">Daily reminder until due date</option></select></div>'+
+      '<div class="fg"><label class="fl">Notes / Update</label>'+
+        '<textarea class="inp" id="td-pip-notes" rows="2" placeholder="Latest update, next steps..."></textarea></div>'+
+      '<div class="fg"><label class="fl">Recurrence</label>'+
+        '<select class="inp" id="td-pip-recur">'+
+        '<option value="">None (one-time update)</option>'+
+        '<option value="daily">Daily reminder until due date</option></select></div>'+
       '<div class="fg"><label class="fl">Attach Files</label>'+
-      '<div class="upload-zone" onclick="document.getElementById(\'td-pip-files\').click()">'+
-      '<input type="file" id="td-pip-files" multiple onchange="prevMedia(this,\'td-pip-prev\')">'+
-      '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
-      '<div style="font-size:12px;color:var(--tx2)">Upload proposals, specs, any docs</div></div>'+
-      '<div class="media-prev" id="td-pip-prev"></div></div>'+
+        '<div class="upload-zone" onclick="document.getElementById(\'td-pip-files\').click()">'+
+        '<input type="file" id="td-pip-files" multiple onchange="prevMedia(this,\'td-pip-prev\')">'+
+        '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+        '<div style="font-size:12px;color:var(--tx2)">Upload proposals, specs, any docs</div></div>'+
+        '<div class="media-prev" id="td-pip-prev"></div></div>'+
+      '<div id="td-pip-stage-hint" style="font-size:11px;color:var(--tx2);margin-top:4px"></div>'+
       '<input type="hidden" id="td-pip-ref" value="'+(lead?lead.id:'')+'">'+
+      '<input type="hidden" id="td-pip-cur-stage" value="'+curStage+'">'+
       (lead?'<script>setTimeout(()=>{'+
-        'const s=document.getElementById("td-pip-stage");if(s)s.value="'+lead.stage+'";'+
-        'const p=document.getElementById("td-pip-prob");if(p)p.value='+(lead.prob||50)+';'+
-        'const v=document.getElementById("td-pip-value");if(v)v.value='+(lead.value||0)+';'+
-        'const d=document.getElementById("td-pip-due");if(d)d.value="'+(t.due||'')+'";'+
+        'var s=document.getElementById("td-pip-stage");if(s){s.value="'+lead.stage+'";'+
+        's.addEventListener("change",function(){'+
+          'var hint=document.getElementById("td-pip-stage-hint");if(!hint)return;'+
+          'var cur="'+lead.stage+'";'+
+          'if(s.value!==cur)hint.innerHTML="<span style=\\"color:var(--ok-tx)\\"><i class=\\"ti ti-arrow-right\\"></i> Stage will advance from <strong>"+cur+"</strong> to <strong>"+s.value+"</strong> — current task will be completed and a new follow-up task will be created.</span>";'+
+          'else hint.innerHTML="<span style=\\"color:var(--tx2)\\">Stage unchanged — task will be updated without completion.</span>";'+
+        '});'+
+        's.dispatchEvent(new Event("change"));'+
+        '}'+
+        'var p=document.getElementById("td-pip-prob");if(p)p.value='+(lead.prob||50)+';'+
+        'var v=document.getElementById("td-pip-value");if(v)v.value='+(lead.value||0)+';'+
+        'var d=document.getElementById("td-pip-due");if(d)d.value="'+(t.due||'')+'";'+
       '},10);<\/script>':'');
-    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+    btnsEl.innerHTML =
+      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
       '<button class="btn btnp" onclick="tdPipelineUpdate('+t.id+')"><i class="ti ti-check"></i> Update Lead</button>';
     return;
   }
-  // ── GANTT / Default ───────────────────────────────────────
-  formEl.innerHTML=
+
+  // ── GANTT / Default ──────────────────────────────────────────
+  formEl.innerHTML =
     '<div style="font-size:13px;font-weight:600;margin-bottom:10px"><i class="ti ti-notebook"></i> Daily Report</div>'+
     '<div class="fr2">'+
     '<div class="fg"><label class="fl">Date</label><input class="inp" id="ftd-date" type="date" value="'+TODAY+'"></div>'+
@@ -5176,9 +4974,11 @@ function buildTaskForm(t,autoType){
     '<div class="fr3">'+
     '<div class="fg"><label class="fl">Workers</label><input class="inp" id="ftd-workers" type="number" min="0" placeholder="0"></div>'+
     '<div class="fg"><label class="fl">Hours</label><input class="inp" id="ftd-hours" type="number" min="0" max="24" placeholder="8" value="8"></div>'+
-    '<div class="fg"><label class="fl">% Complete</label><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="range" min="0" max="100" step="5" id="ftd-pct" style="flex:1;accent-color:var(--or)" oninput="document.getElementById(\'ftd-pct-val\').textContent=this.value+\'%\'"><span id="ftd-pct-val" style="font-size:12px;font-weight:700;min-width:30px">0%</span></div></div>'+
+    '<div class="fg"><label class="fl">% Complete</label><div style="display:flex;align-items:center;gap:6px;margin-top:4px">'+
+    '<input type="range" min="0" max="100" step="5" id="ftd-pct" style="flex:1;accent-color:var(--or)" oninput="document.getElementById(\'ftd-pct-val\').textContent=this.value+\'%\'">'+
+    '<span id="ftd-pct-val" style="font-size:12px;font-weight:700;min-width:30px">0%</span></div></div>'+
     '</div>'+
-    '<div class="fg"><label class="fl">Equipment Used</label><input class="inp" id="ftd-equip" placeholder="e.g. Backhoe, Concrete Mixer"></div>'+
+    '<div class="fg"><label class="fl">Equipment Used</label><input class="inp" id="ftd-equip" placeholder="e.g. Backhoe, Mixer"></div>'+
     '<div class="fg"><label class="fl">Materials Used</label><input class="inp" id="ftd-materials" placeholder="e.g. 50 bags cement"></div>'+
     '<div class="fg"><label class="fl">Issues / Delays</label><textarea class="inp" id="ftd-issues" placeholder="Problems, safety concerns?"></textarea></div>'+
     '<div class="fg"><label class="fl">Photos / Videos</label>'+
@@ -5187,33 +4987,42 @@ function buildTaskForm(t,autoType){
     '<i class="ti ti-camera" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
     '<div style="font-size:12px;color:var(--tx2)">Upload site photos or videos</div></div>'+
     '<div class="media-prev" id="ftd-prev"></div></div>';
-  btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+  btnsEl.innerHTML =
+    '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
     '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="submitTaskUpdate()"><i class="ti ti-refresh"></i> Update</button>'+
     '<button class="btn btnp" onclick="submitTaskReport()"><i class="ti ti-send"></i> Submit Report</button>';
 }
 
-// ── Helper: set action for in-form buttons ───────────────────
+// ── Shared action helpers ────────────────────────────────────
 function onTdDelStatusChange(){
-  const s=document.getElementById('td-del-status')?.value||'';
-  const rr=document.getElementById('td-del-reschedule-row');
-  if(rr)rr.style.display=s==='Rescheduled'?'':'none';
+  const s = document.getElementById('td-del-status')?.value||'';
+  const rr = document.getElementById('td-del-reschedule-row');
+  if(rr) rr.style.display = s==='Rescheduled'?'':'none';
 }
 function setTdVisAction(btn,action){
-  document.getElementById('td-vis-action').value=action;
+  document.getElementById('td-vis-action').value = action;
   document.querySelectorAll('#td-vis-action-btns button').forEach(b=>b.style.fontWeight='400');
-  if(btn)btn.style.fontWeight='700';
+  if(btn) btn.style.fontWeight='700';
   const rr=document.getElementById('td-vis-reschedule-row');
-  if(rr)rr.style.display=action==='reschedule'?'':'none';
+  if(rr) rr.style.display=action==='reschedule'?'':'none';
 }
 function setTdMeetAction(btn,action){
   document.getElementById('td-meet-action').value=action;
   document.querySelectorAll('#td-meet-action-btns button').forEach(b=>b.style.fontWeight='400');
-  if(btn)btn.style.fontWeight='700';
+  if(btn) btn.style.fontWeight='700';
   const rr=document.getElementById('td-meet-reschedule-row');
-  if(rr)rr.style.display=action==='reschedule'?'':'none';
+  if(rr) rr.style.display=action==='reschedule'?'':'none';
 }
 
-// ── Task action handlers ─────────────────────────────────────
+function tdReopenTask(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  if(!confirm('Reopen this task?'))return;
+  t.done=false;t.status='pending';sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  if(activeProjectId)renderDetailAll(activeProjectId);
+}
+
+// ── Delivery ─────────────────────────────────────────────────
 async function tdDeliveryUpdate(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
@@ -5226,7 +5035,8 @@ async function tdDeliveryUpdate(taskId){
   const invoice=document.getElementById('td-del-invoice')?.value||'';
   const fileCount=typeof getFileCount==='function'?getFileCount('td-del-files'):0;
   if(d){
-    d.status=status;if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;
+    d.status=status;
+    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;
     if(po)d.po=po;if(invoice)d.invoice=invoice;
     if(status==='Rescheduled'&&newDate)d.date=newDate;
     if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
@@ -5235,17 +5045,12 @@ async function tdDeliveryUpdate(taskId){
     if(d.id&&d.id<2000000000)await sb.from('deliveries').update(upRow).eq('id',d.id);
     renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
   }
-  if(status==='Rescheduled'&&newDate){
-    t.due=newDate;t.status='pending';
-  }else if(status==='Cancelled'){
-    t.done=true;t.status='done';
-  }else{
-    t.status='in-progress';
-  }
+  if(status==='Rescheduled'&&newDate){t.due=newDate;t.status='pending';}
+  else if(status==='Cancelled'){t.done=true;t.status='done';}
+  else{t.status='in-progress';}
   if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Delivery update: status changed to '+status+(status==='Rescheduled'?' → new date: '+newDate:'')+(notes?' | '+notes:''),pct:status==='Delivered'?100:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
-  sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  t.reports.push({date:TODAY,work:'Delivery update: '+status+(status==='Rescheduled'?' → '+newDate:'')+(notes?' | '+notes:''),pct:status==='Delivered'?100:30,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 async function tdDeliveryComplete(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
@@ -5270,9 +5075,10 @@ async function tdDeliveryComplete(taskId){
   t.done=true;t.status='done';
   if(!t.reports)t.reports=[];
   t.reports.push({date:TODAY,work:'Delivery completed. Received by: '+receiver+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
-  sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
+
+// ── Visitor ──────────────────────────────────────────────────
 async function tdVisitorSave(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const action=document.getElementById('td-vis-action')?.value||'';
@@ -5281,13 +5087,13 @@ async function tdVisitorSave(taskId){
   const visId=parseInt(document.getElementById('td-vis-ref')?.value||0);
   const v=visitors.find(x=>parseInt(x.id)===visId);
   if(!action&&!remarks){alert('Choose an action or add a remark.');return;}
-  if(action==='reschedule'&&!newTime){alert('Please enter a new date and time for rescheduling.');return;}
+  if(action==='reschedule'&&!newTime){alert('Please enter a new date/time for rescheduling.');return;}
   if(v){
     if(remarks)v.remarks=(v.remarks?v.remarks+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
-    if(action==='checkin'){v.status='checked-in';}
-    else if(action==='checkout'){v.status='checked-out';}
+    if(action==='checkin')v.status='checked-in';
+    else if(action==='checkout')v.status='checked-out';
     else if(action==='reschedule'&&newTime){v.timein=newTime;v.status='rescheduled';}
-    else if(action==='cancel'){v.status='cancelled';}
+    else if(action==='cancel')v.status='cancelled';
     await sbSaveVisitor(v);
     renderVisitorList();if(activeProjectId)renderDetailVisitors(activeProjectId);
   }
@@ -5307,9 +5113,10 @@ async function tdVisitorSave(taskId){
     if(!t.reports)t.reports=[];
     t.reports.push({date:TODAY,work:'Remark: '+remarks,pct:0,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
   }
-  sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
+
+// ── Meeting ──────────────────────────────────────────────────
 async function tdMeetingUpdate(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const meetId=parseInt(document.getElementById('td-meet-ref')?.value||0);
@@ -5321,9 +5128,9 @@ async function tdMeetingUpdate(taskId){
   const meetActions=document.getElementById('td-meet-actions')?.value||'';
   const remarks=document.getElementById('td-meet-remarks')?.value||'';
   if(m){
-    if(action==='checkin'){m.status='checked-in';}
+    if(action==='checkin')m.status='checked-in';
     else if(action==='reschedule'&&newDt){m.datetime=newDt;m.status='rescheduled';}
-    else if(action==='cancel'){m.status='cancelled';}
+    else if(action==='cancel')m.status='cancelled';
     if(minutes)m.minutes=minutes;if(meetActions)m.actions=meetActions;
     const upRow={status:m.status,minutes:m.minutes||'',actions:m.actions||''};
     if(action==='reschedule'&&newDt)upRow.datetime=newDt;
@@ -5335,8 +5142,7 @@ async function tdMeetingUpdate(taskId){
   else{t.status='in-progress';}
   if(!t.reports)t.reports=[];
   t.reports.push({date:TODAY,work:'Meeting update: '+(action||'notes updated')+(remarks?' - '+remarks:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
-  sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 async function tdMeetingCheckOut(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
@@ -5353,60 +5159,66 @@ async function tdMeetingCheckOut(taskId){
   t.done=true;t.status='done';
   if(!t.reports)t.reports=[];
   t.reports.push({date:TODAY,work:'Meeting completed — Checked Out.'+(minutes?' Minutes recorded.':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
-  sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
+
+// ── Pipeline — THE KEY FIX: stage change always syncs to Pipeline tab ──
 async function tdPipelineUpdate(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const leadId=parseInt(document.getElementById('td-pip-ref')?.value||0);
   const lead=pipeline.find(x=>parseInt(x.id)===leadId);
-  const stage=document.getElementById('td-pip-stage')?.value||'';
+  const newStage=document.getElementById('td-pip-stage')?.value||'';
   const prob=parseInt(document.getElementById('td-pip-prob')?.value)||0;
   const value=parseFloat(document.getElementById('td-pip-value')?.value)||0;
   const due=document.getElementById('td-pip-due')?.value||'';
   const notes=(document.getElementById('td-pip-notes')?.value||'').trim();
   const recur=document.getElementById('td-pip-recur')?.value||'';
   const fileCount=typeof getFileCount==='function'?getFileCount('td-pip-files'):0;
-  const stageChanged=lead&&stage&&stage!==lead.stage;
+  const curStage=document.getElementById('td-pip-cur-stage')?.value||'';
+  const stageChanged=newStage&&newStage!==curStage;
+  // ── ALWAYS update the pipeline lead in the Pipeline tab ──────
   if(lead){
-    const oldStage=lead.stage;
-    if(stage)lead.stage=stage;if(prob)lead.prob=prob;if(value)lead.value=value;
+    if(newStage)lead.stage=newStage;   // ← This is the key: always move the stage
+    if(prob)lead.prob=prob;
+    if(value)lead.value=value;
     if(!lead.history)lead.history=[];
-    lead.history.push({date:TODAY,stage:lead.stage,note:notes||'Pipeline update',by:CU.name});
-    sbSavePipeline(lead);
-    if(lead.stage==='Awarded'&&oldStage!=='Awarded')promotePipelineToProject(lead);
-    renderPipeline();
+    lead.history.push({date:TODAY,stage:lead.stage,note:notes||(stageChanged?'Advanced to '+newStage:'Update'),by:CU.name});
+    await sbSavePipeline(lead);
+    // If awarded, promote to project
+    if(newStage==='Awarded'&&curStage!=='Awarded')promotePipelineToProject(lead);
+    renderPipeline();  // ← Always re-render pipeline so stage change is visible
+    sbLog('Pipeline: "'+lead.name+'" stage updated to '+newStage+(notes?' — '+notes:''),'#7B2D8B','Pipeline',lead.name);
   }
   if(stageChanged){
-    // Mark current task done and create a new one for the new stage
+    // Stage changed: mark current task done, create new task for new stage
     t.done=true;t.status='done';
     if(!t.reports)t.reports=[];
-    t.reports.push({date:TODAY,work:'Pipeline advanced to stage: '+stage+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+    t.reports.push({date:TODAY,work:'Stage advanced: '+curStage+' \u2192 '+newStage+(notes?' | '+notes:'')+(fileCount>0?' | '+fileCount+' file(s) attached':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
     sbSaveTask(t);
-    // Create new task for new stage
+    // Create new follow-up task for the new stage
     const newDue=due||lead?.closedate||TODAY;
-    const newTask={_isNew:true,name:'Follow up: '+lead.name+' ('+stage+')',project:lead?.name||t.project,assignee:t.assignee,due:newDue,priority:stage==='Closing'?'high':'medium',done:false,status:'pending',schedule:recur==='daily'?'daily':'once',scheduleDays:[],details:'Pipeline: '+lead.name+' | Stage: '+stage,riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead?.id||t.refId};
+    const newTask={_isNew:true,
+      name:'Follow up: '+(lead?.name||t.project)+' ('+newStage+')',
+      project:lead?.name||t.project,
+      assignee:t.assignee,due:newDue,
+      priority:newStage==='Closing'||newStage==='Negotiation'?'high':'medium',
+      done:false,status:'pending',
+      schedule:recur==='daily'?'daily':'once',scheduleDays:[],
+      details:'Pipeline: '+(lead?.name||'')+' | Stage: '+newStage+' | Client: '+(lead?.client||'')+' | Value: '+(lead?.value||0),
+      riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead?.id||t.refId};
     tasks.push(newTask);
-    sbSaveTask(newTask);
-    sbLog('Pipeline advanced: "'+lead.name+'" \u2192 '+stage+' — new follow-up task created','#7B2D8B','Pipeline',lead?.name||'');
+    await sbSaveTask(newTask);
+    sbLog('Pipeline: new follow-up task created for "'+newTask.name+'"','#7B2D8B','Pipeline',lead?.name||'');
+    alert('Stage advanced from '+curStage+' to '+newStage+'.\nCurrent task marked complete. New follow-up task created!');
   }else{
-    // Same stage — just update due date and notes, don't mark done
+    // Same stage: just update due date and log — task stays open
     if(due)t.due=due;
     if(recur==='daily')t.schedule='daily';
     if(!t.reports)t.reports=[];
-    t.reports.push({date:TODAY,work:'Pipeline update: '+(notes||'no change to stage')+(fileCount>0?' | '+fileCount+' file(s) attached':''),pct:0,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+    t.reports.push({date:TODAY,work:'Pipeline update: Stage remains '+newStage+'.'+(notes?' | '+notes:'')+(fileCount>0?' | '+fileCount+' file(s)':''),pct:0,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
     sbSaveTask(t);
-    sbLog('Pipeline update: "'+lead?.name+'" — same stage ('+stage+')','#7B2D8B','Pipeline',lead?.name||'');
   }
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
-}
-
-function reopenTask(taskId){
-  const t=tasks.find(x=>x.id===taskId);if(!t)return;
-  if(!confirm('Reopen this task?'))return;
-  t.done=false;t.status='pending';sbSaveTask(t);
-  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
-  if(activeProjectId)renderDetailAll(activeProjectId);
 }
 
 async function boot(){
