@@ -179,6 +179,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="logo" onclick="goHome()"><div class="logo-ic"><i class="ti ti-building-skyscraper"></i></div>JCY Design Studio</div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:var(--tx2)" id="top-date"></div>
+      <button class="btn" id="btn-refresh" onclick="doRefresh()" title="Refresh all data" style="display:none;padding:5px 10px;font-size:12px;gap:5px"><i class="ti ti-refresh" id="refresh-icon"></i> Refresh</button>
       <div style="display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--bg2);cursor:pointer" onclick="doLogout()">
         <div class="av" id="top-av"></div>
         <div><div style="font-weight:600;font-size:12px" id="top-name">—</div><div style="font-size:10px;color:var(--tx2)" id="top-role">—</div></div>
@@ -444,12 +445,17 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div><div class="pt">Meetings</div><div class="ps">Minutes of Meeting & schedules</div></div>
     <button class="btn btnp" onclick="openFm('fm-meeting')"><i class="ti ti-plus"></i> Add Meeting</button>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
-    <input class="inp" type="date" id="meet-date-from" style="width:145px" placeholder="From" onchange="renderMeetings()">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+    <button class="btn btns" id="mbtn-all" onclick="setMeetFilter('all')" style="font-size:11px;font-weight:700">All</button>
+    <button class="btn btns" id="mbtn-today" onclick="setMeetFilter('today')" style="font-size:11px">Today</button>
+    <button class="btn btns" id="mbtn-upcoming" onclick="setMeetFilter('upcoming')" style="font-size:11px">Upcoming</button>
+    <button class="btn btns" id="mbtn-past" onclick="setMeetFilter('past')" style="font-size:11px">Past</button>
+    <span style="width:1px;background:var(--bd);height:22px;margin:0 2px"></span>
+    <input class="inp" type="date" id="meet-date-from" style="width:140px" placeholder="From" onchange="renderMeetings()">
     <span style="font-size:11px;color:var(--tx2)">to</span>
-    <input class="inp" type="date" id="meet-date-to" style="width:145px" placeholder="To" onchange="renderMeetings()">
-    <button class="btn btns" onclick="document.getElementById('meet-date-from').value='';document.getElementById('meet-date-to').value='';renderMeetings()">Clear</button>
-    <input class="inp" id="meet-search" style="width:200px" placeholder="Search meetings..." oninput="renderMeetings()">
+    <input class="inp" type="date" id="meet-date-to" style="width:140px" placeholder="To" onchange="renderMeetings()">
+    <button class="btn btns" onclick="setMeetFilter('all')" style="font-size:11px">Clear</button>
+    <input class="inp" id="meet-search" style="width:190px" placeholder="Search meetings..." oninput="renderMeetings()">
   </div>
   <div id="meeting-list"></div>
 </div>
@@ -1909,7 +1915,7 @@ function initAuth(){
 }
 function selUser(id){selectedAuthUser=users.find(u=>u.id===id);document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));const el=document.getElementById('au-'+id);if(el)el.classList.add('sel');document.getElementById('auth-pin').focus()}
 function doLogin(){if(!selectedAuthUser){alert('Select a user first.');return}const pin=document.getElementById('auth-pin').value;if(pin!==selectedAuthUser.pin){document.getElementById('auth-err').style.display='block';document.getElementById('auth-pin').value='';return}document.getElementById('auth-err').style.display='none';CU=selectedAuthUser;document.getElementById('auth-screen').style.display='none';document.getElementById('app').classList.add('on');document.getElementById('auth-pin').value='';setupApp();render()}
-function doLogout(){CU=null;selectedAuthUser=null;activeProjectId=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').classList.remove('on');document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));initAuth()}
+function doLogout(){CU=null;selectedAuthUser=null;activeProjectId=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').classList.remove('on');document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));const _rb2=document.getElementById('btn-refresh');if(_rb2)_rb2.style.display='none';initAuth()}
 function goHome(){closeDetail();closeMpDetail();setTab('overview')}
 function setupApp(){const p=PERMS[CU.role];const c=avC(CU.name);document.getElementById('top-av').textContent=initials(CU.name);Object.assign(document.getElementById('top-av').style,{background:c.bg,color:c.c});document.getElementById('top-name').textContent=CU.name;document.getElementById('top-role').textContent=RLBL[CU.role];document.getElementById('top-date').textContent=new Date().toLocaleDateString('en-PH',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
 if(CU.role==='worker'){['overview','projects','tasks','manpower','inventory','sop','users','activity','expenses'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.add('hidden')});['delivery','visitors','meetings','directory'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.remove('hidden')});setTab('delivery')}
@@ -1917,6 +1923,7 @@ else{document.querySelectorAll('.ntab').forEach(e=>e.classList.remove('hidden'))
 if(document.getElementById('btn-new-proj'))document.getElementById('btn-new-proj').style.display=p.newProject?'':'none';
 if(document.getElementById('btn-new-task'))document.getElementById('btn-new-task').style.display=p.newTask?'':'none';
 if(document.getElementById('btn-new-mat'))document.getElementById('btn-new-mat').style.display=p.inventory?'':'none';
+const _rb=document.getElementById('btn-refresh');if(_rb)_rb.style.display='';
 }
 
 // TABS
@@ -3487,8 +3494,8 @@ function filterDetailTasks(id,statusFilter){
   var list=tasks.filter(function(t){
     if(!t||!t.name)return false;
     if((t.project||'').trim().toLowerCase()!==pName)return false;
-    // Exclude Gantt MAIN activity tasks — only sub-tasks appear
-    if((t.autoType||'')==='gantt' && t.ganttId && !t.subTaskId)return false;
+    // Exclude Gantt MAIN activity tasks — only sub-tasks appear in task lists
+    if((t.autoType||'')==='gantt'&&t.ganttId&&!t.subTaskId)return false;
     return(CU.role==='admin'||CU.role==='pm'||CU.role==='engineer'||CU.role==='designer'||t.assignee===CU.name);
   });
   console.log('[filterDetailTasks]',p.name,'pid:',pid,'total tasks:',tasks.length,'matched:',list.length,'filter:',sf);
@@ -3581,9 +3588,7 @@ function taskSourceBadge(t){
     'manual':['#666','#f0efe8','Task'],
   };
   const [col,bg,lbl]=map[src]||map['manual'];
-  // Sub-tasks are labelled "Gantt Sub-task" to distinguish from main activities
-  const displayLbl=(src==='gantt'&&t.subTaskId)?'Gantt Sub-task':lbl;
-  return '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:'+bg+';color:'+col+';white-space:nowrap">'+displayLbl+'</span>';
+  return '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:'+bg+';color:'+col+';white-space:nowrap">'+lbl+'</span>';
 }
 function renderTasksGlobal(){
   const mp=myProjects();
@@ -3595,9 +3600,8 @@ function renderTasksGlobal(){
   let list=tasks.filter(t=>{
     if(!t||!t.name)return false;
     const proj=(t.project||'').trim();
-    // Exclude Gantt MAIN activity tasks — only sub-tasks appear in Tasks tab
-    // Main activity tasks have autoType==='gantt' and ganttId set but NO subTaskId
-    if((t.autoType||'')==='gantt' && t.ganttId && !t.subTaskId)return false;
+    // Exclude Gantt MAIN activity tasks — only sub-tasks appear in task lists
+    if((t.autoType||'')==='gantt'&&t.ganttId&&!t.subTaskId)return false;
     // Admin/PM/Engineer see all tasks in their projects; workers only see assigned tasks
     const inMyProjects=mpNames.has(proj)||(CU.role==='admin'&&proj);
     const canView=isManager||t.assignee===CU.name;
@@ -4736,293 +4740,246 @@ function goToActivity(idx){
 
 // INIT
 
-// ════════════════════════════════════════════════════════════════
-//  TASK DETAIL — context-aware form (replaces generic form)
-// ════════════════════════════════════════════════════════════════
-const _origOpenTaskDetail = window.openTaskDetail;
-window.openTaskDetail = function(taskId){
-  const t = tasks.find(x => x.id === taskId);
-  if(!t) return;
-  const autoType = t.autoType || 'gantt';
-  // Type badge colors/labels
-  const typeColors = {gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',inventory_replenish:'#A32D2D',manual:'#666'};
-  const typeLabels = {gantt:'GANTT SUB-TASK',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',inventory_replenish:'INVENTORY',manual:'TASK'};
-  // -- title + badge --
-  document.getElementById('ftd-title').textContent = t.name;
-  const badge = document.getElementById('ftd-type-badge');
-  if(badge){
-    const col = typeColors[autoType]||'#666';
-    badge.textContent = (autoType==='gantt'&&t.subTaskId) ? 'GANTT SUB-TASK' : (typeLabels[autoType]||'TASK');
-    badge.style.background = col+'22'; badge.style.color = col;
-  }
-  document.getElementById('ftd-task-id').value = taskId;
-  // -- info section --
-  const proj = projects.find(p => projMatch(p.name, t.project));
-  const acts = proj ? ganttActivities[proj.id]||[] : [];
-  const act = t.ganttId ? acts.find(a => a.id === t.ganttId) : null;
-  const st = act && t.subTaskId ? (act.subTasks||[]).find(s => s.id === t.subTaskId) : null;
-  document.getElementById('ftd-info').innerHTML =
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
-    '<div><span style="color:var(--tx3)">Project:</span> <strong>'+t.project+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Assignee:</span> <strong>'+(t.assignee||'—')+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Due:</span> <strong>'+(t.due||'—')+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Status:</span> <strong>'+(t.done?'✅ Done':t.status==='in-progress'?'🔵 In Progress':'⏳ Pending')+'</strong></div>'+
-    '</div>'+
-    (act?'<div style="margin-top:6px;padding:6px;background:var(--in-bg);border-radius:var(--r);font-size:11px;color:var(--in-tx)">'+
-      '<i class="ti ti-link"></i> Gantt: <strong>'+act.name+'</strong> ('+act.done+'%)'+
-      (st?' — Sub-task: <strong>'+st.name+'</strong>':'')+'</div>':'')+
-    (t.details&&!act?'<div style="margin-top:6px;font-size:11px;color:var(--tx2)">'+t.details+'</div>':'');
-  // -- previous reports --
-  const rpts = t.reports||[];
-  const rEl = document.getElementById('ftd-reports-section');
-  if(rEl) rEl.innerHTML = rpts.length ?
-    '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:5px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
-    rpts.slice(-2).reverse().map(r =>
-      '<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px">'+
-      '<div style="display:flex;justify-content:space-between;margin-bottom:2px"><strong>'+(r.date||'')+'</strong>'+
-      '<span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div>'+
-      '<div style="color:var(--tx2)">'+(r.work||'').slice(0,120)+'</div></div>'
-    ).join('') : '';
-  // -- build context form --
-  buildTaskContextForm(t, autoType);
-  document.getElementById('fm-task-detail').classList.add('op');
+// ═══════════════════════════════════════════════════════════════
+//  REFRESH BUTTON
+// ═══════════════════════════════════════════════════════════════
+(function(){const s=document.createElement('style');s.textContent='@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';document.head.appendChild(s);})();
+async function doRefresh(){
+  const icon=document.getElementById('refresh-icon');
+  const btn=document.getElementById('btn-refresh');
+  if(btn)btn.disabled=true;
+  if(icon)icon.style.animation='spin 0.8s linear infinite';
+  try{
+    await loadAllData();
+    render();
+    if(activeProjectId)renderDetailAll(activeProjectId);
+  }catch(e){console.error('Refresh error:',e);}
+  if(btn)btn.disabled=false;
+  if(icon)icon.style.animation='';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MEETINGS FILTER (Today / All / Upcoming / Past)
+// ═══════════════════════════════════════════════════════════════
+let _meetFilter='all';
+function setMeetFilter(f){
+  _meetFilter=f;
+  // Reset date pickers
+  const df=document.getElementById('meet-date-from');const dt=document.getElementById('meet-date-to');
+  if(f==='today'){if(df)df.value=TODAY;if(dt)dt.value=TODAY;}
+  else if(f==='upcoming'){if(df)df.value=TODAY;if(dt)dt.value='';}
+  else if(f==='past'){if(df)df.value='';if(dt)dt.value=TODAY;}
+  else{if(df)df.value='';if(dt)dt.value='';}
+  // Highlight active button
+  ['all','today','upcoming','past'].forEach(b=>{const el=document.getElementById('mbtn-'+b);if(el)el.style.fontWeight=b===f?'700':'400';});
+  renderMeetings();
+}
+
+// Patch renderMeetings to respect _meetFilter
+const _origRenderMeetings=window.renderMeetings;
+window.renderMeetings=function(){
+  if(typeof _origRenderMeetings==='function')_origRenderMeetings.apply(this,arguments);
 };
 
-function buildTaskContextForm(t, autoType){
-  const formEl = document.getElementById('ftd-form-area');
-  const btnsEl = document.getElementById('ftd-action-btns');
-  if(!formEl || !btnsEl) return;
-  const isDone = t.done || t.status === 'done';
-  if(isDone){
-    formEl.innerHTML = '<div style="text-align:center;padding:16px;background:var(--ok-bg);border-radius:var(--r)">'+
-      '<i class="ti ti-circle-check" style="font-size:32px;color:var(--ok-tx);display:block;margin-bottom:6px"></i>'+
-      '<div style="font-size:14px;font-weight:700;color:var(--ok-tx)">Task Completed</div>'+
-      '<div style="font-size:12px;color:var(--ok-tx);margin-top:4px">'+(t.reports||[]).length+' report(s) on file</div></div>';
-    btnsEl.innerHTML = '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
-      ((CU.role==='admin'||CU.role==='pm')
-        ? '<button class="btn" onclick="tdReopenTask('+t.id+')" style="color:var(--wn-tx)"><i class="ti ti-rotate"></i> Reopen</button>'
-        : '');
-    return;
+// ═══════════════════════════════════════════════════════════════
+//  INVENTORY: Edit modal (unit cost + description)
+// ═══════════════════════════════════════════════════════════════
+function openInvEdit(id){
+  const item=inventory.find(i=>i.id===id||parseInt(i.id)===parseInt(id));if(!item)return;
+  // Build inline edit overlay
+  const existing=document.getElementById('inv-edit-overlay');if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='inv-edit-overlay';
+  overlay.className='fm op';
+  overlay.style.zIndex='1001';
+  overlay.innerHTML=
+    '<div class="fb">' +
+    '<div class="ft"><i class="ti ti-package"></i> Edit Material — '+item.name+'</div>' +
+    '<div class="fg"><label class="fl">Material Name</label><input class="inp" id="iee-name" value="'+item.name+'"></div>' +
+    '<div class="fr2">' +
+      '<div class="fg"><label class="fl">Unit</label><input class="inp" id="iee-unit" value="'+(item.unit||'pcs')+'"></div>' +
+      '<div class="fg"><label class="fl">Min Stock</label><input class="inp" id="iee-min" type="number" min="0" value="'+(item.min||0)+'"></div>' +
+    '</div>' +
+    '<div class="fg"><label class="fl">Unit Cost (₱) <span style="font-size:9px;color:var(--tx3)">— used for inventory value calculations</span></label>'+
+      '<input class="inp" id="iee-cost" type="number" min="0" step="0.01" value="'+(item.unitCost||0)+'" style="font-size:15px;font-weight:700;color:var(--or)"></div>' +
+    '<div id="iee-total-preview" style="font-size:12px;color:var(--tx2);margin-bottom:4px"></div>' +
+    '<div class="fg"><label class="fl">Description / Notes</label><textarea class="inp" id="iee-desc" rows="2" placeholder="Additional notes, specs, source...">'+(item.desc||item.description||'')+'</textarea></div>' +
+    '<input type="hidden" id="iee-id" value="'+item.id+'">' +
+    '<div class="fa"><button class="btn" onclick="document.getElementById(\'inv-edit-overlay\').remove()">Cancel</button>'+
+      '<button class="btn btnp" onclick="saveInvEdit()"><i class="ti ti-check"></i> Save Changes</button></div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  // Live preview total value
+  const costEl=document.getElementById('iee-cost');
+  const previewEl=document.getElementById('iee-total-preview');
+  const updatePreview=()=>{
+    const cost=parseFloat(costEl.value)||0;
+    const qty=item.qty||0;
+    if(cost>0)previewEl.textContent='Total inventory value: ₱'+(qty*cost).toLocaleString('en-PH',{minimumFractionDigits:2})+' ('+qty+' '+item.unit+' × ₱'+cost+')';
+    else previewEl.textContent='';
+  };
+  if(costEl)costEl.addEventListener('input',updatePreview);
+  updatePreview();
+}
+async function saveInvEdit(){
+  const id=document.getElementById('iee-id')?.value;
+  const item=inventory.find(i=>i.id===parseInt(id)||i.id===id);if(!item)return;
+  item.name=document.getElementById('iee-name').value.trim()||item.name;
+  item.unit=document.getElementById('iee-unit').value.trim()||item.unit;
+  item.min=parseFloat(document.getElementById('iee-min').value)||0;
+  item.unitCost=parseFloat(document.getElementById('iee-cost').value)||0;
+  item.desc=document.getElementById('iee-desc').value.trim();
+  // Save to Supabase
+  const row={material:item.name,unit:item.unit,reorder_point:item.min,unit_cost:item.unitCost};
+  if(item.id&&parseInt(item.id)<2000000000){
+    const{error}=await sb.from('inventory').update(row).eq('id',item.id);
+    if(error)console.error('Inventory edit error:',error);
   }
-
-  // ── DELIVERY ─────────────────────────────────────────────────
-  if(autoType === 'delivery'){
-    const d = deliveries.find(x => parseInt(x.id) === parseInt(t.refId));
-    formEl.innerHTML =
-      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
-      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
-        '<strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+
-        d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
-      '<div class="fr2"><div class="fg"><label class="fl">Status</label>'+
-        '<select class="inp" id="td-del-status" onchange="onTdDelStatusChange()">'+
-        '<option>Scheduled</option><option value="Delivered">Delivered</option>'+
-        '<option>Cancelled</option><option>Rescheduled</option></select></div>'+
-      '<div class="fg"><label class="fl">Received By *</label>'+
-        '<input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
-      '<div class="fr2"><div class="fg"><label class="fl">PO No.</label>'+
-        '<input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
-      '<div class="fg"><label class="fl">Invoice No.</label>'+
-        '<input class="inp" id="td-del-invoice" placeholder="INV-XXXXX"></div></div>'+
-      '<div class="fg" id="td-del-reschedule-row" style="display:none">'+
-        '<label class="fl">Rescheduled Date *</label>'+
-        '<input class="inp" id="td-del-new-date" type="date"></div>'+
-      '<div class="fg"><label class="fl">Notes</label>'+
-        '<textarea class="inp" id="td-del-notes" rows="2" placeholder="Issues, discrepancies..."></textarea></div>'+
-      '<div class="fg"><label class="fl">Attach Files / Proof</label>'+
-        '<div class="upload-zone" onclick="document.getElementById(\'td-del-files\').click()">'+
-        '<input type="file" id="td-del-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,\'td-del-prev\')">'+
-        '<i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
-        '<div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div></div>'+
-        '<div class="media-prev" id="td-del-prev"></div></div>'+
-      '<input type="hidden" id="td-del-ref" value="'+(d?d.id:'')+'">'+
-      (d?'<script>setTimeout(()=>{var el=document.getElementById("td-del-status");if(el)el.value="'+d.status+'";},10);<\/script>':'');
-    btnsEl.innerHTML =
-      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
-      '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdDeliveryUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
-      '<button class="btn btnp" onclick="tdDeliveryComplete('+t.id+')"><i class="ti ti-check"></i> Mark Delivered</button>';
-    return;
-  }
-
-  // ── VISITOR ──────────────────────────────────────────────────
-  if(autoType === 'visitor'){
-    const v = visitors.find(x => parseInt(x.id) === parseInt(t.refId));
-    formEl.innerHTML =
-      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-user-check"></i> Visitor Action</div>'+
-      (v?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
-        '<strong>'+v.name+'</strong>'+(v.company?' · '+v.company:'')+
-        ' | Status: <strong>'+v.status+'</strong></div>':'')+
-      '<div class="fg"><label class="fl">Action</label>'+
-        '<div style="display:flex;gap:6px;flex-wrap:wrap" id="td-vis-action-btns">'+
-        '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdVisAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
-        '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdVisAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
-        '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdVisAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
-        '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdVisAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
-        '</div></div>'+
-      '<div class="fg" id="td-vis-reschedule-row" style="display:none">'+
-        '<label class="fl">New Date &amp; Time</label>'+
-        '<input class="inp" id="td-vis-new-time" type="datetime-local"></div>'+
-      '<div class="fg"><label class="fl">Remarks</label>'+
-        '<textarea class="inp" id="td-vis-remarks" rows="2" placeholder="Reason or notes..."></textarea></div>'+
-      '<input type="hidden" id="td-vis-action" value="">'+
-      '<input type="hidden" id="td-vis-ref" value="'+(v?v.id:'')+'">'+
-      (v&&v.status==='checked-in'?'<script>setTimeout(()=>{var b=document.querySelector("#td-vis-action-btns button:nth-child(2)");if(b){setTdVisAction(b,"checkout");}},10);<\/script>':'');
-    btnsEl.innerHTML =
-      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
-      '<button class="btn btnp" onclick="tdVisitorSave('+t.id+')"><i class="ti ti-check"></i> Save</button>';
-    return;
-  }
-
-  // ── MEETING ──────────────────────────────────────────────────
-  if(autoType === 'meeting'){
-    const m = meetings.find(x => parseInt(x.id) === parseInt(t.refId));
-    formEl.innerHTML =
-      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-calendar-event"></i> Meeting Update</div>'+
-      (m?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
-        '<strong>'+m.title+'</strong> | '+m.proj+' | '+(m.datetime||'').replace('T',' ')+
-        ' | Status: <strong>'+(m.status||'Scheduled')+'</strong></div>':'')+
-      '<div class="fg"><label class="fl">Action</label>'+
-        '<div style="display:flex;gap:6px;flex-wrap:wrap" id="td-meet-action-btns">'+
-        '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdMeetAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
-        '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdMeetAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
-        '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdMeetAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
-        '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdMeetAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
-        '</div></div>'+
-      '<div class="fg" id="td-meet-reschedule-row" style="display:none">'+
-        '<label class="fl">New Date &amp; Time</label>'+
-        '<input class="inp" id="td-meet-new-dt" type="datetime-local"></div>'+
-      '<div class="fg"><label class="fl">Minutes of Meeting</label>'+
-        '<textarea class="inp" id="td-meet-minutes" rows="3" placeholder="Key decisions, outcomes...">'+(m?m.minutes||'':'')+'</textarea></div>'+
-      '<div class="fg"><label class="fl">Action Items</label>'+
-        '<textarea class="inp" id="td-meet-actions" rows="2" placeholder="Who does what by when...">'+(m?m.actions||'':'')+'</textarea></div>'+
-      '<div class="fg"><label class="fl">Remarks</label>'+
-        '<textarea class="inp" id="td-meet-remarks" rows="1" placeholder="Notes..."></textarea></div>'+
-      '<input type="hidden" id="td-meet-action" value="">'+
-      '<input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">'+
-      (m&&m.status==='checked-in'?'<script>setTimeout(()=>{var b=document.querySelector("#td-meet-action-btns button:nth-child(2)");if(b)setTdMeetAction(b,"checkout");},10);<\/script>':'');
-    btnsEl.innerHTML =
-      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
-      '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdMeetingUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
-      '<button class="btn btnp" onclick="tdMeetingCheckOut('+t.id+')"><i class="ti ti-logout"></i> Check Out (Done)</button>';
-    return;
-  }
-
-  // ── PIPELINE ─────────────────────────────────────────────────
-  if(autoType === 'pipeline'){
-    const lead = pipeline.find(x => parseInt(x.id) === parseInt(t.refId));
-    const curStage = lead ? lead.stage : '';
-    formEl.innerHTML =
-      '<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-funnel"></i> Pipeline Update</div>'+
-      (lead?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px">'+
-        '<strong>'+lead.name+'</strong> · '+lead.client+' | Current Stage: <strong style="color:var(--or)">'+lead.stage+'</strong> | Value: '+fmt(lead.value||0)+'</div>':'')+
-      '<div class="fr2">'+
-      '<div class="fg"><label class="fl">Stage <span style="font-size:9px;color:var(--tx3)">(change to advance lead)</span></label>'+
-        '<select class="inp" id="td-pip-stage">'+
-        '<option>Lead Gen</option><option>Proposal</option><option>Negotiation</option>'+
-        '<option>Closing</option><option>Awarded</option><option>Lost</option></select></div>'+
-      '<div class="fg"><label class="fl">Probability (%)</label>'+
-        '<input class="inp" id="td-pip-prob" type="number" min="0" max="100"></div>'+
-      '</div>'+
-      '<div class="fr2">'+
-      '<div class="fg"><label class="fl">Estimated Value (₱)</label>'+
-        '<input class="inp" id="td-pip-value" type="number" min="0"></div>'+
-      '<div class="fg"><label class="fl">Due Date</label>'+
-        '<input class="inp" id="td-pip-due" type="date"></div>'+
-      '</div>'+
-      '<div class="fg"><label class="fl">Notes / Update</label>'+
-        '<textarea class="inp" id="td-pip-notes" rows="2" placeholder="Latest update, next steps..."></textarea></div>'+
-      '<div class="fg"><label class="fl">Recurrence</label>'+
-        '<select class="inp" id="td-pip-recur">'+
-        '<option value="">None (one-time update)</option>'+
-        '<option value="daily">Daily reminder until due date</option></select></div>'+
-      '<div class="fg"><label class="fl">Attach Files</label>'+
-        '<div class="upload-zone" onclick="document.getElementById(\'td-pip-files\').click()">'+
-        '<input type="file" id="td-pip-files" multiple onchange="prevMedia(this,\'td-pip-prev\')">'+
-        '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
-        '<div style="font-size:12px;color:var(--tx2)">Upload proposals, specs, any docs</div></div>'+
-        '<div class="media-prev" id="td-pip-prev"></div></div>'+
-      '<div id="td-pip-stage-hint" style="font-size:11px;color:var(--tx2);margin-top:4px"></div>'+
-      '<input type="hidden" id="td-pip-ref" value="'+(lead?lead.id:'')+'">'+
-      '<input type="hidden" id="td-pip-cur-stage" value="'+curStage+'">'+
-      (lead?'<script>setTimeout(()=>{'+
-        'var s=document.getElementById("td-pip-stage");if(s){s.value="'+lead.stage+'";'+
-        's.addEventListener("change",function(){'+
-          'var hint=document.getElementById("td-pip-stage-hint");if(!hint)return;'+
-          'var cur="'+lead.stage+'";'+
-          'if(s.value!==cur)hint.innerHTML="<span style=\\"color:var(--ok-tx)\\"><i class=\\"ti ti-arrow-right\\"></i> Stage will advance from <strong>"+cur+"</strong> to <strong>"+s.value+"</strong> — current task will be completed and a new follow-up task will be created.</span>";'+
-          'else hint.innerHTML="<span style=\\"color:var(--tx2)\\">Stage unchanged — task will be updated without completion.</span>";'+
-        '});'+
-        's.dispatchEvent(new Event("change"));'+
-        '}'+
-        'var p=document.getElementById("td-pip-prob");if(p)p.value='+(lead.prob||50)+';'+
-        'var v=document.getElementById("td-pip-value");if(v)v.value='+(lead.value||0)+';'+
-        'var d=document.getElementById("td-pip-due");if(d)d.value="'+(t.due||'')+'";'+
-      '},10);<\/script>':'');
-    btnsEl.innerHTML =
-      '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
-      '<button class="btn btnp" onclick="tdPipelineUpdate('+t.id+')"><i class="ti ti-check"></i> Update Lead</button>';
-    return;
-  }
-
-  // ── GANTT / Default ──────────────────────────────────────────
-  formEl.innerHTML =
-    '<div style="font-size:13px;font-weight:600;margin-bottom:10px"><i class="ti ti-notebook"></i> Daily Report</div>'+
-    '<div class="fr2">'+
-    '<div class="fg"><label class="fl">Date</label><input class="inp" id="ftd-date" type="date" value="'+TODAY+'"></div>'+
-    '<div class="fg"><label class="fl">Weather</label><select class="inp" id="ftd-weather"><option>Sunny</option><option>Cloudy</option><option>Rainy</option><option>Stormy</option><option>Hot</option></select></div>'+
-    '</div>'+
-    '<div class="fg"><label class="fl">Work Done *</label><textarea class="inp" id="ftd-work" placeholder="What was accomplished today?"></textarea></div>'+
-    '<div class="fr3">'+
-    '<div class="fg"><label class="fl">Workers</label><input class="inp" id="ftd-workers" type="number" min="0" placeholder="0"></div>'+
-    '<div class="fg"><label class="fl">Hours</label><input class="inp" id="ftd-hours" type="number" min="0" max="24" placeholder="8" value="8"></div>'+
-    '<div class="fg"><label class="fl">% Complete</label><div style="display:flex;align-items:center;gap:6px;margin-top:4px">'+
-    '<input type="range" min="0" max="100" step="5" id="ftd-pct" style="flex:1;accent-color:var(--or)" oninput="document.getElementById(\'ftd-pct-val\').textContent=this.value+\'%\'">'+
-    '<span id="ftd-pct-val" style="font-size:12px;font-weight:700;min-width:30px">0%</span></div></div>'+
-    '</div>'+
-    '<div class="fg"><label class="fl">Equipment Used</label><input class="inp" id="ftd-equip" placeholder="e.g. Backhoe, Mixer"></div>'+
-    '<div class="fg"><label class="fl">Materials Used</label><input class="inp" id="ftd-materials" placeholder="e.g. 50 bags cement"></div>'+
-    '<div class="fg"><label class="fl">Issues / Delays</label><textarea class="inp" id="ftd-issues" placeholder="Problems, safety concerns?"></textarea></div>'+
-    '<div class="fg"><label class="fl">Photos / Videos</label>'+
-    '<div class="upload-zone" onclick="document.getElementById(\'ftd-files\').click()">'+
-    '<input type="file" id="ftd-files" multiple accept="image/*,video/*" onchange="prevMedia(this,\'ftd-prev\')">'+
-    '<i class="ti ti-camera" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
-    '<div style="font-size:12px;color:var(--tx2)">Upload site photos or videos</div></div>'+
-    '<div class="media-prev" id="ftd-prev"></div></div>';
-  btnsEl.innerHTML =
-    '<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
-    '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="submitTaskUpdate()"><i class="ti ti-refresh"></i> Update</button>'+
-    '<button class="btn btnp" onclick="submitTaskReport()"><i class="ti ti-send"></i> Submit Report</button>';
+  sbLog('Inventory edited: "'+item.name+'" — ₱'+item.unitCost+'/'+item.unit,'#185FA5','Inventory',item.project);
+  document.getElementById('inv-edit-overlay')?.remove();
+  renderGlobalInventory();
+  if(activeProjectId)renderDetailInventory(activeProjectId);
 }
 
-// ── Shared action helpers ────────────────────────────────────
-function onTdDelStatusChange(){
-  const s = document.getElementById('td-del-status')?.value||'';
-  const rr = document.getElementById('td-del-reschedule-row');
-  if(rr) rr.style.display = s==='Rescheduled'?'':'none';
-}
-function setTdVisAction(btn,action){
-  document.getElementById('td-vis-action').value = action;
-  document.querySelectorAll('#td-vis-action-btns button').forEach(b=>b.style.fontWeight='400');
-  if(btn) btn.style.fontWeight='700';
-  const rr=document.getElementById('td-vis-reschedule-row');
-  if(rr) rr.style.display=action==='reschedule'?'':'none';
-}
-function setTdMeetAction(btn,action){
-  document.getElementById('td-meet-action').value=action;
-  document.querySelectorAll('#td-meet-action-btns button').forEach(b=>b.style.fontWeight='400');
-  if(btn) btn.style.fontWeight='700';
-  const rr=document.getElementById('td-meet-reschedule-row');
-  if(rr) rr.style.display=action==='reschedule'?'':'none';
-}
+// Patch renderGlobalInventory to make cards clickable to edit
+const _origRGI=window.renderGlobalInventory;
+window.renderGlobalInventory=function(){
+  _origRGI.apply(this,arguments);
+  // After render, make card onclick open edit
+  document.querySelectorAll('#inv-grid-global .inv-card').forEach(card=>{
+    const idMatch=card.id&&card.id.match(/inv-item-(\d+)/);
+    if(idMatch){
+      const origClick=card.getAttribute('onclick');
+      card.setAttribute('onclick','event.stopPropagation();openInvEdit('+idMatch[1]+')');
+      card.title='Click to edit';
+    }
+  });
+};
 
-function tdReopenTask(taskId){
+// ═══════════════════════════════════════════════════════════════
+//  GANTT EDIT: Sync new sub-tasks to Tasks/Project Tasks
+// ═══════════════════════════════════════════════════════════════
+const _origSaveGanttEdit=window.saveGanttEdit;
+window.saveGanttEdit=async function(){
+  // Capture sub-tasks BEFORE the save so we can diff
+  const actId=parseInt(document.getElementById('fge-act-id')?.value);
+  const projId=parseInt(document.getElementById('fge-proj-id')?.value);
+  const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);
+  const beforeStIds=new Set((act?.subTasks||[]).map(s=>s.id));
+  // Call original save
+  await _origSaveGanttEdit.apply(this,arguments);
+  // After save: find newly added sub-tasks and create linked tasks for them
+  const actAfter=(ganttActivities[projId]||[]).find(a=>a.id===actId);
+  if(!actAfter||!actAfter.subTasks)return;
+  const p=findProject(projId);const pn=p?.name||'';
+  const riskVal=actAfter.riskLevel==='HIGH'||actAfter.riskLevel==='CRITICAL'?'high':'medium';
+  for(const st of actAfter.subTasks){
+    if(beforeStIds.has(st.id))continue; // already existed
+    // Check if a task already exists for this sub-task
+    const exists=tasks.find(t=>t.ganttId===actId&&t.subTaskId===st.id);
+    if(exists)continue;
+    const stTask={_isNew:true,name:st.name,project:pn,assignee:actAfter.assign||'',
+      due:st.end||actAfter.end,start:st.start||actAfter.start,priority:riskVal,
+      done:st.done||false,status:st.done?'done':'pending',
+      ganttId:actId,subTaskId:st.id,schedule:'once',scheduleDays:[],
+      details:'Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end),
+      riskLevel:actAfter.riskLevel||'LOW',reports:[],autoType:'gantt',refId:actId};
+    tasks.push(stTask);
+    await sbSaveTask(stTask);
+  }
+  renderTasksGlobal();
+};
+
+// Also patch addSubTaskInEdit to immediately create the task in-memory
+const _origAddSubTaskInEdit=window.addSubTaskInEdit;
+window.addSubTaskInEdit=function(){
+  _origAddSubTaskInEdit.apply(this,arguments);
+  // The save to tasks happens on saveGanttEdit — nothing needed here
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  FULL BIDIRECTIONAL SYNC — Task ↔ Source (all types)
+// ═══════════════════════════════════════════════════════════════
+
+// ── reopenTask: also reopen the source record ─────────────────
+// Override existing reopenTask or define it if missing
+window.reopenTask=function(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   if(!confirm('Reopen this task?'))return;
-  t.done=false;t.status='pending';sbSaveTask(t);
+  t.done=false;t.status='pending';
+  // Reopen source record
+  const autoType=t.autoType||'gantt';
+  if(autoType==='delivery'){
+    const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
+    if(d&&(d.status==='Delivered'||d.status==='Cancelled')){
+      d.status='Scheduled';
+      if(d.id&&d.id<2000000000)sb.from('deliveries').update({status:'Scheduled'}).eq('id',d.id).then(()=>{renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);});
+    }
+  }else if(autoType==='visitor'){
+    const v=visitors.find(x=>parseInt(x.id)===parseInt(t.refId));
+    if(v&&(v.status==='checked-out'||v.status==='cancelled')){
+      v.status='scheduled';
+      sbSaveVisitor(v).then(()=>{renderVisitorList();if(activeProjectId)renderDetailVisitors(activeProjectId);});
+    }
+  }else if(autoType==='meeting'){
+    const m=meetings.find(x=>parseInt(x.id)===parseInt(t.refId));
+    if(m&&(m.status==='checked-out'||m.status==='cancelled')){
+      m.status='scheduled';
+      if(m.id&&m.id<2000000000)sb.from('meetings').update({status:'scheduled'}).eq('id',m.id).then(()=>{renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);});
+    }
+  }
+  sbSaveTask(t);
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
   if(activeProjectId)renderDetailAll(activeProjectId);
-}
+};
 
-// ── Delivery ─────────────────────────────────────────────────
+// ── Delivery Tab → Task sync ──────────────────────────────────
+// Wrap the existing saveDeliveryUpdate to also update task
+const _origSDU=window.saveDeliveryUpdate;
+window.saveDeliveryUpdate=async function(){
+  const id=parseInt(document.getElementById('fdu-id')?.value);
+  const newStatus=document.getElementById('fdu-status')?.value||'';
+  await _origSDU.apply(this,arguments);
+  // After save: sync linked task
+  const d=deliveries.find(x=>parseInt(x.id)===id);if(!d)return;
+  const linked=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===id);
+  if(!linked)return;
+  if(newStatus==='Delivered'&&!linked.done){
+    linked.done=true;linked.status='done';
+    if(!linked.reports)linked.reports=[];
+    linked.reports.push({date:TODAY,work:'Delivery marked Delivered from Delivery tab.',pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+    sbSaveTask(linked);renderTasksGlobal();
+  }else if(newStatus==='Cancelled'&&!linked.done){
+    linked.done=true;linked.status='done';sbSaveTask(linked);renderTasksGlobal();
+  }else if(newStatus==='Scheduled'||newStatus==='Rescheduled'){
+    linked.status='pending';linked.done=false;sbSaveTask(linked);renderTasksGlobal();
+  }
+};
+
+// ── Visitor Tab → Task sync (already in saveVisitorAction) ────
+// Wrap to ensure both directions work
+const _origSVA=window.saveVisitorAction;
+window.saveVisitorAction=async function(){
+  const id=parseInt(document.getElementById('fva-id')?.value);
+  const action=_visitorPendingAction;
+  const newTime=document.getElementById('fva-new-time')?.value||'';
+  await _origSVA.apply(this,arguments);
+  const linked=tasks.find(t=>t.autoType==='visitor'&&parseInt(t.refId)===id&&!t.done);
+  if(!linked)return;
+  if(action==='checkout'||action==='cancel'){
+    linked.done=true;linked.status='done';
+    if(!linked.reports)linked.reports=[];
+    linked.reports.push({date:TODAY,work:'Visitor '+action+' from Visitor tab.',pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+    sbSaveTask(linked);renderTasksGlobal();
+  }else if(action==='checkin'){
+    linked.status='in-progress';sbSaveTask(linked);renderTasksGlobal();
+  }else if(action==='reschedule'&&newTime){
+    linked.due=newTime.split('T')[0];linked.status='pending';sbSaveTask(linked);renderTasksGlobal();
+  }
+};
+
+// ── Task→Delivery sync functions ─────────────────────────────
 async function tdDeliveryUpdate(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
@@ -5030,55 +4987,59 @@ async function tdDeliveryUpdate(taskId){
   const status=document.getElementById('td-del-status')?.value||'Scheduled';
   const newDate=document.getElementById('td-del-new-date')?.value||'';
   if(status==='Rescheduled'&&!newDate){alert('Please enter the rescheduled date.');return;}
-  const notes=document.getElementById('td-del-notes')?.value||'';
-  const po=document.getElementById('td-del-po')?.value||'';
-  const invoice=document.getElementById('td-del-invoice')?.value||'';
+  const notes=(document.getElementById('td-del-notes')?.value||'').trim();
+  const po=(document.getElementById('td-del-po')?.value||'').trim();
+  const invoice=(document.getElementById('td-del-invoice')?.value||'').trim();
   const fileCount=typeof getFileCount==='function'?getFileCount('td-del-files'):0;
+  // ── Sync to Delivery tab ─────────────────────────────────
   if(d){
     d.status=status;
-    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;
+    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes+' ('+CU.name+' '+nowStr()+')';
     if(po)d.po=po;if(invoice)d.invoice=invoice;
     if(status==='Rescheduled'&&newDate)d.date=newDate;
     if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
-    const upRow={status,notes:d.notes||'',scheduled_date:d.date||null};
+    const upRow={status:d.status,notes:d.notes||'',scheduled_date:d.date||null};
     if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
-    if(d.id&&d.id<2000000000)await sb.from('deliveries').update(upRow).eq('id',d.id);
+    if(d.id&&d.id<2000000000){const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);if(error)console.error('Delivery sync error:',error);}
     renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
   }
+  // ── Sync task status ──────────────────────────────────────
   if(status==='Rescheduled'&&newDate){t.due=newDate;t.status='pending';}
   else if(status==='Cancelled'){t.done=true;t.status='done';}
   else{t.status='in-progress';}
   if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Delivery update: '+status+(status==='Rescheduled'?' → '+newDate:'')+(notes?' | '+notes:''),pct:status==='Delivered'?100:30,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  t.reports.push({date:TODAY,work:'Delivery update: '+status+(status==='Rescheduled'?' → '+newDate:'')+(notes?' | '+notes:''),pct:status==='Cancelled'?100:30,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
   sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
+
 async function tdDeliveryComplete(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const receiver=(document.getElementById('td-del-receiver')?.value||'').trim();
   if(!receiver){alert('Received By is required to mark as Delivered.');return;}
   const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
   const d=deliveries.find(x=>parseInt(x.id)===delId);
-  const notes=document.getElementById('td-del-notes')?.value||'';
-  const po=document.getElementById('td-del-po')?.value||'';
-  const invoice=document.getElementById('td-del-invoice')?.value||'';
+  const notes=(document.getElementById('td-del-notes')?.value||'').trim();
+  const po=(document.getElementById('td-del-po')?.value||'').trim();
+  const invoice=(document.getElementById('td-del-invoice')?.value||'').trim();
   const fileCount=typeof getFileCount==='function'?getFileCount('td-del-files'):0;
+  // ── Sync to Delivery tab ─────────────────────────────────
   if(d){
     d.status='Delivered';d.receiver=receiver;d.actualDate=TODAY;
-    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;
-    if(po)d.po=po;if(invoice)d.invoice=invoice;
+    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;if(po)d.po=po;if(invoice)d.invoice=invoice;
     if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
     const upRow={status:'Delivered',receiver,actual_date:TODAY,notes:d.notes||''};
     if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
-    if(d.id&&d.id<2000000000)await sb.from('deliveries').update(upRow).eq('id',d.id);
+    if(d.id&&d.id<2000000000){const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);if(error)console.error('Delivery complete error:',error);}
     renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
   }
+  // ── Complete task ─────────────────────────────────────────
   t.done=true;t.status='done';
   if(!t.reports)t.reports=[];
   t.reports.push({date:TODAY,work:'Delivery completed. Received by: '+receiver+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
   sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 
-// ── Visitor ──────────────────────────────────────────────────
+// ── Task→Visitor sync ─────────────────────────────────────────
 async function tdVisitorSave(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const action=document.getElementById('td-vis-action')?.value||'';
@@ -5088,6 +5049,7 @@ async function tdVisitorSave(taskId){
   const v=visitors.find(x=>parseInt(x.id)===visId);
   if(!action&&!remarks){alert('Choose an action or add a remark.');return;}
   if(action==='reschedule'&&!newTime){alert('Please enter a new date/time for rescheduling.');return;}
+  // ── Sync to Visitor tab ───────────────────────────────────
   if(v){
     if(remarks)v.remarks=(v.remarks?v.remarks+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
     if(action==='checkin')v.status='checked-in';
@@ -5097,6 +5059,7 @@ async function tdVisitorSave(taskId){
     await sbSaveVisitor(v);
     renderVisitorList();if(activeProjectId)renderDetailVisitors(activeProjectId);
   }
+  // ── Sync task ─────────────────────────────────────────────
   if(action==='checkout'||action==='cancel'){
     t.done=true;t.status='done';
     if(!t.reports)t.reports=[];
@@ -5116,7 +5079,7 @@ async function tdVisitorSave(taskId){
   sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 
-// ── Meeting ──────────────────────────────────────────────────
+// ── Task→Meeting sync ─────────────────────────────────────────
 async function tdMeetingUpdate(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const meetId=parseInt(document.getElementById('td-meet-ref')?.value||0);
@@ -5124,9 +5087,10 @@ async function tdMeetingUpdate(taskId){
   const action=document.getElementById('td-meet-action')?.value||'';
   const newDt=document.getElementById('td-meet-new-dt')?.value||'';
   if(action==='reschedule'&&!newDt){alert('Please enter a new date and time.');return;}
-  const minutes=document.getElementById('td-meet-minutes')?.value||'';
-  const meetActions=document.getElementById('td-meet-actions')?.value||'';
-  const remarks=document.getElementById('td-meet-remarks')?.value||'';
+  const minutes=(document.getElementById('td-meet-minutes')?.value||'').trim();
+  const meetActions=(document.getElementById('td-meet-actions')?.value||'').trim();
+  const remarks=(document.getElementById('td-meet-remarks')?.value||'').trim();
+  // ── Sync to Meeting tab ───────────────────────────────────
   if(m){
     if(action==='checkin')m.status='checked-in';
     else if(action==='reschedule'&&newDt){m.datetime=newDt;m.status='rescheduled';}
@@ -5134,9 +5098,10 @@ async function tdMeetingUpdate(taskId){
     if(minutes)m.minutes=minutes;if(meetActions)m.actions=meetActions;
     const upRow={status:m.status,minutes:m.minutes||'',actions:m.actions||''};
     if(action==='reschedule'&&newDt)upRow.datetime=newDt;
-    if(m.id&&m.id<2000000000)await sb.from('meetings').update(upRow).eq('id',m.id);
+    if(m.id&&m.id<2000000000){const{error}=await sb.from('meetings').update(upRow).eq('id',m.id);if(error)console.error('Meeting update error:',error);}
     renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
   }
+  // ── Sync task ─────────────────────────────────────────────
   if(action==='cancel'){t.done=true;t.status='done';}
   else if(action==='reschedule'&&newDt){t.due=newDt.split('T')[0];t.status='pending';}
   else{t.status='in-progress';}
@@ -5148,12 +5113,13 @@ async function tdMeetingCheckOut(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const meetId=parseInt(document.getElementById('td-meet-ref')?.value||0);
   const m=meetings.find(x=>parseInt(x.id)===meetId);
-  const minutes=document.getElementById('td-meet-minutes')?.value||'';
-  const meetActions=document.getElementById('td-meet-actions')?.value||'';
+  const minutes=(document.getElementById('td-meet-minutes')?.value||'').trim();
+  const meetActions=(document.getElementById('td-meet-actions')?.value||'').trim();
+  // ── Sync to Meeting tab ───────────────────────────────────
   if(m){
     m.status='checked-out';
     if(minutes)m.minutes=minutes;if(meetActions)m.actions=meetActions;
-    if(m.id&&m.id<2000000000)await sb.from('meetings').update({status:'checked-out',minutes:m.minutes||'',actions:m.actions||''}).eq('id',m.id);
+    if(m.id&&m.id<2000000000){const{error}=await sb.from('meetings').update({status:'checked-out',minutes:m.minutes||'',actions:m.actions||''}).eq('id',m.id);if(error)console.error('Meeting checkout error:',error);}
     renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
   }
   t.done=true;t.status='done';
@@ -5162,7 +5128,7 @@ async function tdMeetingCheckOut(taskId){
   sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 
-// ── Pipeline — THE KEY FIX: stage change always syncs to Pipeline tab ──
+// ── Task→Pipeline sync ────────────────────────────────────────
 async function tdPipelineUpdate(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const leadId=parseInt(document.getElementById('td-pip-ref')?.value||0);
@@ -5176,49 +5142,216 @@ async function tdPipelineUpdate(taskId){
   const fileCount=typeof getFileCount==='function'?getFileCount('td-pip-files'):0;
   const curStage=document.getElementById('td-pip-cur-stage')?.value||'';
   const stageChanged=newStage&&newStage!==curStage;
-  // ── ALWAYS update the pipeline lead in the Pipeline tab ──────
+  // ── ALWAYS sync to Pipeline tab ───────────────────────────
   if(lead){
-    if(newStage)lead.stage=newStage;   // ← This is the key: always move the stage
-    if(prob)lead.prob=prob;
-    if(value)lead.value=value;
+    if(newStage)lead.stage=newStage;
+    if(prob)lead.prob=prob;if(value)lead.value=value;
     if(!lead.history)lead.history=[];
     lead.history.push({date:TODAY,stage:lead.stage,note:notes||(stageChanged?'Advanced to '+newStage:'Update'),by:CU.name});
     await sbSavePipeline(lead);
-    // If awarded, promote to project
     if(newStage==='Awarded'&&curStage!=='Awarded')promotePipelineToProject(lead);
-    renderPipeline();  // ← Always re-render pipeline so stage change is visible
-    sbLog('Pipeline: "'+lead.name+'" stage updated to '+newStage+(notes?' — '+notes:''),'#7B2D8B','Pipeline',lead.name);
+    renderPipeline();
+    sbLog('Pipeline: "'+lead.name+'" stage \u2192 '+newStage+(notes?' \u2014 '+notes:''),'#7B2D8B','Pipeline',lead.name);
   }
   if(stageChanged){
-    // Stage changed: mark current task done, create new task for new stage
     t.done=true;t.status='done';
     if(!t.reports)t.reports=[];
-    t.reports.push({date:TODAY,work:'Stage advanced: '+curStage+' \u2192 '+newStage+(notes?' | '+notes:'')+(fileCount>0?' | '+fileCount+' file(s) attached':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+    t.reports.push({date:TODAY,work:'Stage advanced: '+curStage+' \u2192 '+newStage+(notes?' | '+notes:'')+(fileCount>0?' | '+fileCount+' file(s)':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
     sbSaveTask(t);
-    // Create new follow-up task for the new stage
+    // Create new follow-up task
     const newDue=due||lead?.closedate||TODAY;
-    const newTask={_isNew:true,
-      name:'Follow up: '+(lead?.name||t.project)+' ('+newStage+')',
-      project:lead?.name||t.project,
-      assignee:t.assignee,due:newDue,
-      priority:newStage==='Closing'||newStage==='Negotiation'?'high':'medium',
-      done:false,status:'pending',
-      schedule:recur==='daily'?'daily':'once',scheduleDays:[],
-      details:'Pipeline: '+(lead?.name||'')+' | Stage: '+newStage+' | Client: '+(lead?.client||'')+' | Value: '+(lead?.value||0),
-      riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead?.id||t.refId};
-    tasks.push(newTask);
-    await sbSaveTask(newTask);
-    sbLog('Pipeline: new follow-up task created for "'+newTask.name+'"','#7B2D8B','Pipeline',lead?.name||'');
-    alert('Stage advanced from '+curStage+' to '+newStage+'.\nCurrent task marked complete. New follow-up task created!');
+    const newTask={_isNew:true,name:'Follow up: '+(lead?.name||t.project)+' ('+newStage+')',project:lead?.name||t.project,assignee:t.assignee,due:newDue,priority:newStage==='Closing'||newStage==='Negotiation'?'high':'medium',done:false,status:'pending',schedule:recur==='daily'?'daily':'once',scheduleDays:[],details:'Pipeline: '+(lead?.name||'')+' | Stage: '+newStage+' | Client: '+(lead?.client||'')+' | Value: '+(lead?.value||0),riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead?.id||t.refId};
+    tasks.push(newTask);await sbSaveTask(newTask);
+    alert('Stage advanced: '+curStage+' \u2192 '+newStage+'.\nNew follow-up task created!');
   }else{
-    // Same stage: just update due date and log — task stays open
-    if(due)t.due=due;
-    if(recur==='daily')t.schedule='daily';
+    if(due)t.due=due;if(recur==='daily')t.schedule='daily';
     if(!t.reports)t.reports=[];
     t.reports.push({date:TODAY,work:'Pipeline update: Stage remains '+newStage+'.'+(notes?' | '+notes:'')+(fileCount>0?' | '+fileCount+' file(s)':''),pct:0,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
     sbSaveTask(t);
   }
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+}
+
+// ── Helper action-button setters ─────────────────────────────
+function setTdVisAction(btn,action){
+  const el=document.getElementById('td-vis-action');if(el)el.value=action;
+  document.querySelectorAll('#td-vis-action-btns button').forEach(b=>b.style.fontWeight='400');
+  if(btn)btn.style.fontWeight='700';
+  const rr=document.getElementById('td-vis-reschedule-row');
+  if(rr)rr.style.display=action==='reschedule'?'':'none';
+}
+function setTdMeetAction(btn,action){
+  const el=document.getElementById('td-meet-action');if(el)el.value=action;
+  document.querySelectorAll('#td-meet-action-btns button').forEach(b=>b.style.fontWeight='400');
+  if(btn)btn.style.fontWeight='700';
+  const rr=document.getElementById('td-meet-reschedule-row');
+  if(rr)rr.style.display=action==='reschedule'?'':'none';
+}
+function onTdDelStatusChange(){
+  const s=document.getElementById('td-del-status')?.value||'';
+  const rr=document.getElementById('td-del-reschedule-row');
+  if(rr)rr.style.display=s==='Rescheduled'?'':'none';
+}
+
+// ── Context-aware task detail opener ─────────────────────────
+const _origOpenTaskDetail=window.openTaskDetail;
+window.openTaskDetail=function(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const autoType=t.autoType||'gantt';
+  const typeColors={gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',inventory_replenish:'#A32D2D',manual:'#666'};
+  const typeLabels={gantt:'GANTT SUB-TASK',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',inventory_replenish:'INVENTORY',manual:'TASK'};
+  const col=typeColors[autoType]||'#666';
+  document.getElementById('ftd-title').textContent=t.name;
+  const badge=document.getElementById('ftd-type-badge');
+  if(badge){badge.textContent=typeLabels[autoType]||'TASK';badge.style.background=col+'22';badge.style.color=col;}
+  document.getElementById('ftd-task-id').value=taskId;
+  const proj=projects.find(p=>projMatch(p.name,t.project));
+  const acts=proj?ganttActivities[proj.id]||[]:[];
+  const act=t.ganttId?acts.find(a=>a.id===t.ganttId):null;
+  const st=act&&t.subTaskId?(act.subTasks||[]).find(s=>s.id===t.subTaskId):null;
+  document.getElementById('ftd-info').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
+    '<div><span style="color:var(--tx3)">Project:</span> <strong>'+t.project+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Assignee:</span> <strong>'+(t.assignee||'—')+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Due:</span> <strong>'+(t.due||'—')+'</strong></div>'+
+    '<div><span style="color:var(--tx3)">Status:</span> <strong>'+(t.done?'✅ Done':t.status==='in-progress'?'🔵 In Progress':'⏳ Pending')+'</strong></div>'+
+    '</div>'+
+    (act?'<div style="margin-top:6px;padding:6px;background:var(--in-bg);border-radius:var(--r);font-size:11px;color:var(--in-tx)"><i class="ti ti-link"></i> Gantt: <strong>'+act.name+'</strong> ('+act.done+'%)'+(st?' — Sub-task: <strong>'+st.name+'</strong>':'')+'</div>':'')+
+    (t.details&&!act?'<div style="margin-top:6px;font-size:11px;color:var(--tx2)">'+t.details+'</div>':'');
+  const rpts=t.reports||[];
+  const rEl=document.getElementById('ftd-reports-section');
+  if(rEl)rEl.innerHTML=rpts.length?
+    '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:5px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
+    rpts.slice(-2).reverse().map(r=>
+      '<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:2px"><strong>'+(r.date||'')+'</strong><span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div>'+
+      '<div style="color:var(--tx2)">'+(r.work||'').slice(0,120)+'</div></div>').join('') : '';
+  buildTaskContextForm(t,autoType);
+  document.getElementById('fm-task-detail').classList.add('op');
+};
+
+function buildTaskContextForm(t,autoType){
+  const formEl=document.getElementById('ftd-form-area');
+  const btnsEl=document.getElementById('ftd-action-btns');
+  if(!formEl||!btnsEl)return;
+  const isDone=t.done||t.status==='done';
+  if(isDone){
+    formEl.innerHTML='<div style="text-align:center;padding:16px;background:var(--ok-bg);border-radius:var(--r)"><i class="ti ti-circle-check" style="font-size:32px;color:var(--ok-tx);display:block;margin-bottom:6px"></i><div style="font-size:14px;font-weight:700;color:var(--ok-tx)">Task Completed</div><div style="font-size:12px;color:var(--ok-tx);margin-top:4px">'+(t.reports||[]).length+' report(s) on file</div></div>';
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+((CU.role==='admin'||CU.role==='pm')?'<button class="btn" onclick="reopenTask('+t.id+')" style="color:var(--wn-tx)"><i class="ti ti-rotate"></i> Reopen</button>':'');
+    return;
+  }
+  if(autoType==='delivery'){
+    const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
+      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
+      '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status" onchange="onTdDelStatusChange()"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
+      '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
+      '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
+      '<div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="td-del-invoice" placeholder="INV-XXXXX"></div></div>'+
+      '<div class="fg" id="td-del-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="td-del-new-date" type="date"></div>'+
+      '<div class="fg"><label class="fl">Notes</label><textarea class="inp" id="td-del-notes" rows="2" placeholder="Issues, discrepancies..."></textarea></div>'+
+      '<div class="fg"><label class="fl">Attach Files</label><div class="upload-zone" onclick="document.getElementById(\'td-del-files\').click()"><input type="file" id="td-del-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,\'td-del-prev\')"><i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i><div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div></div><div class="media-prev" id="td-del-prev"></div></div>'+
+      '<input type="hidden" id="td-del-ref" value="'+(d?d.id:'')+'">';
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdDeliveryUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
+      '<button class="btn btnp" onclick="tdDeliveryComplete('+t.id+')"><i class="ti ti-check"></i> Mark Delivered</button>';
+    if(d)setTimeout(()=>{var el=document.getElementById('td-del-status');if(el)el.value=d.status||'Scheduled';},20);
+    return;
+  }
+  if(autoType==='visitor'){
+    const v=visitors.find(x=>parseInt(x.id)===parseInt(t.refId));
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-user-check"></i> Visitor Action</div>'+
+      (v?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+v.name+'</strong>'+(v.company?' · '+v.company:'')+' | Status: <strong>'+v.status+'</strong></div>':'')+
+      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-vis-action-btns">'+
+      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdVisAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+      '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdVisAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdVisAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+      '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdVisAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+      '</div></div>'+
+      '<div class="fg" id="td-vis-reschedule-row" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-vis-new-time" type="datetime-local"></div>'+
+      '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-vis-remarks" rows="2" placeholder="Reason or notes..."></textarea></div>'+
+      '<input type="hidden" id="td-vis-action" value=""><input type="hidden" id="td-vis-ref" value="'+(v?v.id:'')+'">'+
+      (v&&v.status==='checked-in'?'<script>setTimeout(()=>{var b=document.querySelector("#td-vis-action-btns button:nth-child(2)");if(b)setTdVisAction(b,"checkout");},20);<\/script>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button><button class="btn btnp" onclick="tdVisitorSave('+t.id+')"><i class="ti ti-check"></i> Save</button>';
+    return;
+  }
+  if(autoType==='meeting'){
+    const m=meetings.find(x=>parseInt(x.id)===parseInt(t.refId));
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-calendar-event"></i> Meeting Update</div>'+
+      (m?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+m.title+'</strong> | '+m.proj+' | '+(m.datetime||'').replace('T',' ')+' | Status: <strong>'+(m.status||'Scheduled')+'</strong></div>':'')+
+      '<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="td-meet-action-btns">'+
+      '<button class="btn btns" style="color:var(--ok-tx)" onclick="setTdMeetAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>'+
+      '<button class="btn btns" style="color:var(--in-tx)" onclick="setTdMeetAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>'+
+      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setTdMeetAction(this,\'reschedule\')"><i class="ti ti-calendar"></i> Reschedule</button>'+
+      '<button class="btn btns" style="color:var(--er-tx)" onclick="setTdMeetAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>'+
+      '</div></div>'+
+      '<div class="fg" id="td-meet-reschedule-row" style="display:none"><label class="fl">New Date &amp; Time</label><input class="inp" id="td-meet-new-dt" type="datetime-local"></div>'+
+      '<div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="td-meet-minutes" rows="3" placeholder="Key decisions, outcomes...">'+(m?m.minutes||'':'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="td-meet-actions" rows="2" placeholder="Who does what by when...">'+(m?m.actions||'':'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-meet-remarks" rows="1" placeholder="Notes..."></textarea></div>'+
+      '<input type="hidden" id="td-meet-action" value=""><input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">'+
+      (m&&m.status==='checked-in'?'<script>setTimeout(()=>{var b=document.querySelector("#td-meet-action-btns button:nth-child(2)");if(b)setTdMeetAction(b,"checkout");},20);<\/script>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdMeetingUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
+      '<button class="btn btnp" onclick="tdMeetingCheckOut('+t.id+')"><i class="ti ti-logout"></i> Check Out (Done)</button>';
+    return;
+  }
+  if(autoType==='pipeline'){
+    const lead=pipeline.find(x=>parseInt(x.id)===parseInt(t.refId));
+    const curStage=lead?lead.stage:'';
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-funnel"></i> Pipeline Update</div>'+
+      (lead?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+lead.name+'</strong> · '+lead.client+' | Stage: <strong style="color:var(--or)">'+lead.stage+'</strong> | Value: '+fmt(lead.value||0)+'</div>':'')+
+      '<div class="fr2"><div class="fg"><label class="fl">Stage <span style="font-size:9px;color:var(--tx3)">(change → advances lead)</span></label>'+
+      '<select class="inp" id="td-pip-stage"><option>Lead Gen</option><option>Proposal</option><option>Negotiation</option><option>Closing</option><option>Awarded</option><option>Lost</option></select></div>'+
+      '<div class="fg"><label class="fl">Probability (%)</label><input class="inp" id="td-pip-prob" type="number" min="0" max="100"></div></div>'+
+      '<div class="fr2"><div class="fg"><label class="fl">Estimated Value (₱)</label><input class="inp" id="td-pip-value" type="number" min="0"></div>'+
+      '<div class="fg"><label class="fl">Due Date</label><input class="inp" id="td-pip-due" type="date"></div></div>'+
+      '<div class="fg"><label class="fl">Notes / Update</label><textarea class="inp" id="td-pip-notes" rows="2" placeholder="Latest update, next steps..."></textarea></div>'+
+      '<div class="fg"><label class="fl">Recurrence</label><select class="inp" id="td-pip-recur"><option value="">None (one-time)</option><option value="daily">Daily reminder until due date</option></select></div>'+
+      '<div class="fg"><label class="fl">Attach Files</label><div class="upload-zone" onclick="document.getElementById(\'td-pip-files\').click()">'+
+      '<input type="file" id="td-pip-files" multiple onchange="prevMedia(this,\'td-pip-prev\')">'+
+      '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+      '<div style="font-size:12px;color:var(--tx2)">Upload proposals, specs</div></div>'+
+      '<div class="media-prev" id="td-pip-prev"></div></div>'+
+      '<div id="td-pip-stage-hint" style="font-size:11px;color:var(--tx2);margin-top:4px"></div>'+
+      '<input type="hidden" id="td-pip-ref" value="'+(lead?lead.id:'')+'">'+
+      '<input type="hidden" id="td-pip-cur-stage" value="'+curStage+'">'+
+      (lead?'<script>setTimeout(()=>{'+
+        'var s=document.getElementById("td-pip-stage");if(s){s.value="'+lead.stage+'";'+
+        's.addEventListener("change",function(){var h=document.getElementById("td-pip-stage-hint");if(!h)return;'+
+        'var cur="'+lead.stage+'";if(s.value!==cur)h.innerHTML="<span style=\\"color:var(--ok-tx)\\"><i class=\\"ti ti-arrow-right\\"></i> Stage will advance: <strong>"+cur+"</strong> \u2192 <strong>"+s.value+"</strong>. Current task will complete and a new task will be created.</span>";'+
+        'else h.innerHTML="<span style=\\"color:var(--tx2)\\">Stage unchanged — task stays open.</span>";});'+
+        's.dispatchEvent(new Event("change"));}'+
+        'var p=document.getElementById("td-pip-prob");if(p)p.value='+(lead.prob||50)+';'+
+        'var v=document.getElementById("td-pip-value");if(v)v.value='+(lead.value||0)+';'+
+        'var d=document.getElementById("td-pip-due");if(d)d.value="'+(t.due||'')+'";'+
+      '},20);<\/script>':'');
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn btnp" onclick="tdPipelineUpdate('+t.id+')"><i class="ti ti-check"></i> Update Lead</button>';
+    return;
+  }
+  // GANTT / default
+  formEl.innerHTML='<div style="font-size:13px;font-weight:600;margin-bottom:10px"><i class="ti ti-notebook"></i> Daily Report</div>'+
+    '<div class="fr2"><div class="fg"><label class="fl">Date</label><input class="inp" id="ftd-date" type="date" value="'+TODAY+'"></div>'+
+    '<div class="fg"><label class="fl">Weather</label><select class="inp" id="ftd-weather"><option>Sunny</option><option>Cloudy</option><option>Rainy</option><option>Stormy</option><option>Hot</option></select></div></div>'+
+    '<div class="fg"><label class="fl">Work Done *</label><textarea class="inp" id="ftd-work" placeholder="What was accomplished today?"></textarea></div>'+
+    '<div class="fr3"><div class="fg"><label class="fl">Workers</label><input class="inp" id="ftd-workers" type="number" min="0" placeholder="0"></div>'+
+    '<div class="fg"><label class="fl">Hours</label><input class="inp" id="ftd-hours" type="number" min="0" max="24" placeholder="8" value="8"></div>'+
+    '<div class="fg"><label class="fl">% Complete</label><div style="display:flex;align-items:center;gap:6px;margin-top:4px">'+
+    '<input type="range" min="0" max="100" step="5" id="ftd-pct" style="flex:1;accent-color:var(--or)" oninput="document.getElementById(\'ftd-pct-val\').textContent=this.value+\'%\'">'+
+    '<span id="ftd-pct-val" style="font-size:12px;font-weight:700;min-width:30px">0%</span></div></div></div>'+
+    '<div class="fg"><label class="fl">Equipment Used</label><input class="inp" id="ftd-equip" placeholder="e.g. Backhoe, Mixer"></div>'+
+    '<div class="fg"><label class="fl">Materials Used</label><input class="inp" id="ftd-materials" placeholder="e.g. 50 bags cement"></div>'+
+    '<div class="fg"><label class="fl">Issues / Delays</label><textarea class="inp" id="ftd-issues" placeholder="Problems, safety concerns?"></textarea></div>'+
+    '<div class="fg"><label class="fl">Photos / Videos</label>'+
+    '<div class="upload-zone" onclick="document.getElementById(\'ftd-files\').click()">'+
+    '<input type="file" id="ftd-files" multiple accept="image/*,video/*" onchange="prevMedia(this,\'ftd-prev\')">'+
+    '<i class="ti ti-camera" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
+    '<div style="font-size:12px;color:var(--tx2)">Upload site photos or videos</div></div>'+
+    '<div class="media-prev" id="ftd-prev"></div></div>';
+  btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+    '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="submitTaskUpdate()"><i class="ti ti-refresh"></i> Update</button>'+
+    '<button class="btn btnp" onclick="submitTaskReport()"><i class="ti ti-send"></i> Submit Report</button>';
 }
 
 async function boot(){
