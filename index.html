@@ -517,7 +517,12 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 <div class="pg" id="pg-directory">
   <div class="ph">
     <div><div class="pt">Company Directory</div><div class="ps">Contacts, departments & key personnel</div></div>
-    <button class="btn btnp" onclick="openFm('fm-contact')"><i class="ti ti-plus"></i> Add Contact</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="document.getElementById('dir-csv-input').click()"><i class="ti ti-table-import"></i> Import CSV
+        <input type="file" id="dir-csv-input" accept=".csv" style="display:none" onchange="importDirectoryCSV(this)">
+      </button>
+      <button class="btn btnp" onclick="openFm('fm-contact')"><i class="ti ti-plus"></i> Add Contact</button>
+    </div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
     <select class="inp" id="dir-dept-filter" style="width:180px" onchange="renderDirectory()"><option value="">All Departments</option></select>
@@ -578,54 +583,13 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 
 <!-- Meeting Detail Modal -->
 <div class="fm" id="fm-meeting-detail"><div class="fb fb-lg">
-  <div class="ft"><i class="ti ti-calendar-event"></i> Meeting Details</div>
-  <div id="fmd-body" style="max-height:65vh;overflow-y:auto"></div>
-  <div class="fa" style="margin-top:12px"><button class="btn" onclick="closeFm('fm-meeting-detail')">Close</button></div>
-</div></div>
-
-<!-- Meeting Action Modal (matching Task form style) -->
-<div class="fm" id="fm-meeting-action"><div class="fb fb-lg">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
-    <div class="ft" id="fma-title" style="margin:0">Meeting Action</div>
-    <span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;background:#534AB722;color:#534AB7">MEETING</span>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px">
+    <div class="ft" id="fmd-title" style="margin-bottom:0">Meeting Details</div>
+    <span style="background:var(--in-bg);color:var(--in-tx);padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;margin-top:3px">MEETING</span>
   </div>
-  <div id="fma-info" style="margin-bottom:12px;padding:12px;background:var(--bg2);border-radius:var(--r);font-size:12px"></div>
-  <div id="fma-reports" style="margin-bottom:10px"></div>
-  <div style="border-top:0.5px solid var(--bd);padding-top:12px">
-    <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--in-tx)"><i class="ti ti-calendar-event"></i> Meeting Update</div>
-    <div class="fg"><label class="fl">Action</label>
-      <div style="display:flex;gap:6px;flex-wrap:wrap" id="fma-action-btns">
-        <button class="btn btns" style="color:var(--ok-tx)" onclick="setFmaAction(this,'checkin')"><i class="ti ti-login"></i> Check In</button>
-        <button class="btn btns" style="color:var(--in-tx)" onclick="setFmaAction(this,'checkout')"><i class="ti ti-logout"></i> Check Out</button>
-        <button class="btn btns" style="color:var(--wn-tx)" onclick="setFmaAction(this,'reschedule')"><i class="ti ti-calendar-event"></i> Reschedule</button>
-        <button class="btn btns" style="color:var(--er-tx)" onclick="setFmaAction(this,'cancel')"><i class="ti ti-x"></i> Cancel</button>
-      </div>
-    </div>
-    <div class="fg" id="fma-reschedule-row" style="display:none">
-      <label class="fl">New Date &amp; Time</label>
-      <input class="inp" id="fma-new-dt" type="datetime-local">
-    </div>
-    <div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="fma-minutes" rows="3" placeholder="Key decisions, outcomes..."></textarea></div>
-    <div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="fma-actions-text" rows="2" placeholder="Who does what by when..."></textarea></div>
-    <div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="fma-remarks" rows="1" placeholder="Notes..."></textarea></div>
-    <div class="fg"><label class="fl">Attach Files <span style="font-size:10px;color:var(--tx3)">(photos, docs, presentations)</span></label>
-      <div class="upload-zone" onclick="document.getElementById('fma-files').click()">
-        <input type="file" id="fma-files" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" onchange="prevMedia(this,'fma-prev')">
-        <i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-        <div style="font-size:12px;color:var(--tx2)">Upload photos, minutes, presentations...</div>
-      </div>
-      <div class="media-prev" id="fma-prev"></div>
-    </div>
-  </div>
-  <input type="hidden" id="fma-action" value="">
-  <input type="hidden" id="fma-meet-id" value="">
-  <div class="fa" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px">
-    <button class="btn btns btnd" id="fma-delete-btn" onclick="deleteMeetingFromAction()"><i class="ti ti-trash"></i> Delete</button>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="closeFm('fm-meeting-action')">Close</button>
-      <button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="saveMeetingAction(false)"><i class="ti ti-refresh"></i> Update</button>
-      <button class="btn btnp" onclick="saveMeetingAction(true)"><i class="ti ti-logout"></i> Check Out (Done)</button>
-    </div>
+  <div id="fmd-body" style="max-height:60vh;overflow-y:auto"></div>
+  <div class="fa" style="margin-top:14px;justify-content:space-between">
+    <button class="btn" onclick="closeFm('fm-meeting-detail')">Close</button>
   </div>
 </div></div>
 
@@ -674,50 +638,18 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 </div></div>
 
 <!-- Delivery Update -->
-<div class="fm" id="fm-delivery-update"><div class="fb fb-lg">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px">
-    <div class="ft" style="margin:0"><i class="ti ti-truck"></i> <span id="fdu-title">Update Delivery</span></div>
-    <span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;background:#0F5F6E22;color:#0F5F6E">DELIVERY</span>
-  </div>
+<div class="fm" id="fm-delivery-update"><div class="fb">
+  <div class="ft"><i class="ti ti-truck"></i> Update Delivery</div>
   <div id="fdu-info" style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px"></div>
-  <div id="fdu-reports" style="margin-bottom:10px"></div>
-  <div style="border-top:0.5px solid var(--bd);padding-top:12px">
-    <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>
-    <div class="fr2">
-      <div class="fg"><label class="fl">Status</label>
-        <select class="inp" id="fdu-status" onchange="onFduStatusChange()">
-          <option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option><option>Rescheduled</option>
-        </select>
-      </div>
-      <div class="fg"><label class="fl">Received By *</label><input class="inp" id="fdu-receiver" placeholder="Required for Delivered"></div>
-    </div>
-    <div class="fr2">
-      <div class="fg"><label class="fl">PO No.</label><input class="inp" id="fdu-po" placeholder="PO-XXXXX"></div>
-      <div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="fdu-invoice" placeholder="INV-XXXXX"></div>
-    </div>
-    <div class="fg" id="fdu-reschedule-row" style="display:none">
-      <label class="fl">Rescheduled Date *</label>
-      <input class="inp" id="fdu-new-date" type="date">
-    </div>
-    <div class="fg"><label class="fl">Notes</label><textarea class="inp" id="fdu-notes" rows="2" placeholder="Issues, discrepancies, quantities..."></textarea></div>
-    <div class="fg"><label class="fl">Attach Files <span style="font-size:10px;color:var(--tx3)">(DR, invoice, proof photos)</span></label>
-      <div class="upload-zone" onclick="document.getElementById('fdu-files').click()">
-        <input type="file" id="fdu-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,'fdu-prev')">
-        <i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>
-        <div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div>
-      </div>
-      <div class="media-prev" id="fdu-prev"></div>
-    </div>
+  <div class="fg"><label class="fl">Status</label>
+    <select class="inp" id="fdu-status">
+      <option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option>
+    </select>
   </div>
+  <div class="fg"><label class="fl">Notes / Issues</label><textarea class="inp" id="fdu-notes" placeholder="Discrepancies, issues, quantities..."></textarea></div>
+  <div class="fg"><label class="fl">Remarks (Cancellation / Reschedule reason)</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled to next week due to weather"></div>
   <input type="hidden" id="fdu-id">
-  <div class="fa" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px">
-    <button class="btn btns btnd" id="fdu-delete-btn" onclick="deleteDeliveryFromModal()"><i class="ti ti-trash"></i> Delete</button>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="closeFm('fm-delivery-update')">Close</button>
-      <button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="saveDeliveryUpdate()"><i class="ti ti-refresh"></i> Update</button>
-      <button class="btn btnp" onclick="markDeliveryDelivered()"><i class="ti ti-check"></i> Mark Delivered</button>
-    </div>
-  </div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-delivery-update')">Cancel</button><button class="btn btnp" onclick="saveDeliveryUpdate()"><i class="ti ti-check"></i> Save Update</button></div>
 </div></div>
 
 <!-- PIPELINE -->
@@ -1468,7 +1400,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div></div>
   <div class="fr2"><div class="fg"><label class="fl">Estimated Value (₱)</label><input class="inp" id="fpl-value" type="number" min="0" placeholder="0"></div><div class="fg"><label class="fl">Probability (%)</label><input class="inp" id="fpl-prob" type="number" min="0" max="100" placeholder="50"></div></div>
   <div class="fr2"><div class="fg"><label class="fl">Source</label><input class="inp" id="fpl-source" placeholder="Referral, Bidding, Direct, Online..."></div><div class="fg"><label class="fl">Expected Close Date</label><input class="inp" id="fpl-closedate" type="date"></div></div>
-  <div class="fg"><label class="fl">Contact Person</label><input class="inp" id="fpl-contact" placeholder="Name & phone"></div>
+  <div class="fr2"><div class="fg"><label class="fl">Contact Person</label><input class="inp" id="fpl-contact" placeholder="Full name"></div><div class="fg"><label class="fl">Contact Number</label><input class="inp" id="fpl-contact-num" type="tel" placeholder="+63 9XX XXX XXXX"></div></div>
   <div class="fg"><label class="fl">Link to Quotation <span style="font-size:10px;color:var(--tx3)">(optional — auto-fills value from quotation)</span></label>
     <select class="inp" id="fpl-quotation" onchange="linkQuotationToPipeline()"><option value="">— Select quotation —</option></select>
   </div>
@@ -3299,19 +3231,18 @@ function renderDetailMeetings(id){id=parseInt(id);
   const pMeetings=meetings.filter(m=>projMatch(m.proj,p.name)||m.proj==='General');
   const isAdmin=CU&&CU.role==='admin';
   const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
-  const meetBadge=m=>{const s=m.status||'scheduled';const mp={scheduled:'background:var(--in-bg);color:var(--in-tx)',rescheduled:'background:var(--wn-bg);color:var(--wn-tx)',cancelled:'background:var(--er-bg);color:var(--er-tx)','checked-in':'background:var(--ok-bg);color:var(--ok-tx)','checked-out':'background:var(--bg3);color:var(--tx2)'};const ml={scheduled:'SCHEDULED',rescheduled:'RESCHEDULED',cancelled:'CANCELLED','checked-in':'CHECKED IN','checked-out':'COMPLETED'};return`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:10px;${mp[s]||mp.scheduled}">${ml[s]||'SCHEDULED'}</span>`;};
   el.innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-calendar-event"></i> Meetings — ${p.name}</div>
     <button class="btn btns btnp" onclick="openMeetingForProj('${p.id}')"><i class="ti ti-plus"></i> Add Meeting</button>
   </div>
-  ${pMeetings.length?pMeetings.map(m=>`<div class="meeting-card">
+  ${pMeetings.length?pMeetings.map(m=>`<div class="meeting-card" id="meet-card-${m.id}">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
       <div style="flex:1;cursor:pointer" onclick="openMeetingDetail(${m.id})">
         <div style="font-size:13px;font-weight:700">${m.title}</div>
         <div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.location||''}</div>
       </div>
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap">
-        ${meetBadge(m)}
-        ${isPM?`<button class="btn btns" onclick="openMeetingActionModal(${m.id},${id})" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" title="Actions"><i class="ti ti-player-play"></i> Action</button>`:''}
+        ${meetingStatusBadge(m)}
+        ${isPM?`<button class="btn btns" onclick="openMeetingAction(${m.id},${id})" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" title="Actions"><i class="ti ti-player-play"></i> Action</button>`:''}
         ${isPM?`<button class="btn btns" onclick="openEditMeeting(${m.id})" title="Edit meeting"><i class="ti ti-edit"></i></button>`:''}
         ${isAdmin?`<button class="btn btns" style="color:var(--er-tx)" onclick="deleteMeeting(${m.id},${id})" title="Delete meeting"><i class="ti ti-trash"></i></button>`:''}
       </div>
@@ -4010,6 +3941,114 @@ async function addVisitor(){
   closeFm('fm-visitor');renderVisitorList();renderTasksGlobal();renderSidebar();
 }
 function visitorStatusBadge(v){const s=v.status||'scheduled';const m={scheduled:'<span style="background:var(--in-bg);color:var(--in-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">SCHEDULED</span>',rescheduled:'<span style="background:var(--wn-bg);color:var(--wn-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">RESCHEDULED</span>',cancelled:'<span style="background:var(--er-bg);color:var(--er-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CANCELLED</span>','checked-in':'<span style="background:var(--ok-bg);color:var(--ok-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED IN</span>','checked-out':'<span style="background:var(--bg2);color:var(--tx2);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED OUT</span>'};return m[s]||m.scheduled;}
+function meetingStatusBadge(m){
+  const s=m.status||'scheduled';
+  const map={
+    scheduled:'<span style="background:var(--in-bg);color:var(--in-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">SCHEDULED</span>',
+    rescheduled:'<span style="background:var(--wn-bg);color:var(--wn-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">RESCHEDULED</span>',
+    cancelled:'<span style="background:var(--er-bg);color:var(--er-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CANCELLED</span>',
+    'checked-in':'<span style="background:var(--ok-bg);color:var(--ok-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED IN</span>',
+    'checked-out':'<span style="background:var(--bg2);color:var(--tx2);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">COMPLETED</span>'
+  };
+  return map[s]||map.scheduled;
+}
+function openMeetingAction(meetId,projId){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(meetId));if(!m)return;
+  const s=m.status||'scheduled';
+  const isDone=s==='checked-out'||s==='cancelled';
+  const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
+  // Build inline action panel inline in the meeting card
+  const panelId='meet-action-panel-'+meetId;
+  const existing=document.getElementById(panelId);
+  if(existing){existing.remove();return;}// toggle
+  const card=document.getElementById('meet-card-'+meetId);if(!card)return;
+  const panel=document.createElement('div');
+  panel.id=panelId;
+  panel.style.cssText='margin-top:10px;padding:10px;background:var(--bg2);border-radius:var(--r);border:0.5px solid var(--bd)';
+  let btns='';
+  if(!isDone&&isPM){
+    if(s!=='checked-in')btns+=`<button class="btn btns" style="color:var(--ok-tx)" onclick="doMeetingAction(${meetId},${projId||0},'checkin')"><i class="ti ti-login"></i> Check In</button>`;
+    if(s==='checked-in')btns+=`<button class="btn btns" style="color:var(--in-tx)" onclick="doMeetingAction(${meetId},${projId||0},'checkout')"><i class="ti ti-logout"></i> Check Out</button>`;
+    btns+=`<button class="btn btns" style="color:var(--wn-tx)" onclick="doMeetingAction(${meetId},${projId||0},'reschedule')"><i class="ti ti-calendar-event"></i> Reschedule</button>`;
+    btns+=`<button class="btn btns" style="color:var(--er-tx)" onclick="doMeetingAction(${meetId},${projId||0},'cancel')"><i class="ti ti-x"></i> Cancel</button>`;
+  }else if(isDone&&isPM){
+    btns+=`<button class="btn btns" style="color:var(--wn-tx)" onclick="doMeetingAction(${meetId},${projId||0},'reopen')"><i class="ti ti-rotate"></i> Re-open</button>`;
+  }
+  panel.innerHTML=
+    '<div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--tx2)">MEETING ACTIONS</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+btns+'</div>'+
+    '<div id="meet-reschedule-row-'+meetId+'" style="display:none;margin-bottom:8px">'+
+      '<label class="fl">New Date &amp; Time</label>'+
+      '<input class="inp" id="meet-new-dt-'+meetId+'" type="datetime-local" style="font-size:12px">'+
+    '</div>'+
+    '<div style="margin-bottom:6px"><label class="fl">Minutes / Notes</label><textarea class="inp" id="meet-notes-'+meetId+'" rows="2" placeholder="Add notes, minutes, or reason..." style="font-size:12px">'+(m.minutes||'')+'</textarea></div>'+
+    '<div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn btns" onclick="document.getElementById(\''+panelId+'\').remove()">Close</button></div>';
+  card.appendChild(panel);
+}
+async function doMeetingAction(meetId,projId,action){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(meetId));if(!m)return;
+  if(action==='reschedule'){
+    const rr=document.getElementById('meet-reschedule-row-'+meetId);
+    if(rr)rr.style.display=rr.style.display==='none'?'':'none';
+    return;
+  }
+  const notes=(document.getElementById('meet-notes-'+meetId)?.value||'').trim();
+  const newDt=document.getElementById('meet-new-dt-'+meetId)?.value||'';
+  if(action==='reschedule-save'||action==='_reschedule'){
+    if(!newDt){alert('Please pick a new date and time.');return;}
+    action='reschedule';
+  }
+  // Determine new status
+  let newStatus=m.status||'scheduled';
+  if(action==='checkin')newStatus='checked-in';
+  else if(action==='checkout')newStatus='checked-out';
+  else if(action==='cancel')newStatus='cancelled';
+  else if(action==='reopen')newStatus='scheduled';
+  else if(action==='reschedule'){
+    if(!newDt){
+      // Show reschedule row if hidden
+      const rr=document.getElementById('meet-reschedule-row-'+meetId);
+      if(rr){rr.style.display='';rr.querySelector('input')?.focus();}
+      // Add a confirm button
+      const panel=document.getElementById('meet-action-panel-'+meetId);
+      if(panel&&!panel.querySelector('.reschedule-confirm-btn')){
+        const confirmBtn=document.createElement('button');
+        confirmBtn.className='btn btnp btns reschedule-confirm-btn';
+        confirmBtn.style.marginTop='6px';
+        confirmBtn.innerHTML='<i class="ti ti-check"></i> Confirm Reschedule';
+        confirmBtn.onclick=()=>doMeetingAction(meetId,projId,'_reschedule');
+        const notesEl=document.getElementById('meet-notes-'+meetId);
+        if(notesEl)notesEl.parentElement.insertAdjacentElement('afterend',confirmBtn);
+      }
+      return;
+    }
+    newStatus='rescheduled';
+    m.datetime=newDt;
+  }
+  m.status=newStatus;
+  if(notes)m.minutes=(m.minutes?m.minutes+'\n':'')+notes+' — '+CU.name+' ('+nowStr()+')';
+  const upRow={status:newStatus,minutes:m.minutes||''};
+  if(action==='reschedule'&&newDt)upRow.datetime=newDt;
+  if(m.id&&m.id<2000000000){await sb.from('meetings').update(upRow).eq('id',m.id);}
+  // Sync linked task
+  const linked=tasks.find(t=>t.autoType==='meeting'&&(parseInt(t.refId)===parseInt(m.id)||(t.name||'').includes(m.title)));
+  if(linked){
+    if(newStatus==='checked-out'||newStatus==='cancelled'){
+      linked.done=true;linked.status='done';
+      if(!linked.reports)linked.reports=[];
+      linked.reports.push({date:TODAY,work:'Meeting '+action+(notes?' — '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+    }else if(newStatus==='checked-in'){linked.status='in-progress';}
+    else if(newStatus==='rescheduled'&&newDt){linked.due=newDt.split('T')[0];linked.status='pending';}
+    else if(newStatus==='scheduled'){linked.done=false;linked.status='pending';}
+    sbSaveTask(linked);
+  }
+  sbLog('Meeting "'+m.title+'" — '+action+(notes?' | '+notes:''),'#534AB7','Meetings','');
+  document.getElementById('meet-action-panel-'+meetId)?.remove();
+  renderMeetings();
+  if(projId)renderDetailMeetings(projId);
+  else if(activeProjectId)renderDetailMeetings(activeProjectId);
+  renderTasksGlobal();renderSidebar();
+}
 let _visDateFilter='today';
 function setVisDateFilter(mode){
   if(mode==='date'){
@@ -4068,13 +4107,13 @@ async function addMeeting(){
   const meetDatetime=document.getElementById('fm2-datetime').value;
   const attendees=document.getElementById('fm2-attendees').value;
   const files=getFileNames('fm2-prev');
-  const m={_isNew:true,title,datetime:meetDatetime,location:document.getElementById('fm2-location').value,proj:projName,attendees,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,files,by:CU.name,time:nowStr()};
+  const m={_isNew:true,title,datetime:meetDatetime,location:document.getElementById('fm2-location').value,proj:projName,attendees,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,files,by:CU.name,time:nowStr(),status:'scheduled'};
   meetings.unshift(m);
   await sbSaveMeeting(m);
   sbLog('Meeting added: '+title,'#534AB7','Meetings','');
-  // Create task in Supabase
+  // Create task with refId pointing to this meeting
   const meetDate=meetDatetime?meetDatetime.split('T')[0]:TODAY;
-  const meetTask={_isNew:true,name:'Meeting: '+title,project:projName,assignee:CU.name,due:meetDate,priority:'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Meeting on '+(meetDatetime||meetDate)+' | Location: '+(m.location||'TBD')+' | Attendees: '+attendees+' | Agenda: '+(m.agenda||'—'),riskLevel:'LOW',reports:[],autoType:'meeting'};
+  const meetTask={_isNew:true,name:'Meeting: '+title,project:projName,assignee:CU.name,due:meetDate,priority:'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Meeting on '+(meetDatetime||meetDate)+' | Location: '+(m.location||'TBD')+' | Attendees: '+attendees+' | Agenda: '+(m.agenda||'—'),riskLevel:'LOW',reports:[],autoType:'meeting',refId:m.id||null};
   tasks.push(meetTask);
   await sbSaveTask(meetTask);
   renderTasksGlobal();renderSidebar();
@@ -4090,18 +4129,17 @@ function renderMeetings(){
   if(dateTo)filteredMeetings=filteredMeetings.filter(m=>m.datetime&&m.datetime.slice(0,10)<=dateTo);
   if(srch)filteredMeetings=filteredMeetings.filter(m=>(m.title+' '+(m.proj||'')+' '+(m.attendees||'')+' '+(m.agenda||'')).toLowerCase().includes(srch));
   const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
-  const meetBadge=m=>{const s=m.status||'scheduled';const mp={scheduled:'background:var(--in-bg);color:var(--in-tx)',rescheduled:'background:var(--wn-bg);color:var(--wn-tx)',cancelled:'background:var(--er-bg);color:var(--er-tx)','checked-in':'background:var(--ok-bg);color:var(--ok-tx)','checked-out':'background:var(--bg3);color:var(--tx2)'};const ml={scheduled:'SCHEDULED',rescheduled:'RESCHEDULED',cancelled:'CANCELLED','checked-in':'CHECKED IN','checked-out':'COMPLETED'};return`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:10px;${mp[s]||mp.scheduled}">${ml[s]||'SCHEDULED'}</span>`;};
   document.getElementById('meeting-list').innerHTML=filteredMeetings.length?filteredMeetings.map(m=>`
-    <div class="meeting-card">
+    <div class="meeting-card" id="meet-card-${m.id}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
         <div style="cursor:pointer;flex:1" onclick="openMeetingDetail(${m.id})">
           <div style="font-size:14px;font-weight:700">${m.title}</div>
           <div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.location||''} · ${m.proj}</div>
         </div>
         <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
-          ${meetBadge(m)}
+          ${meetingStatusBadge(m)}
           ${m.attendees?`<span class="badge bg_"><i class="ti ti-users" style="font-size:10px"></i> ${m.attendees.split(',').length} attendee(s)</span>`:''}
-          ${isPM?`<button class="btn btns" onclick="openMeetingActionModal(${m.id},null)" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" title="Actions"><i class="ti ti-player-play"></i> Action</button>`:''}
+          ${isPM?`<button class="btn btns" onclick="openMeetingAction(${m.id},null)" title="Actions" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)"><i class="ti ti-player-play"></i> Action</button>`:''}
           ${isPM?`<button class="btn btns" onclick="openEditMeeting(${m.id})" title="Edit"><i class="ti ti-edit"></i></button>`:''}
           ${CU.role==='admin'?`<button class="btn btns" style="color:var(--er-tx)" onclick="deleteMeeting(${m.id},null)" title="Delete"><i class="ti ti-trash"></i></button>`:''}
           <i class="ti ti-chevron-right" style="font-size:11px;color:var(--tx3);cursor:pointer" onclick="openMeetingDetail(${m.id})"></i>
@@ -4158,151 +4196,140 @@ async function deleteMeeting(id,projId){
 function openMeetingDetail(id){
   const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
   _curMeetingId=id;
+  const titleEl=document.getElementById('fmd-title');
+  if(titleEl)titleEl.textContent=m.title||'Meeting Details';
   const el=document.getElementById('fmd-body');
-  el.innerHTML=`
-    <div style="margin-bottom:12px">
-      <div style="font-size:18px;font-weight:700;margin-bottom:4px">${m.title}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--tx2)">
-        <span><i class="ti ti-calendar"></i> ${(m.datetime||'').replace('T',' ')}</span>
-        ${m.location?`<span><i class="ti ti-map-pin"></i> ${m.location}</span>`:''}
-        <span><i class="ti ti-folder"></i> ${m.proj}</span>
-        <span><i class="ti ti-user"></i> Added by ${m.by||'—'}</span>
-      </div>
-    </div>
-    ${m.attendees?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:4px">ATTENDEES</div><div style="font-size:12px">${m.attendees}</div></div>`:''}
-    ${m.agenda?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:4px">AGENDA</div><div style="font-size:12px;background:var(--bg2);border-radius:var(--r);padding:10px;white-space:pre-line">${m.agenda}</div></div>`:''}
-    ${m.minutes?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:4px">MINUTES</div><div style="font-size:12px;white-space:pre-line">${m.minutes}</div></div>`:''}
-    ${m.actions?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:4px">ACTION ITEMS</div><div style="font-size:12px;background:var(--ok-bg);border-radius:var(--r);padding:10px;color:var(--ok-tx);white-space:pre-line">${m.actions}</div></div>`:''}
-    ${m.next?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:4px">NEXT MEETING</div><div style="font-size:12px">${m.next}</div></div>`:''}`;
-  document.getElementById('fm-meeting-detail').classList.add('op');
-}
-
-// ── Meeting Action Modal (full form matching Image 1) ──────────
-function openMeetingActionModal(meetId,projId){
-  const m=meetings.find(x=>parseInt(x.id)===parseInt(meetId));if(!m)return;
+  const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
   const s=m.status||'scheduled';
   const isDone=s==='checked-out'||s==='cancelled';
-  const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
-  // Title
-  document.getElementById('fma-title').textContent=m.title;
-  document.getElementById('fma-meet-id').value=meetId;
-  document.getElementById('fma-meet-id').dataset.projId=projId||'';
-  // Info panel
-  document.getElementById('fma-info').innerHTML=
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
-    '<div><span style="color:var(--tx3)">Project:</span> <strong>'+m.proj+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Date/Time:</span> <strong>'+(m.datetime||'').replace('T',' ')+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Location:</span> <strong>'+(m.location||'—')+'</strong></div>'+
-    '<div><span style="color:var(--tx3)">Status:</span> <strong style="color:'+(isDone?'var(--ok-tx)':s==='checked-in'?'var(--in-tx)':s==='cancelled'?'var(--er-tx)':s==='rescheduled'?'var(--wn-tx)':'var(--tx)'+'">')+(isDone?'✅ Completed':s==='checked-in'?'🔵 Checked In':s==='cancelled'?'❌ Cancelled':s==='rescheduled'?'🔄 Rescheduled':'⏳ Scheduled')+'</strong></div>'+
-    '</div>'+
-    (m.attendees?'<div style="margin-top:6px;font-size:11px;color:var(--tx2)"><i class="ti ti-users" style="font-size:10px"></i> '+m.attendees+'</div>':'')+
-    (m.agenda?'<div style="margin-top:4px;font-size:11px;color:var(--tx2)"><strong>Agenda:</strong> '+m.agenda+'</div>':'');
-  // Previous reports from linked task
+  // Collect reports from linked task
   const linked=tasks.find(t=>t.autoType==='meeting'&&(parseInt(t.refId)===parseInt(m.id)||(t.name||'').includes(m.title)));
-  const rpts=linked?(linked.reports||[]):[];
-  const rEl=document.getElementById('fma-reports');
-  rEl.innerHTML=rpts.length?
-    '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:5px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
-    rpts.slice(-2).reverse().map(r=>
-      '<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px">'+
-      '<div style="display:flex;justify-content:space-between;margin-bottom:2px"><strong>'+(r.date||r.time||'')+'</strong><span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div>'+
-      '<div style="color:var(--tx2)">'+(r.work||'').slice(0,120)+'</div></div>').join('') : '';
-  // Pre-fill minutes/actions from meeting record
-  document.getElementById('fma-minutes').value=m.minutes||'';
-  document.getElementById('fma-actions-text').value=m.actions||'';
-  document.getElementById('fma-remarks').value='';
-  document.getElementById('fma-action').value='';
-  document.getElementById('fma-reschedule-row').style.display='none';
-  clearFileStore('fma-prev');
-  // Action buttons — show/hide based on status
-  const actionBtnsEl=document.getElementById('fma-action-btns');
-  if(isDone){
-    actionBtnsEl.innerHTML='<span style="font-size:12px;color:var(--tx2)">This meeting is already '+s+'.</span>'+
-      (isPM?'<button class="btn btns" style="color:var(--wn-tx)" onclick="setFmaAction(this,\'reopen\')"><i class="ti ti-rotate"></i> Re-open</button>':'');
-  }else{
-    actionBtnsEl.innerHTML=
-      (s!=='checked-in'?'<button class="btn btns" style="color:var(--ok-tx)" onclick="setFmaAction(this,\'checkin\')"><i class="ti ti-login"></i> Check In</button>':'')+
-      (s==='checked-in'?'<button class="btn btns" style="color:var(--in-tx);font-weight:700" onclick="setFmaAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>':'<button class="btn btns" style="color:var(--in-tx)" onclick="setFmaAction(this,\'checkout\')"><i class="ti ti-logout"></i> Check Out</button>')+
-      '<button class="btn btns" style="color:var(--wn-tx)" onclick="setFmaAction(this,\'reschedule\')"><i class="ti ti-calendar-event"></i> Reschedule</button>'+
-      '<button class="btn btns" style="color:var(--er-tx)" onclick="setFmaAction(this,\'cancel\')"><i class="ti ti-x"></i> Cancel</button>';
+  const reports=linked?(linked.reports||[]).slice().reverse():[];
+  const reportsPct=r=>{const p=r.pct||0;return`<span style="background:${p>=100?'var(--ok-bg)':'var(--in-bg)'};color:${p>=100?'var(--ok-tx)':'var(--in-tx)'};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${p}%</span>`};
+  // Action buttons logic
+  let actionBtns='';
+  if(isPM&&!isDone){
+    if(s!=='checked-in')actionBtns+=`<button class="btn btns" style="color:var(--ok-tx)" onclick="doMeetingDetailAction(${id},'checkin')"><i class="ti ti-login"></i> Check In</button>`;
+    if(s==='checked-in')actionBtns+=`<button class="btn btns" style="color:var(--in-tx)" onclick="doMeetingDetailAction(${id},'checkout')"><i class="ti ti-logout"></i> Check Out</button>`;
+    actionBtns+=`<button class="btn btns" style="color:var(--wn-tx)" onclick="toggleMeetRescheduleRow(${id})"><i class="ti ti-calendar-event"></i> Reschedule</button>`;
+    actionBtns+=`<button class="btn btns" style="color:var(--er-tx)" onclick="doMeetingDetailAction(${id},'cancel')"><i class="ti ti-x"></i> Cancel</button>`;
+  }else if(isPM&&isDone){
+    actionBtns+=`<button class="btn btns" style="color:var(--wn-tx)" onclick="doMeetingDetailAction(${id},'reopen')"><i class="ti ti-rotate"></i> Re-open</button>`;
   }
-  // Bottom buttons
-  const delBtn=document.getElementById('fma-delete-btn');
-  if(delBtn)delBtn.style.display=(CU&&CU.role==='admin')?'':'none';
-  document.getElementById('fm-meeting-action').classList.add('op');
+  el.innerHTML=`
+    <!-- Info card -->
+    <div style="background:var(--bg2);border-radius:var(--r);padding:12px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+        <div><span style="color:var(--tx2)">Project: </span><strong>${m.proj||'—'}</strong></div>
+        <div><span style="color:var(--tx2)">Date/Time: </span><strong>${(m.datetime||'—').replace('T',' ')}</strong></div>
+        <div><span style="color:var(--tx2)">Location: </span><strong>${m.location||'—'}</strong></div>
+        <div><span style="color:var(--tx2)">Status: </span>${meetingStatusBadge(m)}</div>
+      </div>
+    </div>
+    <!-- Reports list -->
+    ${reports.length?`<div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:8px"><i class="ti ti-clock" style="color:var(--tx2)"></i> Reports (${reports.length})</div>
+      ${reports.map(r=>`<div style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div><div style="font-size:12px;font-weight:700;margin-bottom:2px">${r.date||''}</div><div style="font-size:11px;color:var(--tx2)">${r.work||''}</div></div>
+        ${reportsPct(r)}
+      </div>`).join('')}
+    </div>`:''}
+    <!-- Meeting Update section -->
+    <div>
+      <div style="font-size:14px;font-weight:700;color:var(--in-tx);display:flex;align-items:center;gap:6px;margin-bottom:12px"><i class="ti ti-calendar-event"></i> Meeting Update</div>
+      ${isPM?`<div class="fg"><label class="fl">Action</label><div style="display:flex;gap:8px;flex-wrap:wrap">${actionBtns}</div></div>
+      <div id="fmd-reschedule-row" style="display:none;margin-bottom:10px"><label class="fl">New Date &amp; Time</label><input class="inp" id="fmd-new-dt" type="datetime-local" style="margin-top:4px"></div>`:''}
+      <div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="fmd-minutes" rows="3" placeholder="Key decisions, outcomes...">${m.minutes||''}</textarea></div>
+      <div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="fmd-actions" rows="2" placeholder="Who does what by when...">${m.actions||''}</textarea></div>
+      <div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="fmd-remarks" rows="2" placeholder="Notes..."></textarea></div>
+      <div class="fg"><label class="fl">Attach Files <span style="font-size:10px;color:var(--tx3)">(photos, docs, presentations)</span></label>
+        <div class="upload-zone" onclick="document.getElementById('fmd-files').click()">
+          <input type="file" id="fmd-files" multiple onchange="prevMedia(this,'fmd-prev')">
+          <i class="ti ti-file-upload" style="font-size:22px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+          <div style="font-size:12px;color:var(--tx2)">Upload photos, minutes, presentations...</div>
+        </div>
+        <div class="media-prev" id="fmd-prev"></div>
+      </div>
+    </div>`;
+  // Update footer buttons
+  const fa=document.querySelector('#fm-meeting-detail .fa');
+  if(fa){
+    fa.innerHTML=`
+      <div style="display:flex;gap:8px">
+        ${CU&&CU.role==='admin'?`<button class="btn btnd" onclick="deleteMeetingFromDetail(${id})"><i class="ti ti-trash"></i> Delete</button>`:''}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeFm('fm-meeting-detail')">Close</button>
+        ${isPM?`<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="saveMeetingDetailUpdate(${id})"><i class="ti ti-refresh"></i> Update</button>`:''}
+        ${isPM&&!isDone?`<button class="btn btnp" onclick="checkOutMeetingDetail(${id})"><i class="ti ti-logout"></i> Check Out (Done)</button>`:''}
+      </div>`;
+  }
+  document.getElementById('fm-meeting-detail').classList.add('op');
 }
-function setFmaAction(btn,action){
-  document.getElementById('fma-action').value=action;
-  document.querySelectorAll('#fma-action-btns button').forEach(b=>{b.style.fontWeight='400';b.style.outline='none';});
-  if(btn){btn.style.fontWeight='700';btn.style.outline='2px solid currentColor';btn.style.outlineOffset='1px';}
-  const rr=document.getElementById('fma-reschedule-row');
-  if(rr)rr.style.display=action==='reschedule'?'':'none';
+function toggleMeetRescheduleRow(id){
+  const r=document.getElementById('fmd-reschedule-row');if(r)r.style.display=r.style.display==='none'?'':'none';
 }
-async function saveMeetingAction(checkout){
-  const meetId=parseInt(document.getElementById('fma-meet-id').value);
-  const projId=parseInt(document.getElementById('fma-meet-id').dataset.projId||0)||null;
-  const m=meetings.find(x=>parseInt(x.id)===meetId);if(!m)return;
-  const action=checkout?'checkout':(document.getElementById('fma-action').value||'');
-  const newDt=document.getElementById('fma-new-dt').value||'';
-  if(action==='reschedule'&&!newDt){alert('Please enter a new date and time for rescheduling.');return;}
-  const minutes=(document.getElementById('fma-minutes').value||'').trim();
-  const meetActions=(document.getElementById('fma-actions-text').value||'').trim();
-  const remarks=(document.getElementById('fma-remarks').value||'').trim();
-  const fileCount=typeof getFileCount==='function'?getFileCount('fma-prev'):0;
-  const fileNames=typeof getFileNames==='function'?getFileNames('fma-prev'):[];
-  // Determine new status
-  let newStatus=m.status||'scheduled';
-  if(action==='checkin')newStatus='checked-in';
-  else if(action==='checkout')newStatus='checked-out';
-  else if(action==='cancel')newStatus='cancelled';
-  else if(action==='reopen')newStatus='scheduled';
-  else if(action==='reschedule'){newStatus='rescheduled';if(newDt)m.datetime=newDt;}
-  // Update meeting record
-  m.status=newStatus;
+async function doMeetingDetailAction(id,action){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
+  if(action==='checkin')m.status='checked-in';
+  else if(action==='cancel')m.status='cancelled';
+  else if(action==='reopen')m.status='scheduled';
+  else if(action==='checkout')m.status='checked-out';
+  if(m.id&&m.id<2000000000)await sb.from('meetings').update({status:m.status}).eq('id',m.id);
+  sbLog('Meeting "'+m.title+'" — '+action,'#534AB7','Meetings','');
+  renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
+  openMeetingDetail(id);// re-render modal with updated state
+}
+async function saveMeetingDetailUpdate(id){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
+  const minutes=(document.getElementById('fmd-minutes')?.value||'').trim();
+  const actions=(document.getElementById('fmd-actions')?.value||'').trim();
+  const remarks=(document.getElementById('fmd-remarks')?.value||'').trim();
+  const newDt=document.getElementById('fmd-new-dt')?.value||'';
+  const rescheduleRowVisible=document.getElementById('fmd-reschedule-row')?.style.display!=='none';
+  if(rescheduleRowVisible&&newDt){m.datetime=newDt;m.status='rescheduled';}
   if(minutes)m.minutes=minutes;
-  if(meetActions)m.actions=meetActions;
-  if(fileCount>0)m.mediaCount=(m.mediaCount||0)+fileCount;
-  if(fileNames.length>0)m.files=[...(m.files||[]),...fileNames];
-  const upRow={status:newStatus,minutes:m.minutes||'',actions:m.actions||''};
-  if(action==='reschedule'&&newDt)upRow.datetime=newDt;
-  if(m.id&&m.id<2000000000){
-    const{error}=await sb.from('meetings').update(upRow).eq('id',m.id);
-    if(error)console.error('Meeting action save error:',error);
-  }
-  // Sync linked task
+  if(actions)m.actions=actions;
+  const upRow={status:m.status,minutes:m.minutes||'',actions:m.actions||''};
+  if(rescheduleRowVisible&&newDt)upRow.datetime=newDt;
+  if(m.id&&m.id<2000000000)await sb.from('meetings').update(upRow).eq('id',m.id);
+  // Push report to linked task
   const linked=tasks.find(t=>t.autoType==='meeting'&&(parseInt(t.refId)===parseInt(m.id)||(t.name||'').includes(m.title)));
   if(linked){
-    if(newStatus==='checked-out'||newStatus==='cancelled'){
-      linked.done=true;linked.status='done';
-    }else if(newStatus==='checked-in'){linked.status='in-progress';}
-    else if(newStatus==='rescheduled'&&newDt){linked.due=newDt.split('T')[0];linked.status='pending';}
-    else if(newStatus==='scheduled'){linked.done=false;linked.status='pending';}
     if(!linked.reports)linked.reports=[];
-    linked.reports.push({date:TODAY,work:(checkout?'Meeting completed — Checked Out':'Meeting action: '+action)+(minutes?' | Minutes recorded':'')+(remarks?' | '+remarks:'')+(fileCount>0?' | '+fileCount+' file(s)':''),pct:checkout?100:action==='checkin'?50:action==='cancel'?100:30,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:checkout?'complete':'update'});
-    sbSaveTask(linked);
+    const actionLabel=rescheduleRowVisible&&newDt?'rescheduled':'notes updated';
+    linked.reports.push({date:TODAY,work:'Meeting update: '+actionLabel+(remarks?' - '+remarks:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+    if(rescheduleRowVisible&&newDt){linked.due=newDt.split('T')[0];linked.status='pending';}
+    sbSaveTask(linked);renderTasksGlobal();
   }
-  sbLog('Meeting "'+m.title+'" — '+(action||'updated')+(remarks?' | '+remarks:''),'#534AB7','Meetings','');
-  closeFm('fm-meeting-action');
-  renderMeetings();
-  if(projId)renderDetailMeetings(projId);
-  else if(activeProjectId)renderDetailMeetings(activeProjectId);
-  renderTasksGlobal();renderSidebar();
+  sbLog('Meeting "'+m.title+'" updated','#534AB7','Meetings','');
+  renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
+  openMeetingDetail(id);// re-render with new data
 }
-async function deleteMeetingFromAction(){
-  if(!CU||CU.role!=='admin'){alert('Only Admin can delete meetings.');return;}
-  const meetId=parseInt(document.getElementById('fma-meet-id').value);
-  const projId=parseInt(document.getElementById('fma-meet-id').dataset.projId||0)||null;
-  const m=meetings.find(x=>parseInt(x.id)===meetId);if(!m)return;
+async function checkOutMeetingDetail(id){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
+  const minutes=(document.getElementById('fmd-minutes')?.value||'').trim();
+  const actions=(document.getElementById('fmd-actions')?.value||'').trim();
+  if(minutes)m.minutes=minutes;
+  if(actions)m.actions=actions;
+  m.status='checked-out';
+  if(m.id&&m.id<2000000000)await sb.from('meetings').update({status:'checked-out',minutes:m.minutes||'',actions:m.actions||''}).eq('id',m.id);
+  const linked=tasks.find(t=>t.autoType==='meeting'&&(parseInt(t.refId)===parseInt(m.id)||(t.name||'').includes(m.title)));
+  if(linked){
+    linked.done=true;linked.status='done';
+    if(!linked.reports)linked.reports=[];
+    linked.reports.push({date:TODAY,work:'Meeting completed — Checked Out.'+(minutes?' Minutes recorded.':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+    sbSaveTask(linked);renderTasksGlobal();
+  }
+  sbLog('Meeting "'+m.title+'" checked out','#534AB7','Meetings','');
+  renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
+  closeFm('fm-meeting-detail');renderSidebar();
+}
+async function deleteMeetingFromDetail(id){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(id));if(!m)return;
   if(!confirm('Delete meeting "'+m.title+'"?\n\nThis cannot be undone.'))return;
-  if(m.id&&m.id<2000000000)await sb.from('meetings').delete().eq('id',m.id);
-  meetings=meetings.filter(x=>x.id!==meetId);
-  tasks=tasks.filter(t=>!(t.autoType==='meeting'&&(parseInt(t.refId)===meetId||(t.name||'').includes(m.title))));
-  sbLog('Meeting deleted: "'+m.title+'" by '+CU.name,'#993C1D','Meetings','');
-  closeFm('fm-meeting-action');
-  renderMeetings();
-  if(projId)renderDetailMeetings(projId);
-  else if(activeProjectId)renderDetailMeetings(activeProjectId);
-  renderTasksGlobal();renderSidebar();
+  closeFm('fm-meeting-detail');
+  await deleteMeeting(id,activeProjectId||null);
 }
 
 // PERSONAL CALENDAR
@@ -4531,116 +4558,25 @@ async function deleteDocument(pid,docId){
 
 async function openDeliveryUpdate(id){
   const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
-  const isOverdue=d.date&&d.date<TODAY&&d.status!=='Delivered'&&d.status!=='Cancelled';
   document.getElementById('fdu-id').value=id;
-  document.getElementById('fdu-title').textContent=d.items.slice(0,40)+(d.items.length>40?'...':'');
-  // Info panel
-  document.getElementById('fdu-info').innerHTML=
-    '<strong>'+d.items+'</strong>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;font-size:11px;color:var(--tx2)">'+
-    '<div><span>Project:</span> <strong style="color:var(--tx)">'+d.proj+'</strong></div>'+
-    '<div><span>Supplier:</span> <strong style="color:var(--tx)">'+(d.supplier||'—')+'</strong></div>'+
-    '<div><span>Sched:</span> <strong style="color:var(--tx)">'+d.date+'</strong>'+(isOverdue?' <span class="badge be" style="font-size:8px">OVERDUE</span>':'')+'</div>'+
-    '<div><span>Status:</span> <strong style="color:var(--tx)">'+d.status+'</strong></div>'+
-    (d.driver?'<div><span>Driver:</span> <strong style="color:var(--tx)">'+d.driver+'</strong></div>':'')+'</div>'+
-    (d.mediaCount>0?'<div style="font-size:10px;color:var(--in-tx);margin-top:4px"><i class="ti ti-photo"></i> '+d.mediaCount+' proof file(s) on record</div>':'');
-  // Reports from linked task
-  const linked=tasks.find(t=>t.autoType==='delivery'&&(parseInt(t.refId)===parseInt(d.id)||(t.name||'').includes(d.items.slice(0,20))));
-  const rpts=linked?(linked.reports||[]):[];
-  const rEl=document.getElementById('fdu-reports');
-  rEl.innerHTML=rpts.length?
-    '<div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:5px"><i class="ti ti-history"></i> Reports ('+rpts.length+')</div>'+
-    rpts.slice(-2).reverse().map(r=>
-      '<div style="border:0.5px solid var(--bd);border-radius:var(--r);padding:6px 8px;margin-bottom:5px;font-size:11px">'+
-      '<div style="display:flex;justify-content:space-between;margin-bottom:2px"><strong>'+(r.date||r.time||'')+'</strong><span class="badge '+(r.pct>=100?'bk':'bw')+'">'+(r.pct||0)+'%</span></div>'+
-      '<div style="color:var(--tx2)">'+(r.work||'').slice(0,120)+'</div></div>').join('') : '';
-  // Fields
+  document.getElementById('fdu-info').innerHTML=`<strong>${d.items}</strong><div style="font-size:11px;color:var(--tx2);margin-top:2px">${d.proj} · ${d.date} · ${d.supplier||''}</div>`;
   document.getElementById('fdu-status').value=d.status||'Scheduled';
-  document.getElementById('fdu-receiver').value=d.receiver||'';
-  document.getElementById('fdu-po').value=d.po||'';
-  document.getElementById('fdu-invoice').value=d.invoice||'';
   document.getElementById('fdu-notes').value=d.notes||'';
-  document.getElementById('fdu-new-date').value='';
-  document.getElementById('fdu-reschedule-row').style.display='none';
-  clearFileStore('fdu-prev');
-  // Delete button — admin only
-  const delBtn=document.getElementById('fdu-delete-btn');
-  if(delBtn)delBtn.style.display=(CU&&CU.role==='admin')?'':'none';
+  document.getElementById('fdu-remarks').value='';
   document.getElementById('fm-delivery-update').classList.add('op');
-}
-function onFduStatusChange(){
-  const s=document.getElementById('fdu-status').value;
-  const rr=document.getElementById('fdu-reschedule-row');
-  if(rr)rr.style.display=s==='Rescheduled'?'':'none';
 }
 async function saveDeliveryUpdate(){
   const id=parseInt(document.getElementById('fdu-id').value);
   const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
   const newStatus=document.getElementById('fdu-status').value;
-  const newDate=document.getElementById('fdu-new-date')?.value||'';
-  if(newStatus==='Rescheduled'&&!newDate){alert('Please enter the rescheduled date.');return;}
-  const receiver=(document.getElementById('fdu-receiver')?.value||'').trim();
-  const po=(document.getElementById('fdu-po')?.value||'').trim();
-  const invoice=(document.getElementById('fdu-invoice')?.value||'').trim();
-  const notes=(document.getElementById('fdu-notes')?.value||'').trim();
-  const fileCount=typeof getFileCount==='function'?getFileCount('fdu-prev'):0;
-  d.status=newStatus;
-  if(receiver)d.receiver=receiver;
-  if(po)d.po=po;
-  if(invoice)d.invoice=invoice;
-  if(notes)d.notes=notes;
-  if(newStatus==='Rescheduled'&&newDate)d.date=newDate;
-  if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
-  const upRow={status:newStatus,notes:d.notes||''};
-  if(receiver)upRow.receiver=receiver;
-  if(po)upRow.po_no=po;
-  if(invoice)upRow.invoice_no=invoice;
-  if(newStatus==='Rescheduled'&&newDate)upRow.scheduled_date=newDate;
-  if(d.id&&d.id<2000000000){await sb.from('deliveries').update(upRow).eq('id',d.id);}
-  sbLog('Delivery updated: "'+d.items.slice(0,40)+'" → '+newStatus,'#0F5F6E','Delivery',d.proj);
+  const notes=document.getElementById('fdu-notes').value;
+  const remarks=document.getElementById('fdu-remarks').value.trim();
+  d.status=newStatus;d.notes=notes;
+  if(remarks)d.notes=(d.notes?d.notes+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
+  if(d.id&&d.id<2000000000){await sb.from('deliveries').update({status:newStatus,notes:d.notes||''}).eq('id',d.id);}
+  sbLog(`Delivery updated: "${d.items.slice(0,40)}" → ${newStatus}${remarks?' - '+remarks:''}`,'#0F5F6E','Delivery',d.proj);
   closeFm('fm-delivery-update');
   renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
-}
-async function markDeliveryDelivered(){
-  const id=parseInt(document.getElementById('fdu-id').value);
-  const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
-  const receiver=(document.getElementById('fdu-receiver')?.value||'').trim();
-  if(!receiver){alert('Received By is required to mark as Delivered.');return;}
-  const po=(document.getElementById('fdu-po')?.value||'').trim();
-  const invoice=(document.getElementById('fdu-invoice')?.value||'').trim();
-  const notes=(document.getElementById('fdu-notes')?.value||'').trim();
-  const fileCount=typeof getFileCount==='function'?getFileCount('fdu-prev'):0;
-  d.status='Delivered';d.receiver=receiver;d.actualDate=TODAY;
-  if(po)d.po=po;if(invoice)d.invoice=invoice;if(notes)d.notes=notes;
-  if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
-  const upRow={status:'Delivered',receiver,actual_date:TODAY,notes:d.notes||''};
-  if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
-  if(d.id&&d.id<2000000000){await sb.from('deliveries').update(upRow).eq('id',d.id);}
-  // Sync linked task
-  const linked=tasks.find(t=>t.autoType==='delivery'&&(parseInt(t.refId)===parseInt(d.id)||(t.name||'').includes(d.items.slice(0,20))));
-  if(linked){
-    linked.done=true;linked.status='done';
-    if(!linked.reports)linked.reports=[];
-    linked.reports.push({date:TODAY,work:'Delivery completed. Received by: '+receiver+(notes?' | '+notes:''),pct:100,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
-    sbSaveTask(linked);
-  }
-  sbLog('Delivery completed: "'+d.items.slice(0,40)+'" received by '+receiver,'#0F6E56','Delivery',d.proj);
-  closeFm('fm-delivery-update');
-  renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
-  renderTasksGlobal();renderSidebar();
-}
-async function deleteDeliveryFromModal(){
-  if(!CU||CU.role!=='admin'){alert('Only Admin can delete deliveries.');return;}
-  const id=parseInt(document.getElementById('fdu-id').value);
-  const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
-  if(!confirm('Delete delivery "'+d.items.slice(0,50)+'"?\n\nThis cannot be undone.'))return;
-  if(d.id&&d.id<2000000000)await sb.from('deliveries').delete().eq('id',d.id);
-  deliveries=deliveries.filter(x=>x.id!==id);
-  tasks=tasks.filter(t=>!(t.autoType==='delivery'&&parseInt(t.refId)===id));
-  sbLog('Delivery deleted: "'+d.items.slice(0,40)+'" by '+CU.name,'#993C1D','Delivery',d.proj);
-  closeFm('fm-delivery-update');
-  renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
-  renderTasksGlobal();renderSidebar();
 }
 function renderSOPs(){
   const cf=document.getElementById('sop-cat-filter')?.value||'';
@@ -4725,6 +4661,40 @@ async function addContact(){
   directory.push(local);
   sbLog('Contact added: '+name,'#854F0B','Directory','');
   closeFm('fm-contact');renderDirectory();
+}
+function importDirectoryCSV(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    const text=e.target.result;
+    const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(lines.length<2){alert('CSV must have a header row and at least one data row.');input.value='';return;}
+    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+    const idx=k=>headers.indexOf(k);
+    const get=(row,k)=>{const i=idx(k);return i>=0?(row[i]||'').replace(/^"|"$/g,'').trim():''};
+    let added=0;
+    for(let i=1;i<lines.length;i++){
+      const row=lines[i].match(/(".*?"|[^,]+|(?<=,)(?=,)|(?<=,)$)/g)||lines[i].split(',');
+      const name=get(row,'name');if(!name)continue;
+      const contact={_isNew:true,
+        name,
+        position:get(row,'position')||get(row,'title')||'',
+        dept:get(row,'department')||get(row,'dept')||'',
+        type:get(row,'type')||'Internal',
+        phone:get(row,'phone')||get(row,'mobile')||'',
+        email:get(row,'email')||'',
+        notes:get(row,'notes')||get(row,'remarks')||''
+      };
+      directory.push(contact);
+      const{data}=await sbSafeInsert('directory',{name:contact.name,position:contact.position,department:contact.dept,type:contact.type,phone:contact.phone,email:contact.email,notes:contact.notes});
+      if(data&&data[0])contact.id=data[0].id;delete contact._isNew;
+      added++;
+    }
+    input.value='';
+    renderDirectory();
+    alert(`✅ Imported ${added} contact(s) from CSV.`);
+  };
+  reader.readAsText(file);
 }
 function renderDirectory(){const df=document.getElementById('dir-dept-filter');const s=(document.getElementById('dir-search').value||'').toLowerCase();const depts=[...new Set(directory.map(d=>d.dept).filter(Boolean))];if(df.children.length<=1)df.innerHTML='<option value="">All Departments</option>'+depts.map(d=>`<option>${d}</option>`).join('');const pf=df.value;const tBadge={Internal:'bi',Client:'bk',Supplier:'bw',Contractor:'bg_',Government:'be',Emergency:'be'};let list=directory;if(pf)list=list.filter(d=>d.dept===pf);if(s)list=list.filter(d=>(d.name+d.position+d.dept+d.type).toLowerCase().includes(s));document.getElementById('directory-list').innerHTML=list.length?list.map(d=>{const c=avC(d.name);return`<div class="dir-card"><div class="av" style="width:40px;height:40px;font-size:16px;font-weight:700;background:${c.bg};color:${c.c};flex-shrink:0">${initials(d.name)}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${d.name}</div><div style="font-size:12px;color:var(--tx2)">${d.position||''}${d.dept?' · '+d.dept:''}</div>${d.notes?`<div style="font-size:11px;color:var(--tx3)">${d.notes}</div>`:''}</div><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end"><span class="badge ${tBadge[d.type]||'bg_'}">${d.type}</span><div style="display:flex;gap:5px">${d.phone?`<a href="tel:${d.phone}" class="btn btns" style="text-decoration:none" title="Call ${d.phone}"><i class="ti ti-phone" style="color:var(--ok-tx)"></i></a>`:''} ${d.email?`<a href="mailto:${d.email}" class="btn btns" style="text-decoration:none" title="Email ${d.email}"><i class="ti ti-mail" style="color:var(--in-tx)"></i></a>`:''} ${CU&&CU.role==='admin'?`<button class="btn btns" onclick="deleteContact(${d.id})" title="Delete"><i class="ti ti-trash" style="font-size:10px;color:var(--er-tx)"></i></button>`:''}</div>${d.phone?`<div style="font-size:10px;color:var(--tx3)">${d.phone}</div>`:''}</div></div>`}).join(''):'<div style="color:var(--tx2);font-size:12px;padding:20px">No contacts found.</div>'}
 
@@ -4812,7 +4782,7 @@ async function addPipelineLead(){
   if(!name||!client){alert('Name and client required');return;}
   const stage=document.getElementById('fpl-stage').value;
   const files=getFileNames('fpl-prev');
-  const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,notes:document.getElementById('fpl-notes').value,files:files,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
+  const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,contactNum:document.getElementById('fpl-contact-num').value,notes:document.getElementById('fpl-notes').value,files:files,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
   pipeline.push(lead);
   await sbSavePipeline(lead);
   sbLog('Pipeline lead added: "'+name+'" — '+stage,'#7B2D8B','Pipeline','');
@@ -4925,6 +4895,7 @@ function pipelineCard(l,STAGE_COLS,STAGE_BG){
       </div>
       ${canSeeCosts()?`<div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Prob: ${l.prob||50}% · Weighted: ${fmt(weighted)}</div>`:''}
       <div style="font-size:10px;color:var(--tx2)">Close: ${l.closedate||'TBD'} · ${l.source||'—'}</div>
+      ${l.contact||l.contactNum?`<div style="font-size:10px;color:var(--tx2);margin-top:3px"><i class="ti ti-user" style="font-size:9px"></i> ${l.contact||''}${l.contactNum?' <span style="color:var(--in-tx);font-weight:600"><i class="ti ti-phone" style="font-size:9px"></i> '+l.contactNum+'</span>':''}</div>`:''}
       ${l.notes?`<div style="font-size:10px;color:var(--tx3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.notes}</div>`:''}
       ${l.history&&l.history.length>1?`<div style="font-size:9px;color:var(--in-tx);margin-top:4px"><i class="ti ti-history" style="font-size:9px"></i> ${l.history.length} updates</div>`:''}
       ${l.files&&l.files.length?`<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${l.files.map(f=>`<span style="background:var(--in-bg);color:var(--in-tx);border-radius:4px;padding:2px 7px;font-size:9px;font-weight:600;cursor:pointer" onclick="event.stopPropagation();downloadPipelineFile('${f.replace(/'/g,"\'")}',${l.id})" title="Download ${f}"><i class="ti ti-download" style="font-size:9px"></i> ${f}</span>`).join('')}</div>`:''}
@@ -5162,44 +5133,90 @@ window.renderGlobalInventory=function(){
 };
 
 // ═══════════════════════════════════════════════════════════════
-//  GANTT EDIT: Sync new sub-tasks to Tasks/Project Tasks
+//  GANTT EDIT: Full bi-directional sub-task ↔ Tasks sync
 // ═══════════════════════════════════════════════════════════════
 const _origSaveGanttEdit=window.saveGanttEdit;
 window.saveGanttEdit=async function(){
-  // Capture sub-tasks BEFORE the save so we can diff
+  // Capture state BEFORE save so we can diff
   const actId=parseInt(document.getElementById('fge-act-id')?.value);
   const projId=parseInt(document.getElementById('fge-proj-id')?.value);
   const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);
   const beforeStIds=new Set((act?.subTasks||[]).map(s=>s.id));
   // Call original save
   await _origSaveGanttEdit.apply(this,arguments);
-  // After save: find newly added sub-tasks and create linked tasks for them
+  // Get updated activity
   const actAfter=(ganttActivities[projId]||[]).find(a=>a.id===actId);
-  if(!actAfter||!actAfter.subTasks)return;
+  if(!actAfter)return;
   const p=findProject(projId);const pn=p?.name||'';
   const riskVal=actAfter.riskLevel==='HIGH'||actAfter.riskLevel==='CRITICAL'?'high':'medium';
-  for(const st of actAfter.subTasks){
-    if(beforeStIds.has(st.id))continue; // already existed
-    // Check if a task already exists for this sub-task
-    const exists=tasks.find(t=>t.ganttId===actId&&t.subTaskId===st.id);
-    if(exists)continue;
-    const stTask={_isNew:true,name:st.name,project:pn,assignee:actAfter.assign||'',
-      due:st.end||actAfter.end,start:st.start||actAfter.start,priority:riskVal,
-      done:st.done||false,status:st.done?'done':'pending',
-      ganttId:actId,subTaskId:st.id,schedule:'once',scheduleDays:[],
-      details:'Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end),
-      riskLevel:actAfter.riskLevel||'LOW',reports:[],autoType:'gantt',refId:actId};
-    tasks.push(stTask);
-    await sbSaveTask(stTask);
+
+  // 1. Sync the main activity task (name, assignee, dates, risk)
+  const mainTask=tasks.find(t=>t.ganttId===actId&&!t.subTaskId&&(t.autoType||'')==='gantt');
+  if(mainTask){
+    mainTask.name=actAfter.name;
+    mainTask.assignee=actAfter.assign||mainTask.assignee;
+    mainTask.due=actAfter.end||mainTask.due;
+    mainTask.start=actAfter.start||mainTask.start;
+    mainTask.riskLevel=actAfter.riskLevel||mainTask.riskLevel;
+    mainTask.priority=riskVal;
+    mainTask.details='Phase: '+actAfter.phase+' | Weight: '+actAfter.weight+'% | Planned: '+actAfter.start+' → '+actAfter.end;
+    await sbSaveTask(mainTask);
   }
+
+  if(!actAfter.subTasks)return;
+
+  // 2. For ALL sub-tasks: create new tasks for new ones, update existing ones
+  for(const st of actAfter.subTasks){
+    const existingTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===st.id);
+    if(existingTask){
+      // Update existing linked task if anything changed
+      const changed=existingTask.name!==st.name||
+                     existingTask.due!==(st.end||actAfter.end)||
+                     existingTask.start!==(st.start||actAfter.start)||
+                     existingTask.done!==st.done;
+      if(changed){
+        existingTask.name=st.name;
+        existingTask.due=st.end||actAfter.end;
+        existingTask.start=st.start||actAfter.start;
+        existingTask.done=st.done||false;
+        existingTask.status=st.done?'done':'pending';
+        existingTask.details='Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end);
+        await sbSaveTask(existingTask);
+      }
+    }else{
+      // New sub-task — create a linked task (regardless of whether it was in beforeStIds)
+      const stTask={_isNew:true,name:st.name,project:pn,assignee:actAfter.assign||'',
+        due:st.end||actAfter.end,start:st.start||actAfter.start,priority:riskVal,
+        done:st.done||false,status:st.done?'done':'pending',
+        ganttId:actId,subTaskId:st.id,schedule:'once',scheduleDays:[],
+        details:'Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end),
+        riskLevel:actAfter.riskLevel||'LOW',reports:[],autoType:'gantt',refId:actId};
+      tasks.push(stTask);
+      await sbSaveTask(stTask);
+    }
+  }
+
+  // 3. Remove linked tasks for sub-tasks that were deleted
+  const afterStIds=new Set(actAfter.subTasks.map(s=>s.id));
+  const deletedStIds=[...beforeStIds].filter(id=>!afterStIds.has(id));
+  for(const stId of deletedStIds){
+    const orphan=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
+    if(orphan){
+      if(orphan.id&&orphan.id<2000000000)await sb.from('tasks').delete().eq('id',orphan.id);
+      tasks=tasks.filter(t=>!(t.ganttId===actId&&t.subTaskId===stId));
+    }
+  }
+
   renderTasksGlobal();
+  if(activeProjectId)filterDetailTasks(activeProjectId);
 };
 
-// Also patch addSubTaskInEdit to immediately create the task in-memory
+// addSubTaskInEdit: also sync immediately to tasks when a sub-task is added
+// (tasks will be properly created when saveGanttEdit is called)
 const _origAddSubTaskInEdit=window.addSubTaskInEdit;
 window.addSubTaskInEdit=function(){
   _origAddSubTaskInEdit.apply(this,arguments);
-  // The save to tasks happens on saveGanttEdit — nothing needed here
+  // tasks created on saveGanttEdit — nothing extra needed here
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -5394,16 +5411,12 @@ async function tdMeetingUpdate(taskId){
   const minutes=(document.getElementById('td-meet-minutes')?.value||'').trim();
   const meetActions=(document.getElementById('td-meet-actions')?.value||'').trim();
   const remarks=(document.getElementById('td-meet-remarks')?.value||'').trim();
-  const fileCount=typeof getFileCount==='function'?getFileCount('td-meet-prev'):0;
-  const fileNames=typeof getFileNames==='function'?getFileNames('td-meet-prev'):[];
   // ── Sync to Meeting tab ───────────────────────────────────
   if(m){
     if(action==='checkin')m.status='checked-in';
     else if(action==='reschedule'&&newDt){m.datetime=newDt;m.status='rescheduled';}
     else if(action==='cancel')m.status='cancelled';
     if(minutes)m.minutes=minutes;if(meetActions)m.actions=meetActions;
-    if(fileCount>0)m.mediaCount=(m.mediaCount||0)+fileCount;
-    if(fileNames.length>0)m.files=[...(m.files||[]),...fileNames];
     const upRow={status:m.status,minutes:m.minutes||'',actions:m.actions||''};
     if(action==='reschedule'&&newDt)upRow.datetime=newDt;
     if(m.id&&m.id<2000000000){const{error}=await sb.from('meetings').update(upRow).eq('id',m.id);if(error)console.error('Meeting update error:',error);}
@@ -5414,7 +5427,7 @@ async function tdMeetingUpdate(taskId){
   else if(action==='reschedule'&&newDt){t.due=newDt.split('T')[0];t.status='pending';}
   else{t.status='in-progress';}
   if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Meeting update: '+(action||'notes updated')+(remarks?' - '+remarks:'')+(fileCount>0?' | '+fileCount+' file(s)':''),pct:50,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+  t.reports.push({date:TODAY,work:'Meeting update: '+(action||'notes updated')+(remarks?' - '+remarks:''),pct:50,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
   sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 async function tdMeetingCheckOut(taskId){
@@ -5423,20 +5436,16 @@ async function tdMeetingCheckOut(taskId){
   const m=meetings.find(x=>parseInt(x.id)===meetId);
   const minutes=(document.getElementById('td-meet-minutes')?.value||'').trim();
   const meetActions=(document.getElementById('td-meet-actions')?.value||'').trim();
-  const fileCount=typeof getFileCount==='function'?getFileCount('td-meet-prev'):0;
-  const fileNames=typeof getFileNames==='function'?getFileNames('td-meet-prev'):[];
   // ── Sync to Meeting tab ───────────────────────────────────
   if(m){
     m.status='checked-out';
     if(minutes)m.minutes=minutes;if(meetActions)m.actions=meetActions;
-    if(fileCount>0)m.mediaCount=(m.mediaCount||0)+fileCount;
-    if(fileNames.length>0)m.files=[...(m.files||[]),...fileNames];
     if(m.id&&m.id<2000000000){const{error}=await sb.from('meetings').update({status:'checked-out',minutes:m.minutes||'',actions:m.actions||''}).eq('id',m.id);if(error)console.error('Meeting checkout error:',error);}
     renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);
   }
   t.done=true;t.status='done';
   if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Meeting completed — Checked Out.'+(minutes?' Minutes recorded.':'')+(fileCount>0?' | '+fileCount+' file(s) attached':''),pct:100,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  t.reports.push({date:TODAY,work:'Meeting completed — Checked Out.'+(minutes?' Minutes recorded.':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
   sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
 }
 
@@ -5601,12 +5610,6 @@ function buildTaskContextForm(t,autoType){
       '<div class="fg"><label class="fl">Minutes of Meeting</label><textarea class="inp" id="td-meet-minutes" rows="3" placeholder="Key decisions, outcomes...">'+(m?m.minutes||'':'')+'</textarea></div>'+
       '<div class="fg"><label class="fl">Action Items</label><textarea class="inp" id="td-meet-actions" rows="2" placeholder="Who does what by when...">'+(m?m.actions||'':'')+'</textarea></div>'+
       '<div class="fg"><label class="fl">Remarks</label><textarea class="inp" id="td-meet-remarks" rows="1" placeholder="Notes..."></textarea></div>'+
-      '<div class="fg"><label class="fl">Attach Files <span style="font-size:10px;color:var(--tx3)">(photos, documents, presentations)</span></label>'+
-      '<div class="upload-zone" onclick="document.getElementById(\'td-meet-files\').click()">'+
-      '<input type="file" id="td-meet-files" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" onchange="prevMedia(this,\'td-meet-prev\')">'+
-      '<i class="ti ti-file-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i>'+
-      '<div style="font-size:12px;color:var(--tx2)">Upload photos, minutes, presentations...</div></div>'+
-      '<div class="media-prev" id="td-meet-prev"></div></div>'+
       '<input type="hidden" id="td-meet-action" value=""><input type="hidden" id="td-meet-ref" value="'+(m?m.id:'')+'">'+
       (m&&m.status==='checked-in'?'<script>setTimeout(()=>{var b=document.querySelector("#td-meet-action-btns button:nth-child(2)");if(b)setTdMeetAction(b,"checkout");},20);<\/script>':'');
     btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
