@@ -3879,9 +3879,11 @@ async function addDelivery(){
   const supplier=document.getElementById('fdel-supplier').value;
   const d={_isNew:true,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:fileNamesD.length,mediaFiles:fileNamesD,by:CU.name,time:nowStr()};
   deliveries.unshift(d);
-  sbSaveDelivery(d).then(()=>sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName));
+  await sbSaveDelivery(d);
+  sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName);
   if(status==='Scheduled'){
-    const delTask={_isNew:true,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items+'. Supplier: '+(supplier||'N/A'),riskLevel:'LOW',reports:[],autoType:'delivery'};
+    // FIX 3: set refId to the delivery's actual ID so bidirectional sync works
+    const delTask={_isNew:true,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items+'. Supplier: '+(supplier||'N/A'),riskLevel:'LOW',reports:[],autoType:'delivery',refId:d.id||null};
     tasks.push(delTask);
     await sbSaveTask(delTask);
     renderTasksGlobal();renderSidebar();
@@ -4545,6 +4547,24 @@ function savePipelineLead(){
   if(newFiles.length){l.files=[...(l.files||[]),...newFiles];}
   sbSavePipeline(l);
   sbLog(`Pipeline: "${l.name}" moved to ${l.stage}`,'#7B2D8B','Pipeline','');
+
+  // FIX 4: Sync pipeline task when stage changes from the Pipeline tab
+  if(l.stage!==oldStage){
+    // Mark the old follow-up task done
+    const oldTask=tasks.find(t=>t.autoType==='pipeline'&&parseInt(t.refId)===parseInt(l.id)&&!t.done);
+    if(oldTask){
+      oldTask.done=true;oldTask.status='done';
+      if(!oldTask.reports)oldTask.reports=[];
+      oldTask.reports.push({date:TODAY,work:'Stage advanced: '+oldStage+' → '+l.stage+(note?' | '+note:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+      sbSaveTask(oldTask);
+    }
+    // Create new follow-up task for the new stage
+    const newDue=l.closedate||TODAY;
+    const newTask={_isNew:true,name:'Follow up: '+l.name+' ('+l.stage+')',project:l.name,assignee:CU.name,due:newDue,priority:l.stage==='Closing'||l.stage==='Negotiation'?'high':'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Pipeline: '+l.name+' | Stage: '+l.stage+' | Client: '+(l.client||'')+' | Value: '+(l.value||0),riskLevel:'LOW',reports:[],autoType:'pipeline',refId:l.id};
+    tasks.push(newTask);sbSaveTask(newTask);
+    renderTasksGlobal();renderSidebar();
+  }
+
   if(l.stage==='Awarded'&&oldStage!=='Awarded'){
     if(confirm(`"${l.name}" is Awarded! Add it to My Projects as an Ongoing Project?`)){
       promotePipelineToProject(l);
@@ -4869,26 +4889,68 @@ window.saveGanttEdit=async function(){
   const beforeStIds=new Set((act?.subTasks||[]).map(s=>s.id));
   // Call original save
   await _origSaveGanttEdit.apply(this,arguments);
-  // After save: find newly added sub-tasks and create linked tasks for them
+  // After save: get the updated activity
   const actAfter=(ganttActivities[projId]||[]).find(a=>a.id===actId);
-  if(!actAfter||!actAfter.subTasks)return;
+  if(!actAfter)return;
   const p=findProject(projId);const pn=p?.name||'';
   const riskVal=actAfter.riskLevel==='HIGH'||actAfter.riskLevel==='CRITICAL'?'high':'medium';
-  for(const st of actAfter.subTasks){
-    if(beforeStIds.has(st.id))continue; // already existed
-    // Check if a task already exists for this sub-task
-    const exists=tasks.find(t=>t.ganttId===actId&&t.subTaskId===st.id);
-    if(exists)continue;
-    const stTask={_isNew:true,name:st.name,project:pn,assignee:actAfter.assign||'',
-      due:st.end||actAfter.end,start:st.start||actAfter.start,priority:riskVal,
-      done:st.done||false,status:st.done?'done':'pending',
-      ganttId:actId,subTaskId:st.id,schedule:'once',scheduleDays:[],
-      details:'Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end),
-      riskLevel:actAfter.riskLevel||'LOW',reports:[],autoType:'gantt',refId:actId};
-    tasks.push(stTask);
-    await sbSaveTask(stTask);
+
+  // FIX 1a: Sync main activity task (name, assignee, dates, riskLevel)
+  const mainTask=tasks.find(t=>t.ganttId===actId&&!t.subTaskId&&(t.autoType||'')==='gantt');
+  if(mainTask){
+    mainTask.name=actAfter.name;
+    mainTask.assignee=actAfter.assign||mainTask.assignee;
+    mainTask.due=actAfter.end||mainTask.due;
+    mainTask.start=actAfter.start||mainTask.start;
+    mainTask.riskLevel=actAfter.riskLevel||mainTask.riskLevel;
+    mainTask.priority=riskVal;
+    mainTask.details='Phase: '+actAfter.phase+' | Weight: '+actAfter.weight+'% | Planned: '+actAfter.start+' → '+actAfter.end;
+    await sbSaveTask(mainTask);
   }
+
+  // FIX 1b: For ALL sub-tasks (new and existing) — create or update linked tasks
+  if(!actAfter.subTasks)return;
+  for(const st of actAfter.subTasks){
+    const existingTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===st.id);
+    if(existingTask){
+      // FIX 2: Update existing linked task to reflect any changes from source
+      const changed=existingTask.name!==st.name||existingTask.due!==(st.end||actAfter.end)||existingTask.done!==st.done;
+      if(changed){
+        existingTask.name=st.name;
+        existingTask.due=st.end||actAfter.end;
+        existingTask.start=st.start||actAfter.start;
+        existingTask.done=st.done||false;
+        existingTask.status=st.done?'done':'pending';
+        existingTask.details='Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end);
+        await sbSaveTask(existingTask);
+      }
+    } else {
+      // New sub-task — create the linked task
+      if(beforeStIds.has(st.id))continue; // was there before but no task existed — still create
+      const stTask={_isNew:true,name:st.name,project:pn,assignee:actAfter.assign||'',
+        due:st.end||actAfter.end,start:st.start||actAfter.start,priority:riskVal,
+        done:st.done||false,status:st.done?'done':'pending',
+        ganttId:actId,subTaskId:st.id,schedule:'once',scheduleDays:[],
+        details:'Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end),
+        riskLevel:actAfter.riskLevel||'LOW',reports:[],autoType:'gantt',refId:actId};
+      tasks.push(stTask);
+      await sbSaveTask(stTask);
+    }
+  }
+
+  // FIX 1c: Remove linked tasks for deleted sub-tasks
+  const afterStIds=new Set(actAfter.subTasks.map(s=>s.id));
+  const deletedStIds=[...beforeStIds].filter(id=>!afterStIds.has(id));
+  for(const stId of deletedStIds){
+    const orphanTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
+    if(orphanTask){
+      if(orphanTask.id&&orphanTask.id<2000000000)await sb.from('tasks').delete().eq('id',orphanTask.id);
+      tasks=tasks.filter(t=>!(t.ganttId===actId&&t.subTaskId===stId));
+    }
+  }
+
   renderTasksGlobal();
+  if(activeProjectId)filterDetailTasks(activeProjectId);
 };
 
 // Also patch addSubTaskInEdit to immediately create the task in-memory
@@ -4910,7 +4972,23 @@ window.reopenTask=function(taskId){
   t.done=false;t.status='pending';
   // Reopen source record
   const autoType=t.autoType||'gantt';
-  if(autoType==='delivery'){
+  if(autoType==='gantt'){
+    // FIX 2: Sync the Gantt sub-task back to done=false when reopened from Tasks
+    if(t.subTaskId&&t.ganttId){
+      Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{
+        if(a.id===t.ganttId){
+          const st=(a.subTasks||[]).find(s=>s.id===t.subTaskId);
+          if(st){
+            st.done=false;
+            // Recalculate parent activity completion
+            if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);
+            const stForSave=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||''}));
+            sb.from('gantt_activities').update({sub_tasks:stForSave,completion:a.done}).eq('id',a.id).then(({error})=>{if(error)console.error('Reopen Gantt sub-task error:',error);});
+          }
+        }
+      }));
+    }
+  }else if(autoType==='delivery'){
     const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
     if(d&&(d.status==='Delivered'||d.status==='Cancelled')){
       d.status='Scheduled';
@@ -4928,6 +5006,9 @@ window.reopenTask=function(taskId){
       m.status='scheduled';
       if(m.id&&m.id<2000000000)sb.from('meetings').update({status:'scheduled'}).eq('id',m.id).then(()=>{renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);});
     }
+  }else if(autoType==='pipeline'){
+    // Reopen: mark task pending so it can be followed up again
+    t.status='pending';
   }
   sbSaveTask(t);
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
@@ -5241,9 +5322,21 @@ function buildTaskContextForm(t,autoType){
     return;
   }
   if(autoType==='delivery'){
-    const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
+    // FIX 3: Find delivery via refId first, then fall back to matching by task name + project
+    let d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
+    if(!d&&t.project){
+      // Fallback: match by project and item name fragment in the task name
+      const tNameLow=(t.name||'').toLowerCase();
+      d=deliveries.find(x=>projMatch(x.proj,t.project)&&!x._deleted&&(
+        tNameLow.includes((x.items||'').toLowerCase().slice(0,20))||
+        tNameLow.includes((x.supplier||'').toLowerCase())
+      ));
+    }
+    // Once found, ensure the task has refId set for future lookups
+    if(d&&!t.refId){t.refId=d.id;sbSaveTask(t);}
     formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
-      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
+      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':
+         '<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px;color:var(--tx2)">No linked delivery record found. Updates will only affect this task.</div>')+
       '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status" onchange="onTdDelStatusChange()"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
       '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
       '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
