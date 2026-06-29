@@ -1390,7 +1390,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div></div>
   <div class="fr2"><div class="fg"><label class="fl">Estimated Value (₱)</label><input class="inp" id="fpl-value" type="number" min="0" placeholder="0"></div><div class="fg"><label class="fl">Probability (%)</label><input class="inp" id="fpl-prob" type="number" min="0" max="100" placeholder="50"></div></div>
   <div class="fr2"><div class="fg"><label class="fl">Source</label><input class="inp" id="fpl-source" placeholder="Referral, Bidding, Direct, Online..."></div><div class="fg"><label class="fl">Expected Close Date</label><input class="inp" id="fpl-closedate" type="date"></div></div>
-  <div class="fg"><label class="fl">Contact Person</label><input class="inp" id="fpl-contact" placeholder="Name & phone"></div>
+  <div class="fr2"><div class="fg"><label class="fl">Contact Person</label><input class="inp" id="fpl-contact" placeholder="Full name"></div><div class="fg"><label class="fl">Contact Number</label><input class="inp" id="fpl-contact-num" type="tel" placeholder="+63 9XX XXX XXXX"></div></div>
   <div class="fg"><label class="fl">Link to Quotation <span style="font-size:10px;color:var(--tx3)">(optional — auto-fills value from quotation)</span></label>
     <select class="inp" id="fpl-quotation" onchange="linkQuotationToPipeline()"><option value="">— Select quotation —</option></select>
   </div>
@@ -3224,13 +3224,15 @@ function renderDetailMeetings(id){id=parseInt(id);
   el.innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-calendar-event"></i> Meetings — ${p.name}</div>
     <button class="btn btns btnp" onclick="openMeetingForProj('${p.id}')"><i class="ti ti-plus"></i> Add Meeting</button>
   </div>
-  ${pMeetings.length?pMeetings.map(m=>`<div class="meeting-card">
+  ${pMeetings.length?pMeetings.map(m=>`<div class="meeting-card" id="meet-card-${m.id}">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
       <div style="flex:1;cursor:pointer" onclick="openMeetingDetail(${m.id})">
         <div style="font-size:13px;font-weight:700">${m.title}</div>
         <div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.location||''}</div>
       </div>
-      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap">
+        ${meetingStatusBadge(m)}
+        ${isPM?`<button class="btn btns" onclick="openMeetingAction(${m.id},${id})" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" title="Actions"><i class="ti ti-player-play"></i> Action</button>`:''}
         ${isPM?`<button class="btn btns" onclick="openEditMeeting(${m.id})" title="Edit meeting"><i class="ti ti-edit"></i></button>`:''}
         ${isAdmin?`<button class="btn btns" style="color:var(--er-tx)" onclick="deleteMeeting(${m.id},${id})" title="Delete meeting"><i class="ti ti-trash"></i></button>`:''}
       </div>
@@ -3879,11 +3881,9 @@ async function addDelivery(){
   const supplier=document.getElementById('fdel-supplier').value;
   const d={_isNew:true,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:fileNamesD.length,mediaFiles:fileNamesD,by:CU.name,time:nowStr()};
   deliveries.unshift(d);
-  await sbSaveDelivery(d);
-  sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName);
+  sbSaveDelivery(d).then(()=>sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName));
   if(status==='Scheduled'){
-    // FIX 3: set refId to the delivery's actual ID so bidirectional sync works
-    const delTask={_isNew:true,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items+'. Supplier: '+(supplier||'N/A'),riskLevel:'LOW',reports:[],autoType:'delivery',refId:d.id||null};
+    const delTask={_isNew:true,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items+'. Supplier: '+(supplier||'N/A'),riskLevel:'LOW',reports:[],autoType:'delivery'};
     tasks.push(delTask);
     await sbSaveTask(delTask);
     renderTasksGlobal();renderSidebar();
@@ -3931,6 +3931,114 @@ async function addVisitor(){
   closeFm('fm-visitor');renderVisitorList();renderTasksGlobal();renderSidebar();
 }
 function visitorStatusBadge(v){const s=v.status||'scheduled';const m={scheduled:'<span style="background:var(--in-bg);color:var(--in-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">SCHEDULED</span>',rescheduled:'<span style="background:var(--wn-bg);color:var(--wn-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">RESCHEDULED</span>',cancelled:'<span style="background:var(--er-bg);color:var(--er-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CANCELLED</span>','checked-in':'<span style="background:var(--ok-bg);color:var(--ok-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED IN</span>','checked-out':'<span style="background:var(--bg2);color:var(--tx2);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED OUT</span>'};return m[s]||m.scheduled;}
+function meetingStatusBadge(m){
+  const s=m.status||'scheduled';
+  const map={
+    scheduled:'<span style="background:var(--in-bg);color:var(--in-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">SCHEDULED</span>',
+    rescheduled:'<span style="background:var(--wn-bg);color:var(--wn-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">RESCHEDULED</span>',
+    cancelled:'<span style="background:var(--er-bg);color:var(--er-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CANCELLED</span>',
+    'checked-in':'<span style="background:var(--ok-bg);color:var(--ok-tx);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">CHECKED IN</span>',
+    'checked-out':'<span style="background:var(--bg2);color:var(--tx2);padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700">COMPLETED</span>'
+  };
+  return map[s]||map.scheduled;
+}
+function openMeetingAction(meetId,projId){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(meetId));if(!m)return;
+  const s=m.status||'scheduled';
+  const isDone=s==='checked-out'||s==='cancelled';
+  const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
+  // Build inline action panel inline in the meeting card
+  const panelId='meet-action-panel-'+meetId;
+  const existing=document.getElementById(panelId);
+  if(existing){existing.remove();return;}// toggle
+  const card=document.getElementById('meet-card-'+meetId);if(!card)return;
+  const panel=document.createElement('div');
+  panel.id=panelId;
+  panel.style.cssText='margin-top:10px;padding:10px;background:var(--bg2);border-radius:var(--r);border:0.5px solid var(--bd)';
+  let btns='';
+  if(!isDone&&isPM){
+    if(s!=='checked-in')btns+=`<button class="btn btns" style="color:var(--ok-tx)" onclick="doMeetingAction(${meetId},${projId||0},'checkin')"><i class="ti ti-login"></i> Check In</button>`;
+    if(s==='checked-in')btns+=`<button class="btn btns" style="color:var(--in-tx)" onclick="doMeetingAction(${meetId},${projId||0},'checkout')"><i class="ti ti-logout"></i> Check Out</button>`;
+    btns+=`<button class="btn btns" style="color:var(--wn-tx)" onclick="doMeetingAction(${meetId},${projId||0},'reschedule')"><i class="ti ti-calendar-event"></i> Reschedule</button>`;
+    btns+=`<button class="btn btns" style="color:var(--er-tx)" onclick="doMeetingAction(${meetId},${projId||0},'cancel')"><i class="ti ti-x"></i> Cancel</button>`;
+  }else if(isDone&&isPM){
+    btns+=`<button class="btn btns" style="color:var(--wn-tx)" onclick="doMeetingAction(${meetId},${projId||0},'reopen')"><i class="ti ti-rotate"></i> Re-open</button>`;
+  }
+  panel.innerHTML=
+    '<div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--tx2)">MEETING ACTIONS</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+btns+'</div>'+
+    '<div id="meet-reschedule-row-'+meetId+'" style="display:none;margin-bottom:8px">'+
+      '<label class="fl">New Date &amp; Time</label>'+
+      '<input class="inp" id="meet-new-dt-'+meetId+'" type="datetime-local" style="font-size:12px">'+
+    '</div>'+
+    '<div style="margin-bottom:6px"><label class="fl">Minutes / Notes</label><textarea class="inp" id="meet-notes-'+meetId+'" rows="2" placeholder="Add notes, minutes, or reason..." style="font-size:12px">'+(m.minutes||'')+'</textarea></div>'+
+    '<div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn btns" onclick="document.getElementById(\''+panelId+'\').remove()">Close</button></div>';
+  card.appendChild(panel);
+}
+async function doMeetingAction(meetId,projId,action){
+  const m=meetings.find(x=>parseInt(x.id)===parseInt(meetId));if(!m)return;
+  if(action==='reschedule'){
+    const rr=document.getElementById('meet-reschedule-row-'+meetId);
+    if(rr)rr.style.display=rr.style.display==='none'?'':'none';
+    return;
+  }
+  const notes=(document.getElementById('meet-notes-'+meetId)?.value||'').trim();
+  const newDt=document.getElementById('meet-new-dt-'+meetId)?.value||'';
+  if(action==='reschedule-save'||action==='_reschedule'){
+    if(!newDt){alert('Please pick a new date and time.');return;}
+    action='reschedule';
+  }
+  // Determine new status
+  let newStatus=m.status||'scheduled';
+  if(action==='checkin')newStatus='checked-in';
+  else if(action==='checkout')newStatus='checked-out';
+  else if(action==='cancel')newStatus='cancelled';
+  else if(action==='reopen')newStatus='scheduled';
+  else if(action==='reschedule'){
+    if(!newDt){
+      // Show reschedule row if hidden
+      const rr=document.getElementById('meet-reschedule-row-'+meetId);
+      if(rr){rr.style.display='';rr.querySelector('input')?.focus();}
+      // Add a confirm button
+      const panel=document.getElementById('meet-action-panel-'+meetId);
+      if(panel&&!panel.querySelector('.reschedule-confirm-btn')){
+        const confirmBtn=document.createElement('button');
+        confirmBtn.className='btn btnp btns reschedule-confirm-btn';
+        confirmBtn.style.marginTop='6px';
+        confirmBtn.innerHTML='<i class="ti ti-check"></i> Confirm Reschedule';
+        confirmBtn.onclick=()=>doMeetingAction(meetId,projId,'_reschedule');
+        const notesEl=document.getElementById('meet-notes-'+meetId);
+        if(notesEl)notesEl.parentElement.insertAdjacentElement('afterend',confirmBtn);
+      }
+      return;
+    }
+    newStatus='rescheduled';
+    m.datetime=newDt;
+  }
+  m.status=newStatus;
+  if(notes)m.minutes=(m.minutes?m.minutes+'\n':'')+notes+' — '+CU.name+' ('+nowStr()+')';
+  const upRow={status:newStatus,minutes:m.minutes||''};
+  if(action==='reschedule'&&newDt)upRow.datetime=newDt;
+  if(m.id&&m.id<2000000000){await sb.from('meetings').update(upRow).eq('id',m.id);}
+  // Sync linked task
+  const linked=tasks.find(t=>t.autoType==='meeting'&&(parseInt(t.refId)===parseInt(m.id)||(t.name||'').includes(m.title)));
+  if(linked){
+    if(newStatus==='checked-out'||newStatus==='cancelled'){
+      linked.done=true;linked.status='done';
+      if(!linked.reports)linked.reports=[];
+      linked.reports.push({date:TODAY,work:'Meeting '+action+(notes?' — '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+    }else if(newStatus==='checked-in'){linked.status='in-progress';}
+    else if(newStatus==='rescheduled'&&newDt){linked.due=newDt.split('T')[0];linked.status='pending';}
+    else if(newStatus==='scheduled'){linked.done=false;linked.status='pending';}
+    sbSaveTask(linked);
+  }
+  sbLog('Meeting "'+m.title+'" — '+action+(notes?' | '+notes:''),'#534AB7','Meetings','');
+  document.getElementById('meet-action-panel-'+meetId)?.remove();
+  renderMeetings();
+  if(projId)renderDetailMeetings(projId);
+  else if(activeProjectId)renderDetailMeetings(activeProjectId);
+  renderTasksGlobal();renderSidebar();
+}
 let _visDateFilter='today';
 function setVisDateFilter(mode){
   if(mode==='date'){
@@ -3989,13 +4097,13 @@ async function addMeeting(){
   const meetDatetime=document.getElementById('fm2-datetime').value;
   const attendees=document.getElementById('fm2-attendees').value;
   const files=getFileNames('fm2-prev');
-  const m={_isNew:true,title,datetime:meetDatetime,location:document.getElementById('fm2-location').value,proj:projName,attendees,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,files,by:CU.name,time:nowStr()};
+  const m={_isNew:true,title,datetime:meetDatetime,location:document.getElementById('fm2-location').value,proj:projName,attendees,agenda:document.getElementById('fm2-agenda').value,minutes:document.getElementById('fm2-minutes').value,actions:document.getElementById('fm2-actions').value,next:document.getElementById('fm2-next').value,files,by:CU.name,time:nowStr(),status:'scheduled'};
   meetings.unshift(m);
   await sbSaveMeeting(m);
   sbLog('Meeting added: '+title,'#534AB7','Meetings','');
-  // Create task in Supabase
+  // Create task with refId pointing to this meeting
   const meetDate=meetDatetime?meetDatetime.split('T')[0]:TODAY;
-  const meetTask={_isNew:true,name:'Meeting: '+title,project:projName,assignee:CU.name,due:meetDate,priority:'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Meeting on '+(meetDatetime||meetDate)+' | Location: '+(m.location||'TBD')+' | Attendees: '+attendees+' | Agenda: '+(m.agenda||'—'),riskLevel:'LOW',reports:[],autoType:'meeting'};
+  const meetTask={_isNew:true,name:'Meeting: '+title,project:projName,assignee:CU.name,due:meetDate,priority:'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Meeting on '+(meetDatetime||meetDate)+' | Location: '+(m.location||'TBD')+' | Attendees: '+attendees+' | Agenda: '+(m.agenda||'—'),riskLevel:'LOW',reports:[],autoType:'meeting',refId:m.id||null};
   tasks.push(meetTask);
   await sbSaveTask(meetTask);
   renderTasksGlobal();renderSidebar();
@@ -4010,16 +4118,19 @@ function renderMeetings(){
   if(dateFrom)filteredMeetings=filteredMeetings.filter(m=>m.datetime&&m.datetime.slice(0,10)>=dateFrom);
   if(dateTo)filteredMeetings=filteredMeetings.filter(m=>m.datetime&&m.datetime.slice(0,10)<=dateTo);
   if(srch)filteredMeetings=filteredMeetings.filter(m=>(m.title+' '+(m.proj||'')+' '+(m.attendees||'')+' '+(m.agenda||'')).toLowerCase().includes(srch));
+  const isPM=CU&&(CU.role==='admin'||CU.role==='pm');
   document.getElementById('meeting-list').innerHTML=filteredMeetings.length?filteredMeetings.map(m=>`
-    <div class="meeting-card">
+    <div class="meeting-card" id="meet-card-${m.id}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
         <div style="cursor:pointer;flex:1" onclick="openMeetingDetail(${m.id})">
           <div style="font-size:14px;font-weight:700">${m.title}</div>
           <div style="font-size:11px;color:var(--tx2)">${(m.datetime||'').replace('T',' ')} · ${m.location||''} · ${m.proj}</div>
         </div>
-        <div style="display:flex;gap:5px;align-items:center">
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+          ${meetingStatusBadge(m)}
           ${m.attendees?`<span class="badge bg_"><i class="ti ti-users" style="font-size:10px"></i> ${m.attendees.split(',').length} attendee(s)</span>`:''}
-          ${(CU.role==='admin'||CU.role==='pm')?`<button class="btn btns" onclick="openEditMeeting(${m.id})" title="Edit"><i class="ti ti-edit"></i></button>`:''}
+          ${isPM?`<button class="btn btns" onclick="openMeetingAction(${m.id},null)" title="Actions" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)"><i class="ti ti-player-play"></i> Action</button>`:''}
+          ${isPM?`<button class="btn btns" onclick="openEditMeeting(${m.id})" title="Edit"><i class="ti ti-edit"></i></button>`:''}
           ${CU.role==='admin'?`<button class="btn btns" style="color:var(--er-tx)" onclick="deleteMeeting(${m.id},null)" title="Delete"><i class="ti ti-trash"></i></button>`:''}
           <i class="ti ti-chevron-right" style="font-size:11px;color:var(--tx3);cursor:pointer" onclick="openMeetingDetail(${m.id})"></i>
         </div>
@@ -4510,7 +4621,7 @@ async function addPipelineLead(){
   if(!name||!client){alert('Name and client required');return;}
   const stage=document.getElementById('fpl-stage').value;
   const files=getFileNames('fpl-prev');
-  const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,notes:document.getElementById('fpl-notes').value,files:files,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
+  const lead={_isNew:true,name,client,location:document.getElementById('fpl-location').value,stage,value:parseFloat(document.getElementById('fpl-value').value)||0,prob:parseInt(document.getElementById('fpl-prob').value)||50,source:document.getElementById('fpl-source').value,closedate:document.getElementById('fpl-closedate').value,contact:document.getElementById('fpl-contact').value,contactNum:document.getElementById('fpl-contact-num').value,notes:document.getElementById('fpl-notes').value,files:files,by:CU.name,created:TODAY,history:[{date:TODAY,stage,note:'Lead created',by:CU.name}]};
   pipeline.push(lead);
   await sbSavePipeline(lead);
   sbLog('Pipeline lead added: "'+name+'" — '+stage,'#7B2D8B','Pipeline','');
@@ -4547,24 +4658,6 @@ function savePipelineLead(){
   if(newFiles.length){l.files=[...(l.files||[]),...newFiles];}
   sbSavePipeline(l);
   sbLog(`Pipeline: "${l.name}" moved to ${l.stage}`,'#7B2D8B','Pipeline','');
-
-  // FIX 4: Sync pipeline task when stage changes from the Pipeline tab
-  if(l.stage!==oldStage){
-    // Mark the old follow-up task done
-    const oldTask=tasks.find(t=>t.autoType==='pipeline'&&parseInt(t.refId)===parseInt(l.id)&&!t.done);
-    if(oldTask){
-      oldTask.done=true;oldTask.status='done';
-      if(!oldTask.reports)oldTask.reports=[];
-      oldTask.reports.push({date:TODAY,work:'Stage advanced: '+oldStage+' → '+l.stage+(note?' | '+note:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
-      sbSaveTask(oldTask);
-    }
-    // Create new follow-up task for the new stage
-    const newDue=l.closedate||TODAY;
-    const newTask={_isNew:true,name:'Follow up: '+l.name+' ('+l.stage+')',project:l.name,assignee:CU.name,due:newDue,priority:l.stage==='Closing'||l.stage==='Negotiation'?'high':'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Pipeline: '+l.name+' | Stage: '+l.stage+' | Client: '+(l.client||'')+' | Value: '+(l.value||0),riskLevel:'LOW',reports:[],autoType:'pipeline',refId:l.id};
-    tasks.push(newTask);sbSaveTask(newTask);
-    renderTasksGlobal();renderSidebar();
-  }
-
   if(l.stage==='Awarded'&&oldStage!=='Awarded'){
     if(confirm(`"${l.name}" is Awarded! Add it to My Projects as an Ongoing Project?`)){
       promotePipelineToProject(l);
@@ -4641,6 +4734,7 @@ function pipelineCard(l,STAGE_COLS,STAGE_BG){
       </div>
       ${canSeeCosts()?`<div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Prob: ${l.prob||50}% · Weighted: ${fmt(weighted)}</div>`:''}
       <div style="font-size:10px;color:var(--tx2)">Close: ${l.closedate||'TBD'} · ${l.source||'—'}</div>
+      ${l.contact||l.contactNum?`<div style="font-size:10px;color:var(--tx2);margin-top:3px"><i class="ti ti-user" style="font-size:9px"></i> ${l.contact||''}${l.contactNum?' <span style="color:var(--in-tx);font-weight:600"><i class="ti ti-phone" style="font-size:9px"></i> '+l.contactNum+'</span>':''}</div>`:''}
       ${l.notes?`<div style="font-size:10px;color:var(--tx3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.notes}</div>`:''}
       ${l.history&&l.history.length>1?`<div style="font-size:9px;color:var(--in-tx);margin-top:4px"><i class="ti ti-history" style="font-size:9px"></i> ${l.history.length} updates</div>`:''}
       ${l.files&&l.files.length?`<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${l.files.map(f=>`<span style="background:var(--in-bg);color:var(--in-tx);border-radius:4px;padding:2px 7px;font-size:9px;font-weight:600;cursor:pointer" onclick="event.stopPropagation();downloadPipelineFile('${f.replace(/'/g,"\'")}',${l.id})" title="Download ${f}"><i class="ti ti-download" style="font-size:9px"></i> ${f}</span>`).join('')}</div>`:''}
@@ -4878,24 +4972,24 @@ window.renderGlobalInventory=function(){
 };
 
 // ═══════════════════════════════════════════════════════════════
-//  GANTT EDIT: Sync new sub-tasks to Tasks/Project Tasks
+//  GANTT EDIT: Full bi-directional sub-task ↔ Tasks sync
 // ═══════════════════════════════════════════════════════════════
 const _origSaveGanttEdit=window.saveGanttEdit;
 window.saveGanttEdit=async function(){
-  // Capture sub-tasks BEFORE the save so we can diff
+  // Capture state BEFORE save so we can diff
   const actId=parseInt(document.getElementById('fge-act-id')?.value);
   const projId=parseInt(document.getElementById('fge-proj-id')?.value);
   const act=(ganttActivities[projId]||[]).find(a=>a.id===actId);
   const beforeStIds=new Set((act?.subTasks||[]).map(s=>s.id));
   // Call original save
   await _origSaveGanttEdit.apply(this,arguments);
-  // After save: get the updated activity
+  // Get updated activity
   const actAfter=(ganttActivities[projId]||[]).find(a=>a.id===actId);
   if(!actAfter)return;
   const p=findProject(projId);const pn=p?.name||'';
   const riskVal=actAfter.riskLevel==='HIGH'||actAfter.riskLevel==='CRITICAL'?'high':'medium';
 
-  // FIX 1a: Sync main activity task (name, assignee, dates, riskLevel)
+  // 1. Sync the main activity task (name, assignee, dates, risk)
   const mainTask=tasks.find(t=>t.ganttId===actId&&!t.subTaskId&&(t.autoType||'')==='gantt');
   if(mainTask){
     mainTask.name=actAfter.name;
@@ -4908,13 +5002,17 @@ window.saveGanttEdit=async function(){
     await sbSaveTask(mainTask);
   }
 
-  // FIX 1b: For ALL sub-tasks (new and existing) — create or update linked tasks
   if(!actAfter.subTasks)return;
+
+  // 2. For ALL sub-tasks: create new tasks for new ones, update existing ones
   for(const st of actAfter.subTasks){
     const existingTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===st.id);
     if(existingTask){
-      // FIX 2: Update existing linked task to reflect any changes from source
-      const changed=existingTask.name!==st.name||existingTask.due!==(st.end||actAfter.end)||existingTask.done!==st.done;
+      // Update existing linked task if anything changed
+      const changed=existingTask.name!==st.name||
+                     existingTask.due!==(st.end||actAfter.end)||
+                     existingTask.start!==(st.start||actAfter.start)||
+                     existingTask.done!==st.done;
       if(changed){
         existingTask.name=st.name;
         existingTask.due=st.end||actAfter.end;
@@ -4924,9 +5022,8 @@ window.saveGanttEdit=async function(){
         existingTask.details='Sub-task of: '+actAfter.name+' | Planned: '+(st.start||actAfter.start)+' → '+(st.end||actAfter.end);
         await sbSaveTask(existingTask);
       }
-    } else {
-      // New sub-task — create the linked task
-      if(beforeStIds.has(st.id))continue; // was there before but no task existed — still create
+    }else{
+      // New sub-task — create a linked task (regardless of whether it was in beforeStIds)
       const stTask={_isNew:true,name:st.name,project:pn,assignee:actAfter.assign||'',
         due:st.end||actAfter.end,start:st.start||actAfter.start,priority:riskVal,
         done:st.done||false,status:st.done?'done':'pending',
@@ -4938,13 +5035,13 @@ window.saveGanttEdit=async function(){
     }
   }
 
-  // FIX 1c: Remove linked tasks for deleted sub-tasks
+  // 3. Remove linked tasks for sub-tasks that were deleted
   const afterStIds=new Set(actAfter.subTasks.map(s=>s.id));
   const deletedStIds=[...beforeStIds].filter(id=>!afterStIds.has(id));
   for(const stId of deletedStIds){
-    const orphanTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
-    if(orphanTask){
-      if(orphanTask.id&&orphanTask.id<2000000000)await sb.from('tasks').delete().eq('id',orphanTask.id);
+    const orphan=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
+    if(orphan){
+      if(orphan.id&&orphan.id<2000000000)await sb.from('tasks').delete().eq('id',orphan.id);
       tasks=tasks.filter(t=>!(t.ganttId===actId&&t.subTaskId===stId));
     }
   }
@@ -4953,11 +5050,12 @@ window.saveGanttEdit=async function(){
   if(activeProjectId)filterDetailTasks(activeProjectId);
 };
 
-// Also patch addSubTaskInEdit to immediately create the task in-memory
+// addSubTaskInEdit: also sync immediately to tasks when a sub-task is added
+// (tasks will be properly created when saveGanttEdit is called)
 const _origAddSubTaskInEdit=window.addSubTaskInEdit;
 window.addSubTaskInEdit=function(){
   _origAddSubTaskInEdit.apply(this,arguments);
-  // The save to tasks happens on saveGanttEdit — nothing needed here
+  // tasks created on saveGanttEdit — nothing extra needed here
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -4972,23 +5070,7 @@ window.reopenTask=function(taskId){
   t.done=false;t.status='pending';
   // Reopen source record
   const autoType=t.autoType||'gantt';
-  if(autoType==='gantt'){
-    // FIX 2: Sync the Gantt sub-task back to done=false when reopened from Tasks
-    if(t.subTaskId&&t.ganttId){
-      Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{
-        if(a.id===t.ganttId){
-          const st=(a.subTasks||[]).find(s=>s.id===t.subTaskId);
-          if(st){
-            st.done=false;
-            // Recalculate parent activity completion
-            if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);
-            const stForSave=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||''}));
-            sb.from('gantt_activities').update({sub_tasks:stForSave,completion:a.done}).eq('id',a.id).then(({error})=>{if(error)console.error('Reopen Gantt sub-task error:',error);});
-          }
-        }
-      }));
-    }
-  }else if(autoType==='delivery'){
+  if(autoType==='delivery'){
     const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
     if(d&&(d.status==='Delivered'||d.status==='Cancelled')){
       d.status='Scheduled';
@@ -5006,9 +5088,6 @@ window.reopenTask=function(taskId){
       m.status='scheduled';
       if(m.id&&m.id<2000000000)sb.from('meetings').update({status:'scheduled'}).eq('id',m.id).then(()=>{renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);});
     }
-  }else if(autoType==='pipeline'){
-    // Reopen: mark task pending so it can be followed up again
-    t.status='pending';
   }
   sbSaveTask(t);
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
@@ -5322,21 +5401,9 @@ function buildTaskContextForm(t,autoType){
     return;
   }
   if(autoType==='delivery'){
-    // FIX 3: Find delivery via refId first, then fall back to matching by task name + project
-    let d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
-    if(!d&&t.project){
-      // Fallback: match by project and item name fragment in the task name
-      const tNameLow=(t.name||'').toLowerCase();
-      d=deliveries.find(x=>projMatch(x.proj,t.project)&&!x._deleted&&(
-        tNameLow.includes((x.items||'').toLowerCase().slice(0,20))||
-        tNameLow.includes((x.supplier||'').toLowerCase())
-      ));
-    }
-    // Once found, ensure the task has refId set for future lookups
-    if(d&&!t.refId){t.refId=d.id;sbSaveTask(t);}
+    const d=deliveries.find(x=>parseInt(x.id)===parseInt(t.refId));
     formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
-      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':
-         '<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px;color:var(--tx2)">No linked delivery record found. Updates will only affect this task.</div>')+
+      (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
       '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status" onchange="onTdDelStatusChange()"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
       '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
       '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
