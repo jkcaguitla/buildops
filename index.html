@@ -334,7 +334,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <div class="card" id="detail-header"></div>
     <div class="detail-tabs">
       <button class="dtab on" onclick="setDTab('gantt')" id="dt-gantt"><i class="ti ti-timeline"></i> Gantt</button>
-      <button class="dtab" onclick="setDTab('dtasks')" id="dt-dtasks"><i class="ti ti-checklist"></i> Tasks</button>
       <button class="dtab" onclick="setDTab('budget')" id="dt-budget" style="display:none"><i class="ti ti-coins"></i> Budget</button>
       <button class="dtab" onclick="setDTab('dinv')" id="dt-dinv"><i class="ti ti-package"></i> Inventory</button>
       <button class="dtab" onclick="setDTab('ddel')" id="dt-ddel"><i class="ti ti-truck"></i> Delivery</button>
@@ -347,7 +346,6 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
       <button class="dtab" onclick="setDTab('dbilling')" id="dt-dbilling"><i class="ti ti-cash"></i> Billing</button>
     </div>
     <div class="dpg" id="dpg-gantt"><div id="d-gantt-content"></div></div>
-    <div class="dpg" id="dpg-dtasks"><div id="d-tasks-content"></div></div>
     <div class="dpg" id="dpg-budget"><div id="d-budget-content"></div></div>
     <div class="dpg" id="dpg-dinv"><div id="d-inv-content"></div></div>
     <div class="dpg" id="dpg-ddel"><div id="d-del-content"></div></div>
@@ -1505,7 +1503,7 @@ async function loadAllData(){
       // Try to recover autoType from description field (it was stored there as "Type: gantt" etc.)
       let autoType=null;
       const desc=t.description||'';
-      const typeMatch=desc.match(/Type: (gantt|meeting|visitor|delivery|pipeline|inventory_replenish)/);
+      const typeMatch=desc.match(/Type: (gantt|meeting|visitor|delivery|pipeline_awarded|pipeline|inventory_replenish)/);
       if(typeMatch)autoType=typeMatch[1];
       // Also check dedicated column if it exists
       if(t.auto_type)autoType=t.auto_type;
@@ -1948,7 +1946,6 @@ function setDTab(t){
   // Re-render the active sub-tab panel when clicked
   const id=activeProjectId;if(!id)return;
   if(t==='gantt')renderGanttDetail(id);
-  else if(t==='dtasks')renderDetailTasks(id);
   else if(t==='budget')renderDetailBudget(id);
   else if(t==='dinv'){renderDetailInventory(id);filterDetailInventory(id,_dinvFilter[id]||'all');}
   else if(t==='ddel')renderDetailDelivery(id);
@@ -2683,7 +2680,7 @@ async function addGanttActivity(){
     start:actStart,end:actEnd,
     actualStart:document.getElementById('fg-actual-start').value||'',
     actualEnd:document.getElementById('fg-actual-end').value||'',
-    weight:(function(){const allA=ganttActivities[projId]||[];const allMs=[...allA.flatMap(a=>[new Date(a.start),new Date(a.end)]),new Date(actStart),new Date(actEnd)].filter(d=>!isNaN(d));const tot=allMs.length>1?Math.max(...allMs.map(d=>d.getTime()))-Math.min(...allMs.map(d=>d.getTime())):1;return Math.max(1,Math.round((new Date(actEnd)-new Date(actStart))/tot*100));})(),
+    weight:(function(){const allA=ganttActivities[projId]||[];const allMs=[...allA.flatMap(a=>[new Date(a.start),new Date(a.end)]),new Date(actStart),new Date(actEnd)].filter(d=>!isNaN(d.getTime()));const tot=allMs.length>1?Math.max(...allMs.map(d=>d.getTime()))-Math.min(...allMs.map(d=>d.getTime())):0;const sMs=new Date(actStart).getTime();const eMs=new Date(actEnd).getTime();const dur=(!isNaN(sMs)&&!isNaN(eMs))?Math.max(1,eMs-sMs):1;const w=tot>0?Math.round(dur/tot*100):10;return(!isNaN(w)&&w>=1)?w:10;})(),
     done,
     assign:document.getElementById('fg-assign').value,
     equip,equipDates,subTasks,
@@ -2796,12 +2793,15 @@ async function saveGanttEdit(){
   act.actualEnd=document.getElementById('fge-actual-end').value||'';
   // Recalculate completion from sub-tasks
   act.done=act.subTasks&&act.subTasks.length?Math.round(act.subTasks.filter(s=>s.done).length/act.subTasks.length*100):act.done||0;
-  // Recalculate weight from updated dates
+  // Recalculate weight from updated dates (guard against NaN -> null in Supabase)
   const allActsE=ganttActivities[projId]||[];
-  const allMsE=[...allActsE.flatMap(a=>[new Date(a.start),new Date(a.end)])].filter(d=>!isNaN(d));
-  const totSpanE=allMsE.length>1?Math.max(...allMsE.map(d=>d.getTime()))-Math.min(...allMsE.map(d=>d.getTime())):1;
-  const thisDurE=Math.max(1,new Date(act.end)-new Date(act.start));
-  act.weight=Math.max(1,Math.round(thisDurE/totSpanE*100));
+  const allMsE=[...allActsE.flatMap(a=>[new Date(a.start),new Date(a.end)])].filter(d=>!isNaN(d.getTime()));
+  const totSpanE=allMsE.length>1?Math.max(...allMsE.map(d=>d.getTime()))-Math.min(...allMsE.map(d=>d.getTime())):0;
+  const startMs=new Date(act.start).getTime();
+  const endMs=new Date(act.end).getTime();
+  const thisDurE=(!isNaN(startMs)&&!isNaN(endMs))?Math.max(1,endMs-startMs):1;
+  const calcW=totSpanE>0?Math.round(thisDurE/totSpanE*100):10;
+  act.weight=(!isNaN(calcW)&&calcW>=1)?calcW:(act.weight||10);
   act.assign=document.getElementById('fge-assign').value;
   act.equip=document.getElementById('fge-equip').value.split(',').map(s=>s.trim()).filter(Boolean);
   // Save to Supabase
@@ -2955,25 +2955,8 @@ function renderDetailTasks(id){
   const pid=parseInt(id);
   const p=findProject(pid);
   if(!p){console.error('[renderDetailTasks] project not found for id:',id);return;}
-  const addBtn=canDo('newTask')?'<button class="btn btns btnp" onclick="openTaskForProjById('+pid+')"><i class="ti ti-plus"></i> Add Task</button>':'';
-  const filters=['All','Today','Pending','Overdue','Done','High','Mine','Gantt','Meeting','Visitor','Delivery','Pipeline'];
-  const filterBtns=filters.map(f=>'<button class="btn btns" style="font-size:10px;padding:3px 7px" onclick="filterDetailTasks('+pid+',\''+f+'\')">' +f+'</button>').join('');
-  document.getElementById('d-tasks-content').innerHTML=
-    '<div class="ch"><div class="ct"><i class="ti ti-checklist"></i> Project Tasks</div>'+addBtn+'</div>'
-    +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:11px;color:var(--tx2);align-self:center">Filter:</span>'
-    +filterBtns
-    +'</div>'
-    +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0">'
-    +'<span style="font-size:11px;color:var(--tx2)">Due From:</span>'
-    +'<input class="inp" type="date" id="dtask-from-'+pid+'" style="width:130px;font-size:10px">'
-    +'<span style="font-size:11px;color:var(--tx2)">To:</span>'
-    +'<input class="inp" type="date" id="dtask-to-'+pid+'" style="width:130px;font-size:10px">'
-    +'<button class="btn btns" style="font-size:10px" onclick="filterDetailTasks('+pid+')">Apply</button>'
-    +'<button class="btn btns" style="font-size:10px" onclick="clearDTaskDates('+pid+')">Clear</button>'
-    +'<input class="inp" id="dtask-search-'+pid+'" style="max-width:280px;font-size:11px" placeholder="Search tasks..." oninput="filterDetailTasks('+pid+',null)">'
-    +'</div>'
-    +'<div id="d-tasks-list-'+pid+'"></div>';
-  filterDetailTasks(pid,'All');
+  // Project Tasks tab removed — tasks now live only in the global Tasks page (kept as no-op for any lingering callers)
+  return;
 }
 
 function renderDetailBudget(id){id=parseInt(id);
@@ -3141,7 +3124,7 @@ function renderGlobalReports(){
   }
 
   // Source badge helper
-  const srcMap={gantt:['#185FA5','#E6F1FB','Gantt'],meeting:['#534AB7','#EEEDFE','Meeting'],visitor:['#854F0B','#FFF3CD','Visitor'],delivery:['#0F6E56','#EAF3DE','Delivery'],pipeline:['#7B2D8B','#F3E8FF','Pipeline'],inventory_replenish:['#A32D2D','#FCEBEB','Low Stock'],manual:['#666','#f0efe8','Task']};
+  const srcMap={gantt:['#185FA5','#E6F1FB','Gantt'],meeting:['#534AB7','#EEEDFE','Meeting'],visitor:['#854F0B','#FFF3CD','Visitor'],delivery:['#0F6E56','#EAF3DE','Delivery'],pipeline:['#7B2D8B','#F3E8FF','Pipeline'],pipeline_awarded:['#0F6E56','#EAF3DE','Awarded'],inventory_replenish:['#A32D2D','#FCEBEB','Low Stock'],manual:['#666','#f0efe8','Task']};
   function srcBadge(src){const[col,bg,lbl]=srcMap[src]||srcMap.manual;return`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:${bg};color:${col}">${lbl}</span>`;}
 
   const listEl=document.getElementById('global-reports-list');if(!listEl)return;
@@ -3499,7 +3482,7 @@ function filterDetailTasks(id,statusFilter){
   if(!p){console.error('[filterDetailTasks] project not found:',id);return;}
   var pName=(p.name||'').trim().toLowerCase();
   var elFinal=document.getElementById('d-tasks-list-'+pid);
-  if(!elFinal){console.error('[filterDetailTasks] element not found: d-tasks-list-'+pid);return;}
+  if(!elFinal)return; // Project Tasks tab removed — no-op
   var srch=(document.getElementById('dtask-search-'+pid)||{value:''}).value.toLowerCase();
   var sf=(!statusFilter||statusFilter==='null')?currentDTaskFilter[pid]||'All':statusFilter;
   if(statusFilter&&statusFilter!=='null')currentDTaskFilter[pid]=sf;
@@ -3596,6 +3579,7 @@ function taskSourceBadge(t){
     'visitor':['#854F0B','#FFF3CD','Visitor'],
     'delivery':['#0F6E56','#EAF3DE','Delivery'],
     'pipeline':['#7B2D8B','#F3E8FF','Pipeline'],
+    'pipeline_awarded':['#0F6E56','#EAF3DE','Awarded'],
     'inventory_replenish':['#A32D2D','#FCEBEB','Low Stock'],
     'manual':['#666','#f0efe8','Task'],
   };
@@ -3754,11 +3738,34 @@ function toggleTask(i,projId){
     alert('Please submit a report for this task before marking it complete.\n\nClick the task card to open it and submit a report.');
     return;
   }
-  t.done=!t.done;
-  if(t.subTaskId){Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{const st=a.subTasks?.find(s=>s.id===t.subTaskId);if(st){st.done=t.done;if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100)}}))}
+  const willBeDone=!t.done;
+  const confirmMsg=willBeDone?`Mark "${t.name}" as complete?`:`Reopen "${t.name}"? This will mark it as not done.`;
+  if(!confirm(confirmMsg))return;
+  t.done=willBeDone;
+  t.status=t.done?'done':'pending';
+  if(t.subTaskId){
+    Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{
+      const st=a.subTasks?.find(s=>s.id===t.subTaskId);
+      if(st){
+        st.done=t.done;
+        if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);
+        const stForSave=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||''}));
+        if(a.id&&a.id<2000000000)sb.from('gantt_activities').update({sub_tasks:stForSave,completion:a.done}).eq('id',a.id).then(({error})=>{if(error)console.error('Gantt sub-task sync error:',error);});
+      }
+    }));
+  }else if((t.autoType||'')==='gantt'&&t.ganttId){
+    // Main Gantt activity task toggled — reflect completion on the activity itself
+    const allActsT=Object.values(ganttActivities).flat();
+    const act=allActsT.find(a=>a.id===parseInt(t.ganttId));
+    if(act){
+      act.done=t.done?100:0;
+      if(act.id&&act.id<2000000000)sb.from('gantt_activities').update({completion:act.done}).eq('id',act.id).then(({error})=>{if(error)console.error('Gantt completion sync error:',error);});
+    }
+  }
+  sbSaveTask(t);
   actLog.unshift({time:nowStr(),text:`Task ${t.done?'done':'reopened'}: "${t.name}"`,color:'#0F6E56'});
   renderTasksGlobal();renderMetrics();renderSidebar();
-  if(projId||activeProjectId){const pid=projId||activeProjectId;renderDetailTasks(pid);renderGanttDetail(pid)}
+  if(projId||activeProjectId){const pid=projId||activeProjectId;renderGanttDetail(pid)}
 }
 
 async function addTask(){
@@ -4791,7 +4798,10 @@ async function addPipelineLead(){
   const pipTask={_isNew:true,name:'Follow up: '+name+' ('+stage+')',project:name,assignee:CU.name,due:closeDate,priority:stage==='Closing'||stage==='Negotiation'?'high':'medium',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Pipeline lead: '+name+' | Client: '+client+' | Stage: '+stage+' | Value: ₱'+(lead.value||0)+' | Source: '+(lead.source||'—'),riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead.id};
   tasks.push(pipTask);
   await sbSaveTask(pipTask);
-  if(stage==='Awarded')promotePipelineToProject(lead);
+  if(stage==='Awarded'){
+    const finishTask={_isNew:true,name:'✅ Mark Completed — Start New Project: '+name,project:name,assignee:CU.name,due:TODAY,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Lead awarded. Click this task to open the New Project form pre-filled with lead info.',riskLevel:'LOW',reports:[],autoType:'pipeline_awarded',refId:lead.id};
+    tasks.push(finishTask);await sbSaveTask(finishTask);
+  }
   closeFm('fm-pipeline');renderPipeline();renderTasksGlobal();renderSidebar();
 }
 function openPipelineEdit(id){
@@ -4820,19 +4830,50 @@ function savePipelineLead(){
   sbSavePipeline(l);
   sbLog(`Pipeline: "${l.name}" moved to ${l.stage}`,'#7B2D8B','Pipeline','');
   if(l.stage==='Awarded'&&oldStage!=='Awarded'){
-    if(confirm(`"${l.name}" is Awarded! Add it to My Projects as an Ongoing Project?`)){
-      promotePipelineToProject(l);
-    }
+    const finishTask={_isNew:true,name:'✅ Mark Completed — Start New Project: '+l.name,project:l.name,assignee:CU.name,due:TODAY,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Lead awarded. Click this task to open the New Project form pre-filled with lead info.',riskLevel:'LOW',reports:[],autoType:'pipeline_awarded',refId:l.id};
+    tasks.push(finishTask);sbSaveTask(finishTask);renderTasksGlobal();
+    alert(`"${l.name}" is Awarded! A task was added to the Tasks page — click it when ready to start the new project.`);
+  }else if(l.stage==='Lost'&&oldStage!=='Lost'){
+    // Lead lost — auto-close any open pipeline follow-up tasks for this lead
+    tasks.filter(t=>t.autoType==='pipeline'&&parseInt(t.refId)===parseInt(l.id)&&!t.done).forEach(t=>{
+      t.done=true;t.status='done';
+      if(!t.reports)t.reports=[];
+      t.reports.push({date:TODAY,work:'Lead marked Lost — task auto-closed.',pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'auto'});
+      sbSaveTask(t);
+    });
+    renderTasksGlobal();
   }
   closeFm('fm-pipeline-edit');renderPipeline();
 }
+function startProjectFromAwardedTask(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  let lead=pipeline.find(x=>parseInt(x.id)===parseInt(t.refId));
+  if(!lead){
+    // refId may not have survived a reload — fall back to matching by name embedded in the task title
+    lead=pipeline.find(x=>t.name&&t.name.includes(x.name)&&x.stage==='Awarded');
+  }
+  closeFm('fm-task-detail');
+  if(lead)promotePipelineToProject(lead);
+  else alert('Could not find the linked pipeline lead. It may have been deleted.');
+}
 function promotePipelineToProject(lead){
-  const id=Date.now();
-  projects.push({id,name:lead.name,client:lead.client,location:lead.location||'TBD',contractPrice:lead.value||1000000,contingency:Math.round((lead.value||1000000)*0.05),start:TODAY,end:lead.closedate||'2027-12-31',status:'on-track',color:COLS[projects.length%COLS.length],desc:`Awarded from pipeline. Source: ${lead.source||'—'}`,notes:''});
-  ganttActivities[id]=[];documents[id]=[];
-  actLog.unshift({time:nowStr(),text:`Project created from pipeline: "${lead.name}"`,color:'#0F6E56'});
-  render();
-  alert(`"${lead.name}" has been added to Projects!`);
+  // Per workflow: don't silently create the project — open the +New Project form pre-filled instead
+  openFm('fm-project');
+  setTimeout(()=>{
+    const nameEl=document.getElementById('fp-name');if(nameEl)nameEl.value=lead.name||'';
+    const clientEl=document.getElementById('fp-client');if(clientEl)clientEl.value=lead.client||'';
+    const locEl=document.getElementById('fp-loc');if(locEl)locEl.value=lead.location||'';
+    const contractEl=document.getElementById('fp-contract');if(contractEl)contractEl.value=lead.value||1000000;
+    const continEl=document.getElementById('fp-contingency');if(continEl)continEl.value=Math.round((lead.value||1000000)*0.05);
+  },50);
+  // Mark the awarded "finish pipeline" task as done now that the form has been opened
+  const finishTask=tasks.find(t=>t.autoType==='pipeline_awarded'&&parseInt(t.refId)===parseInt(lead.id)&&!t.done);
+  if(finishTask){
+    finishTask.done=true;finishTask.status='done';
+    if(!finishTask.reports)finishTask.reports=[];
+    finishTask.reports.push({date:TODAY,work:'New Project form opened from awarded lead.',pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+    sbSaveTask(finishTask);renderTasksGlobal();
+  }
 }
 function downloadPipelineFile(filename, leadId){
   const l=pipeline.find(x=>x.id===leadId);
@@ -5000,7 +5041,7 @@ function goToActivity(idx){
     openProjectDetail(projObj.id);
     // After opening project, switch to relevant sub-tab
     const dtabMap={
-      'tasks':'dtasks','gantt':'dgantt',
+      'gantt':'dgantt',
       'delivery':'ddelivery','meeting':'dmeeting','visitor':'dvisitors',
       'budget':'dbudget','expense':'dbudget','billing':'dbilling',
       'document':'ddocs','inventory':'dinventory','report':'dreports',
@@ -5249,6 +5290,21 @@ window.reopenTask=function(taskId){
       m.status='scheduled';
       if(m.id&&m.id<2000000000)sb.from('meetings').update({status:'scheduled'}).eq('id',m.id).then(()=>{renderMeetings();if(activeProjectId)renderDetailMeetings(activeProjectId);});
     }
+  }else if(autoType==='gantt'){
+    // Reopen the Gantt activity (and the specific sub-task if this task is a sub-task)
+    const allActsR=Object.values(ganttActivities).flat();
+    const act=allActsR.find(a=>a.id===parseInt(t.refId)||a.id===parseInt(t.ganttId));
+    if(act){
+      if(t.subTaskId){
+        const st=(act.subTasks||[]).find(s=>s.id===t.subTaskId);
+        if(st)st.done=false;
+        if(act.subTasks&&act.subTasks.length)act.done=Math.round(act.subTasks.filter(s=>s.done).length/act.subTasks.length*100);
+      }else{
+        act.done=0;
+      }
+      const stForSave=(act.subTasks||[]).map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||act.start||'',end:s.end||act.end||''}));
+      if(act.id&&act.id<2000000000)sb.from('gantt_activities').update({sub_tasks:stForSave,completion:act.done}).eq('id',act.id).then(()=>{if(activeProjectId)renderGanttDetail(activeProjectId);});
+    }
   }
   sbSaveTask(t);
   closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
@@ -5470,7 +5526,6 @@ async function tdPipelineUpdate(taskId){
     if(!lead.history)lead.history=[];
     lead.history.push({date:TODAY,stage:lead.stage,note:notes||(stageChanged?'Advanced to '+newStage:'Update'),by:CU.name});
     await sbSavePipeline(lead);
-    if(newStage==='Awarded'&&curStage!=='Awarded')promotePipelineToProject(lead);
     renderPipeline();
     sbLog('Pipeline: "'+lead.name+'" stage \u2192 '+newStage+(notes?' \u2014 '+notes:''),'#7B2D8B','Pipeline',lead.name);
   }
@@ -5479,11 +5534,22 @@ async function tdPipelineUpdate(taskId){
     if(!t.reports)t.reports=[];
     t.reports.push({date:TODAY,work:'Stage advanced: '+curStage+' \u2192 '+newStage+(notes?' | '+notes:'')+(fileCount>0?' | '+fileCount+' file(s)':''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
     sbSaveTask(t);
-    // Create new follow-up task
-    const newDue=due||lead?.closedate||TODAY;
-    const newTask={_isNew:true,name:'Follow up: '+(lead?.name||t.project)+' ('+newStage+')',project:lead?.name||t.project,assignee:t.assignee,due:newDue,priority:newStage==='Closing'||newStage==='Negotiation'?'high':'medium',done:false,status:'pending',schedule:recur==='daily'?'daily':'once',scheduleDays:[],details:'Pipeline: '+(lead?.name||'')+' | Stage: '+newStage+' | Client: '+(lead?.client||'')+' | Value: '+(lead?.value||0),riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead?.id||t.refId};
-    tasks.push(newTask);await sbSaveTask(newTask);
-    alert('Stage advanced: '+curStage+' \u2192 '+newStage+'.\nNew follow-up task created!');
+    if(newStage==='Lost'){
+      // Lead lost — no follow-up needed, pipeline task chain ends here automatically
+      sbLog('Pipeline: "'+(lead?.name||t.project)+'" marked Lost — task chain closed','#993C1D','Pipeline',lead?.name||'');
+      alert('Stage advanced: '+curStage+' \u2192 Lost.\nThis lead is closed — no further follow-up task created.');
+    }else if(newStage==='Awarded'){
+      // Awarded — create a one-click "finish pipeline" task instead of opening the form immediately
+      const finishTask={_isNew:true,name:'✅ Mark Completed — Start New Project: '+(lead?.name||t.project),project:lead?.name||t.project,assignee:t.assignee,due:TODAY,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Lead awarded. Click this task to open the New Project form pre-filled with lead info.',riskLevel:'LOW',reports:[],autoType:'pipeline_awarded',refId:lead?.id||t.refId};
+      tasks.push(finishTask);sbSaveTask(finishTask);
+      alert('Stage advanced: '+curStage+' \u2192 Awarded!\nA task was added — click it from the Tasks page when ready to start the new project.');
+    }else{
+      // Regular stage progression — create normal follow-up task
+      const newDue=due||lead?.closedate||TODAY;
+      const newTask={_isNew:true,name:'Follow up: '+(lead?.name||t.project)+' ('+newStage+')',project:lead?.name||t.project,assignee:t.assignee,due:newDue,priority:newStage==='Closing'||newStage==='Negotiation'?'high':'medium',done:false,status:'pending',schedule:recur==='daily'?'daily':'once',scheduleDays:[],details:'Pipeline: '+(lead?.name||'')+' | Stage: '+newStage+' | Client: '+(lead?.client||'')+' | Value: '+(lead?.value||0),riskLevel:'LOW',reports:[],autoType:'pipeline',refId:lead?.id||t.refId};
+      tasks.push(newTask);await sbSaveTask(newTask);
+      alert('Stage advanced: '+curStage+' \u2192 '+newStage+'.\nNew follow-up task created!');
+    }
   }else{
     if(due)t.due=due;if(recur==='daily')t.schedule='daily';
     if(!t.reports)t.reports=[];
@@ -5519,8 +5585,8 @@ const _origOpenTaskDetail=window.openTaskDetail;
 window.openTaskDetail=function(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const autoType=t.autoType||'gantt';
-  const typeColors={gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',inventory_replenish:'#A32D2D',manual:'#666'};
-  const typeLabels={gantt:'GANTT SUB-TASK',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',inventory_replenish:'INVENTORY',manual:'TASK'};
+  const typeColors={gantt:'#185FA5',delivery:'#0F6E56',visitor:'#854F0B',meeting:'#534AB7',pipeline:'#7B2D8B',pipeline_awarded:'#0F6E56',inventory_replenish:'#A32D2D',manual:'#666'};
+  const typeLabels={gantt:'GANTT SUB-TASK',delivery:'DELIVERY',visitor:'VISITOR',meeting:'MEETING',pipeline:'PIPELINE',pipeline_awarded:'AWARDED',inventory_replenish:'INVENTORY',manual:'TASK'};
   const col=typeColors[autoType]||'#666';
   document.getElementById('ftd-title').textContent=t.name;
   const badge=document.getElementById('ftd-type-badge');
@@ -5577,6 +5643,16 @@ function buildTaskContextForm(t,autoType){
       '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdDeliveryUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
       '<button class="btn btnp" onclick="tdDeliveryComplete('+t.id+')"><i class="ti ti-check"></i> Mark Delivered</button>';
     if(d)setTimeout(()=>{var el=document.getElementById('td-del-status');if(el)el.value=d.status||'Scheduled';},20);
+    return;
+  }
+  if(autoType==='pipeline_awarded'){
+    let lead=pipeline.find(x=>parseInt(x.id)===parseInt(t.refId));
+    if(!lead)lead=pipeline.find(x=>t.name&&t.name.includes(x.name)&&x.stage==='Awarded');
+    formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-trophy"></i> Lead Awarded</div>'+
+      (lead?'<div style="background:var(--ok-bg);border-radius:var(--r);padding:10px;margin-bottom:10px;font-size:12px"><strong>'+lead.name+'</strong> · '+lead.client+'<div style="color:var(--tx2);font-size:11px;margin-top:2px">Value: '+fmt(lead.value||0)+' | Location: '+(lead.location||'—')+'</div></div>':'')+
+      '<div style="font-size:12px;color:var(--tx2)">This lead was awarded. Click below to open the New Project form, pre-filled with the lead\'s info.</div>';
+    btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
+      '<button class="btn btnp" onclick="startProjectFromAwardedTask('+t.id+')"><i class="ti ti-plus"></i> Start New Project</button>';
     return;
   }
   if(autoType==='visitor'){
