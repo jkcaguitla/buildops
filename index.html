@@ -197,6 +197,7 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
     <button class="ntab" onclick="setTab('visitors')" id="t-visitors"><i class="ti ti-user-check"></i> Visitors</button>
     <button class="ntab" onclick="setTab('meetings')" id="t-meetings"><i class="ti ti-calendar-event"></i> Meetings</button>
     <button class="ntab" onclick="setTab('inventory')" id="t-inventory"><i class="ti ti-package"></i> Inventory</button>
+    <button class="ntab" onclick="setTab('suppliers')" id="t-suppliers"><i class="ti ti-building-warehouse"></i> Suppliers</button>
     <button class="ntab" onclick="setTab('expenses')" id="t-expenses"><i class="ti ti-coins"></i> Budget</button>
     <button class="ntab" onclick="setTab('sop')" id="t-sop"><i class="ti ti-book"></i> SOP</button>
     <button class="ntab" onclick="setTab('reports')" id="t-reports"><i class="ti ti-report"></i> Reports</button>
@@ -528,6 +529,26 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   </div>
   <div id="directory-list"></div>
 </div>
+
+<!-- SUPPLIERS -->
+<div class="pg" id="pg-suppliers">
+  <div id="sup-list-view">
+    <div class="ph">
+      <div><div class="pt">Suppliers</div><div class="ps">Vendor directory, transactions & price lists</div></div>
+      <button class="btn btnp" onclick="openSupplierForm()"><i class="ti ti-plus"></i> New Supplier</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <select class="inp" id="sup-cat-filter" style="width:190px" onchange="renderSuppliers()"><option value="">All Categories</option></select>
+      <input class="inp" id="sup-search" style="width:230px" placeholder="Search company, product, service..." oninput="renderSuppliers()">
+    </div>
+    <div id="suppliers-list"></div>
+  </div>
+  <div id="sup-detail-view" style="display:none">
+    <button class="btn-back" onclick="closeSupplierDetail()"><i class="ti ti-arrow-left"></i> All Suppliers</button>
+    <div id="sup-detail-content"></div>
+  </div>
+</div>
+
 
 <!-- USERS -->
 <div class="pg" id="pg-users">
@@ -1231,6 +1252,71 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fa"><button class="btn" onclick="closeFm('fm-contact')">Cancel</button><button class="btn btnp" onclick="addContact()">Add</button></div>
 </div></div>
 
+<!-- New / Edit Supplier -->
+<div class="fm" id="fm-supplier"><div class="fb fb-lg">
+  <div class="ft"><i class="ti ti-building-warehouse"></i> <span id="fsup-title">New Supplier</span></div>
+  <input type="hidden" id="fsup-id">
+
+  <div class="fg"><label class="fl">Company Name *</label><input class="inp" id="fsup-name" placeholder="ABC Hardware Trading Inc."></div>
+
+  <div class="fg"><label class="fl">Category <span style="font-size:9px;color:var(--tx3)">(select all that apply)</span></label>
+    <div id="fsup-cat-cbs" style="display:flex;flex-wrap:wrap;gap:6px;background:var(--bg2);border-radius:var(--r);padding:8px"></div>
+  </div>
+
+  <div class="fr2">
+    <div class="fg"><label class="fl">Address</label><input class="inp" id="fsup-address" placeholder="Street, City, Province"></div>
+    <div class="fg"><label class="fl">Contact Number</label><input class="inp" id="fsup-phone" placeholder="+63 9XX XXX XXXX"></div>
+  </div>
+  <div class="fg"><label class="fl">Website</label><input class="inp" id="fsup-website" placeholder="https://..."></div>
+
+  <div class="fg">
+    <label class="fl">List of Contacts</label>
+    <div id="fsup-contacts-list" style="margin-bottom:6px"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;background:var(--bg2);border-radius:var(--r);padding:8px">
+      <input class="inp" id="fsup-c-name" placeholder="Name" style="flex:1;min-width:110px;font-size:11px">
+      <input class="inp" id="fsup-c-designation" placeholder="Designation" style="flex:1;min-width:100px;font-size:11px">
+      <input class="inp" id="fsup-c-phone" placeholder="Contact Number" style="flex:1;min-width:110px;font-size:11px">
+      <input class="inp" id="fsup-c-email" placeholder="Email" style="flex:1;min-width:130px;font-size:11px">
+      <button class="btn btns btnp" onclick="addSupplierContactRow()" style="flex-shrink:0"><i class="ti ti-plus"></i> Add</button>
+    </div>
+  </div>
+
+  <div class="fg"><label class="fl">Company Profile / Description</label><textarea class="inp" id="fsup-profile" rows="3" placeholder="Overview of the company, specialties, certifications..."></textarea></div>
+
+  <div class="fg">
+    <label class="fl">Product / Service / Price List</label>
+    <div id="fsup-pricelist-list" style="margin-bottom:6px"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:6px">
+      <input class="inp" id="fsup-p-name" placeholder="Product / Service Name" style="flex:1.4;min-width:130px;font-size:11px">
+      <input class="inp" id="fsup-p-desc" placeholder="Description" style="flex:1.4;min-width:130px;font-size:11px">
+      <input class="inp" id="fsup-p-unit" placeholder="Unit Measure" style="flex:0.8;min-width:90px;font-size:11px">
+      <input class="inp" id="fsup-p-moq" type="number" min="0" placeholder="MOQ" style="flex:0.7;min-width:80px;font-size:11px">
+      <input class="inp" id="fsup-p-cost" type="number" min="0" step="0.01" placeholder="Unit Cost (₱)" style="flex:0.9;min-width:100px;font-size:11px">
+      <input class="inp" id="fsup-p-leadtime" placeholder="Lead Time (optional)" style="flex:0.8;min-width:100px;font-size:11px">
+      <input class="inp" id="fsup-p-stock" type="number" min="0" placeholder="Stock (optional)" style="flex:0.7;min-width:90px;font-size:11px">
+      <button class="btn btns btnp" onclick="addSupplierPriceRow()" style="flex-shrink:0"><i class="ti ti-plus"></i> Add</button>
+    </div>
+    <button class="btn btns" onclick="document.getElementById('fsup-csv-input').click()"><i class="ti ti-table-import"></i> Import Price List CSV
+      <input type="file" id="fsup-csv-input" accept=".csv" style="display:none" onchange="importSupplierPriceCSV(this)">
+    </button>
+  </div>
+
+  <div class="fa"><button class="btn" onclick="closeFm('fm-supplier')">Cancel</button><button class="btn btnp" onclick="saveSupplier()"><i class="ti ti-check"></i> Save Supplier</button></div>
+</div></div>
+
+<!-- Log Supplier Transaction -->
+<div class="fm" id="fm-sup-txn"><div class="fb">
+  <div class="ft"><i class="ti ti-receipt"></i> Log Transaction</div>
+  <input type="hidden" id="fst-sup-id">
+  <div class="fr2"><div class="fg"><label class="fl">Type *</label><select class="inp" id="fst-type"><option>PO</option><option>Invoice</option><option>OR</option><option>DR</option></select></div>
+  <div class="fg"><label class="fl">Reference No.</label><input class="inp" id="fst-ref" placeholder="PO-00123"></div></div>
+  <div class="fr2"><div class="fg"><label class="fl">Date</label><input class="inp" id="fst-date" type="date"></div>
+  <div class="fg"><label class="fl">Amount (₱)</label><input class="inp" id="fst-amount" type="number" min="0" step="0.01"></div></div>
+  <div class="fg"><label class="fl">Project</label><select class="inp" id="fst-proj"><option value="">— None —</option></select></div>
+  <div class="fg"><label class="fl">Notes</label><input class="inp" id="fst-notes"></div>
+  <div class="fa"><button class="btn" onclick="closeFm('fm-sup-txn')">Cancel</button><button class="btn btnp" onclick="addSupplierTransaction()">Log Transaction</button></div>
+</div></div>
+
 <!-- Edit Manpower -->
 <div class="fm" id="fm-edit-mp"><div class="fb fb-lg">
   <div class="ft">Edit Worker Profile</div>
@@ -1481,7 +1567,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 async function loadAllData(){
   showLoadingOverlay(true);
   try{
-    const [uRes,pRes,tRes,mpRes,invRes,delRes,expRes,meetRes,visRes,actRes,pipRes,invLogRes,sopRes,conRes]=await Promise.all([
+    const [uRes,pRes,tRes,mpRes,invRes,delRes,expRes,meetRes,visRes,actRes,pipRes,invLogRes,sopRes,conRes,supRes]=await Promise.all([
       sb.from('users').select('*').order('name'),
       sb.from('projects').select('*').order('created_at'),
       sb.from('tasks').select('*').order('created_at',{ascending:false}),
@@ -1496,6 +1582,7 @@ async function loadAllData(){
       sb.from('inventory_log').select('*').order('created_at',{ascending:false}).limit(500),
       sb.from('sops').select('*').order('created_at',{ascending:false}),
       sb.from('contacts').select('*').order('name'),
+      sb.from('suppliers').select('*').order('company_name'),
     ]);
     if(uRes.data)users=uRes.data.map(u=>({...u,projects:u.project_access||[],active:u.active!==false}));
     if(pRes.data)projects=pRes.data.map(p=>({...p,id:parseInt(p.id),contractPrice:p.budget||0,contingency:p.contingency||0,color:p.color||COLS[0],status:p.status||'on-track',start:p.start_date,end:p.end_date,desc:p.description||p.desc||'',paymentTerms:p.payment_terms||'',category:p.category||'Build',billing:p.billing||[]}));
@@ -1552,6 +1639,7 @@ async function loadAllData(){
     if(invLogRes.data)invLog=invLogRes.data.map(l=>({time:new Date(l.created_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),mat:l.material,type:l.txn_type,qty:l.qty,unit:l.unit,note:l.note||'',requestor:l.requestor||'',user:l.user_name||'',proj:l.project_name||''}));
     if(sopRes&&sopRes.data)sops=sopRes.data.map(s=>({...s,cat:s.category||'Operations',version:s.version||'v1.0',date:s.effective_date||s.created_at?.slice(0,10)||TODAY,desc:s.description||'',content:s.content||'',by:s.created_by||'',history:[]}));
     if(conRes&&conRes.data)directory=conRes.data.map(c=>({...c,id:parseInt(c.id),name:c.name||'',position:c.position||c.title||'',dept:c.department||c.dept||'',phone:c.phone||c.mobile||'',email:c.email||'',type:c.type||c.contact_type||'Internal',notes:c.notes||''}));
+    if(supRes&&supRes.data)suppliers=supRes.data.map(s=>({...s,id:parseInt(s.id),name:s.company_name||s.name||'',categories:s.categories||[],address:s.address||'',phone:s.phone||'',website:s.website||'',contacts:s.contacts||[],profile:s.profile||s.description||'',priceList:s.price_list||[],transactions:s.transactions||[]}));
     // Load gantt from tasks (gantt stored in tasks with gantt_data jsonb col, fallback to empty)
     projects.forEach(p=>{if(!ganttActivities[p.id])ganttActivities[p.id]=[];});
     const ganttRes=await sb.from('gantt_activities').select('*');
@@ -1659,6 +1747,381 @@ async function sbSaveProject(p){
   if(p._isNew){const{data,error}=await sbSafeInsert('projects',row);if(error)console.error('sbSaveProject insert error:',error);if(data&&data[0])p.id=data[0].id;}
   else{const{error}=await sbSafeUpdate('projects',row,'id',p.id);if(error)console.error('sbSaveProject update error:',error);}
 }
+async function sbSaveSupplier(s){
+  const row={company_name:s.name||'',categories:s.categories||[],address:s.address||'',phone:s.phone||'',website:s.website||'',contacts:s.contacts||[],profile:s.profile||'',price_list:s.priceList||[],transactions:s.transactions||[]};
+  if(s._isNew){
+    const{data,error}=await sbSafeInsert('suppliers',row);
+    if(error)console.error('sbSaveSupplier insert error:',error);
+    if(data&&data[0]){s.id=data[0].id;delete s._isNew;}
+  }else{
+    const{error}=await sbSafeUpdate('suppliers',row,'id',s.id);
+    if(error)console.error('sbSaveSupplier update error:',error);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SUPPLIERS MODULE
+// ═══════════════════════════════════════════════════════════════
+const SUPPLIER_CATEGORIES=['Materials','Equipment Supplier','Equipment Rental','Subcontractor','Professional Services','Fabrication','Manufacturer','Logistics','Utilities & Site Services','Safety','IT & Software','Office Supplies','Maintenance','Testing & Inspection','Others'];
+let _supEditContacts=[];   // working copy while form is open
+let _supEditPriceList=[];  // working copy while form is open
+let _activeSupplierId=null;
+
+function renderSuppliers(){
+  const sel=document.getElementById('sup-cat-filter');
+  if(sel&&sel.children.length<=1)sel.innerHTML='<option value="">All Categories</option>'+SUPPLIER_CATEGORIES.map(c=>`<option>${c}</option>`).join('');
+  const catF=sel?sel.value:'';
+  const srch=(document.getElementById('sup-search')?.value||'').toLowerCase();
+  let list=suppliers.slice();
+  if(catF)list=list.filter(s=>(s.categories||[]).includes(catF));
+  if(srch){
+    list=list.filter(s=>{
+      const hay=[s.name,(s.categories||[]).join(' '),(s.priceList||[]).map(p=>p.name+' '+(p.desc||'')).join(' ')].join(' ').toLowerCase();
+      return hay.includes(srch);
+    });
+  }
+  const el=document.getElementById('suppliers-list');
+  if(!el)return;
+  el.innerHTML=list.length?list.map(s=>{
+    const c=avC(s.name);
+    const catBadges=(s.categories||[]).slice(0,3).map(cat=>`<span class="badge bi" style="font-size:9px">${cat}</span>`).join(' ')+((s.categories||[]).length>3?` <span class="badge bg_" style="font-size:9px">+${s.categories.length-3}</span>`:'');
+    return `<div class="card" style="cursor:pointer;margin-bottom:8px" onclick="openSupplierDetail(${s.id})">
+      <div style="display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div class="av" style="width:38px;height:38px;font-size:14px;font-weight:700;background:${c.bg};color:${c.c};flex-shrink:0">${initials(s.name)}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700">${s.name}</div>
+            <div style="font-size:11px;color:var(--tx2);margin:2px 0">${s.address||''}</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${catBadges}</div>
+          </div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:var(--tx2)">
+          ${s.phone?`<div><i class="ti ti-phone"></i> ${s.phone}</div>`:''}
+          <div style="margin-top:2px">${(s.priceList||[]).length} item(s) in price list</div>
+        </div>
+      </div>
+    </div>`;
+  }).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:24px">No suppliers found. Click "New Supplier" to add one.</div>';
+}
+
+// ── New / Edit Supplier form ──────────────────────────────────
+function openSupplierForm(supId){
+  const s=supId?suppliers.find(x=>parseInt(x.id)===parseInt(supId)):null;
+  document.getElementById('fsup-title').textContent=s?'Edit Supplier':'New Supplier';
+  document.getElementById('fsup-id').value=s?s.id:'';
+  document.getElementById('fsup-name').value=s?s.name||'':'';
+  document.getElementById('fsup-address').value=s?s.address||'':'';
+  document.getElementById('fsup-phone').value=s?s.phone||'':'';
+  document.getElementById('fsup-website').value=s?s.website||'':'';
+  document.getElementById('fsup-profile').value=s?s.profile||'':'';
+  // Category checkboxes
+  const catEl=document.getElementById('fsup-cat-cbs');
+  const selectedCats=new Set(s?s.categories||[]:[]);
+  catEl.innerHTML=SUPPLIER_CATEGORIES.map(c=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;background:var(--bg);border:0.5px solid var(--bd2);border-radius:14px;padding:3px 9px;cursor:pointer">
+    <input type="checkbox" value="${c}" ${selectedCats.has(c)?'checked':''} style="width:12px;height:12px;margin:0"> ${c}
+  </label>`).join('');
+  // Working copies
+  _supEditContacts=s?JSON.parse(JSON.stringify(s.contacts||[])):[];
+  _supEditPriceList=s?JSON.parse(JSON.stringify(s.priceList||[])):[];
+  renderSupEditContacts();
+  renderSupEditPriceList();
+  ['fsup-c-name','fsup-c-designation','fsup-c-phone','fsup-c-email','fsup-p-name','fsup-p-desc','fsup-p-unit','fsup-p-moq','fsup-p-cost','fsup-p-leadtime','fsup-p-stock'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fm-supplier').classList.add('op');
+}
+function renderSupEditContacts(){
+  const el=document.getElementById('fsup-contacts-list');if(!el)return;
+  el.innerHTML=_supEditContacts.length?_supEditContacts.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg2);border-radius:var(--r);margin-bottom:4px;flex-wrap:wrap;font-size:11px">
+      <div style="flex:1;min-width:90px"><strong>${c.name||''}</strong>${c.designation?' · '+c.designation:''}</div>
+      <div style="flex:1;min-width:90px;color:var(--tx2)">${c.phone||''}</div>
+      <div style="flex:1;min-width:110px;color:var(--tx2)">${c.email||''}</div>
+      <button class="btn btns" style="padding:2px 6px;color:var(--er-tx)" onclick="removeSupEditContact(${i})"><i class="ti ti-trash" style="font-size:10px"></i></button>
+    </div>`).join(''):'<div style="font-size:11px;color:var(--tx3);padding:2px 0">No contacts added yet.</div>';
+}
+function addSupplierContactRow(){
+  const name=document.getElementById('fsup-c-name').value.trim();
+  if(!name){alert('Contact name is required.');return;}
+  _supEditContacts.push({
+    name,
+    designation:document.getElementById('fsup-c-designation').value.trim(),
+    phone:document.getElementById('fsup-c-phone').value.trim(),
+    email:document.getElementById('fsup-c-email').value.trim()
+  });
+  ['fsup-c-name','fsup-c-designation','fsup-c-phone','fsup-c-email'].forEach(id=>document.getElementById(id).value='');
+  renderSupEditContacts();
+}
+function removeSupEditContact(i){_supEditContacts.splice(i,1);renderSupEditContacts();}
+
+function renderSupEditPriceList(){
+  const el=document.getElementById('fsup-pricelist-list');if(!el)return;
+  el.innerHTML=_supEditPriceList.length?_supEditPriceList.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg2);border-radius:var(--r);margin-bottom:4px;flex-wrap:wrap;font-size:11px">
+      <div style="flex:1.4;min-width:100px"><strong>${p.name||''}</strong>${p.desc?'<div style="color:var(--tx2);font-size:10px">'+p.desc+'</div>':''}</div>
+      <div style="flex:0.7;min-width:70px;color:var(--tx2)">${p.unit||'—'}</div>
+      <div style="flex:0.6;min-width:60px;color:var(--tx2)">MOQ: ${p.moq||0}</div>
+      <div style="flex:0.8;min-width:80px;font-weight:600">${fmt(p.cost||0)}</div>
+      ${p.leadtime?`<div style="flex:0.7;min-width:70px;color:var(--tx2)">LT: ${p.leadtime}</div>`:''}
+      ${p.stock!==undefined&&p.stock!==''?`<div style="flex:0.6;min-width:60px;color:var(--tx2)">Stk: ${p.stock}</div>`:''}
+      <button class="btn btns" style="padding:2px 6px;color:var(--er-tx)" onclick="removeSupEditPriceRow(${i})"><i class="ti ti-trash" style="font-size:10px"></i></button>
+    </div>`).join(''):'<div style="font-size:11px;color:var(--tx3);padding:2px 0">No price list items added yet.</div>';
+}
+function addSupplierPriceRow(){
+  const name=document.getElementById('fsup-p-name').value.trim();
+  if(!name){alert('Product/Service name is required.');return;}
+  _supEditPriceList.push({
+    id:Date.now()+Math.floor(Math.random()*1000),
+    name,
+    desc:document.getElementById('fsup-p-desc').value.trim(),
+    unit:document.getElementById('fsup-p-unit').value.trim(),
+    moq:parseFloat(document.getElementById('fsup-p-moq').value)||0,
+    cost:parseFloat(document.getElementById('fsup-p-cost').value)||0,
+    leadtime:document.getElementById('fsup-p-leadtime').value.trim(),
+    stock:document.getElementById('fsup-p-stock').value!==''?parseFloat(document.getElementById('fsup-p-stock').value):''
+  });
+  ['fsup-p-name','fsup-p-desc','fsup-p-unit','fsup-p-moq','fsup-p-cost','fsup-p-leadtime','fsup-p-stock'].forEach(id=>document.getElementById(id).value='');
+  renderSupEditPriceList();
+}
+function removeSupEditPriceRow(i){_supEditPriceList.splice(i,1);renderSupEditPriceList();}
+
+function importSupplierPriceCSV(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const text=e.target.result;
+    const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(lines.length<2){alert('CSV must have a header row and at least one data row.\n\nExpected columns: name, description, unit, moq, cost, leadtime, stock');input.value='';return;}
+    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+    const idx=k=>headers.indexOf(k);
+    const get=(row,k)=>{const i=idx(k);return i>=0?(row[i]||'').replace(/^"|"$/g,'').trim():''};
+    let added=0;
+    for(let i=1;i<lines.length;i++){
+      const row=lines[i].match(/(".*?"|[^,]+|(?<=,)(?=,)|(?<=,)$)/g)||lines[i].split(',');
+      const name=get(row,'name')||get(row,'product')||get(row,'item');if(!name)continue;
+      _supEditPriceList.push({
+        id:Date.now()+i,
+        name,
+        desc:get(row,'description')||get(row,'desc')||'',
+        unit:get(row,'unit')||get(row,'unit measure')||get(row,'uom')||'',
+        moq:parseFloat(get(row,'moq'))||0,
+        cost:parseFloat(get(row,'cost')||get(row,'unit cost')||get(row,'price'))||0,
+        leadtime:get(row,'leadtime')||get(row,'lead time')||'',
+        stock:get(row,'stock')!==''?parseFloat(get(row,'stock')||get(row,'available stock'))||'':''
+      });
+      added++;
+    }
+    input.value='';
+    renderSupEditPriceList();
+    alert(`✅ Imported ${added} price list item(s) from CSV. Remember to click "Save Supplier" to keep them.`);
+  };
+  reader.readAsText(file);
+}
+
+async function saveSupplier(){
+  const id=document.getElementById('fsup-id').value;
+  const name=document.getElementById('fsup-name').value.trim();
+  if(!name){alert('Company Name is required.');return;}
+  const categories=Array.from(document.querySelectorAll('#fsup-cat-cbs input:checked')).map(cb=>cb.value);
+  const existing=id?suppliers.find(x=>parseInt(x.id)===parseInt(id)):null;
+  const s=existing||{_isNew:true,transactions:[]};
+  s.name=name;
+  s.categories=categories;
+  s.address=document.getElementById('fsup-address').value.trim();
+  s.phone=document.getElementById('fsup-phone').value.trim();
+  s.website=document.getElementById('fsup-website').value.trim();
+  s.profile=document.getElementById('fsup-profile').value.trim();
+  s.contacts=_supEditContacts;
+  s.priceList=_supEditPriceList;
+  if(!existing)suppliers.push(s);
+  await sbSaveSupplier(s);
+  sbLog((existing?'Supplier updated: ':'Supplier added: ')+name,'#185FA5','Suppliers','');
+  closeFm('fm-supplier');
+  renderSuppliers();
+  if(_activeSupplierId===s.id)openSupplierDetail(s.id);
+}
+async function deleteSupplier(id){
+  if(!CU||CU.role!=='admin'){alert('Only Admin can delete suppliers.');return;}
+  const s=suppliers.find(x=>parseInt(x.id)===parseInt(id));if(!s)return;
+  if(!confirm(`Delete supplier "${s.name}"?\n\nThis cannot be undone.`))return;
+  if(s.id&&s.id<2000000000)await sb.from('suppliers').delete().eq('id',s.id);
+  suppliers=suppliers.filter(x=>x.id!==s.id);
+  sbLog(`Supplier deleted: "${s.name}"`,'#993C1D','Suppliers','');
+  closeSupplierDetail();
+  renderSuppliers();
+}
+
+// ── Supplier Detail View ──────────────────────────────────────
+function openSupplierDetail(id){
+  _activeSupplierId=parseInt(id);
+  document.getElementById('sup-list-view').style.display='none';
+  document.getElementById('sup-detail-view').style.display='block';
+  renderSupplierDetail(_activeSupplierId);
+}
+function closeSupplierDetail(){
+  _activeSupplierId=null;
+  document.getElementById('sup-detail-view').style.display='none';
+  document.getElementById('sup-list-view').style.display='block';
+  renderSuppliers();
+}
+let _supDetailTab='info';
+function setSupDetailTab(tab){_supDetailTab=tab;renderSupplierDetail(_activeSupplierId);}
+function renderSupplierDetail(id){
+  const s=suppliers.find(x=>parseInt(x.id)===parseInt(id));if(!s)return;
+  const c=avC(s.name);
+  const tabs=[['info','Info','ti-info-circle'],['txns','Transactions','ti-receipt'],['prices','Price List','ti-tag']];
+  const tabBtns=tabs.map(([k,label,icon])=>`<button class="btn btns${_supDetailTab===k?' btnp':''}" onclick="setSupDetailTab('${k}')"><i class="ti ${icon}"></i> ${label}</button>`).join(' ');
+  let body='';
+  if(_supDetailTab==='info')body=renderSupInfoTab(s);
+  else if(_supDetailTab==='txns')body=renderSupTxnsTab(s);
+  else if(_supDetailTab==='prices')body=renderSupPricesTab(s);
+  document.getElementById('sup-detail-content').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="av" style="width:48px;height:48px;font-size:18px;font-weight:700;background:${c.bg};color:${c.c}">${initials(s.name)}</div>
+        <div>
+          <div style="font-size:18px;font-weight:700">${s.name}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${(s.categories||[]).map(cat=>`<span class="badge bi" style="font-size:9px">${cat}</span>`).join(' ')||'<span style="font-size:11px;color:var(--tx3)">No category set</span>'}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btns" onclick="openSupplierForm(${s.id})"><i class="ti ti-pencil"></i> Edit</button>
+        ${CU&&CU.role==='admin'?`<button class="btn btns" style="color:var(--er-tx)" onclick="deleteSupplier(${s.id})"><i class="ti ti-trash"></i> Delete</button>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${tabBtns}</div>
+    <div>${body}</div>
+  `;
+}
+function renderSupInfoTab(s){
+  return `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px">
+        <div><span style="color:var(--tx2)">Address: </span>${s.address||'—'}</div>
+        <div><span style="color:var(--tx2)">Contact Number: </span>${s.phone||'—'}</div>
+        <div><span style="color:var(--tx2)">Website: </span>${s.website?`<a href="${s.website.startsWith('http')?s.website:'https://'+s.website}" target="_blank" style="color:var(--in-tx)">${s.website}</a>`:'—'}</div>
+        <div><span style="color:var(--tx2)">Price List Items: </span>${(s.priceList||[]).length}</div>
+      </div>
+    </div>
+    ${s.profile?`<div class="card" style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:4px">COMPANY PROFILE</div><div style="font-size:12px;white-space:pre-line">${s.profile}</div></div>`:''}
+    <div class="card">
+      <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:8px">CONTACTS (${(s.contacts||[]).length})</div>
+      ${(s.contacts||[]).length?(s.contacts||[]).map(c=>`
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:8px;background:var(--bg2);border-radius:var(--r);margin-bottom:6px">
+          <div><div style="font-size:12px;font-weight:600">${c.name}</div><div style="font-size:11px;color:var(--tx2)">${c.designation||''}</div></div>
+          <div style="text-align:right;font-size:11px;color:var(--tx2)">${c.phone?`<div>${c.phone}</div>`:''}${c.email?`<div>${c.email}</div>`:''}</div>
+        </div>`).join(''):'<div style="font-size:12px;color:var(--tx3)">No contacts on file.</div>'}
+    </div>
+  `;
+}
+function renderSupTxnsTab(s){
+  // Manual transactions + auto-pulled deliveries that reference this supplier by name
+  const manual=(s.transactions||[]).map(t=>({...t,_source:'manual'}));
+  const auto=deliveries.filter(d=>d.supplier&&s.name&&d.supplier.trim().toLowerCase()===s.name.trim().toLowerCase()).map(d=>({
+    type:'DR',ref:d.dr||d.invoice||'—',date:d.date,amount:d.amount||0,proj:d.proj,notes:d.items,_source:'delivery',_status:d.status
+  }));
+  const all=[...manual,...auto].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--tx2)">${manual.length} manual entr${manual.length===1?'y':'ies'} · ${auto.length} from Delivery records</div>
+      <button class="btn btns btnp" onclick="openSupplierTxnForm(${s.id})"><i class="ti ti-plus"></i> Log Transaction</button>
+    </div>
+    ${all.length?all.map((t,i)=>`
+      <div class="card" style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <span class="badge ${t.type==='PO'?'bi':t.type==='Invoice'?'bw':t.type==='OR'?'bk':'bg_'}" style="font-size:9px">${t.type}</span>
+            <span style="font-size:12px;font-weight:600;margin-left:4px">${t.ref||'—'}</span>
+            ${t._source==='delivery'?'<span class="badge bg_" style="font-size:9px;margin-left:4px">Auto from Delivery</span>':''}
+          </div>
+          <div style="font-size:12px;font-weight:700">${t.amount?fmt(t.amount):''}</div>
+        </div>
+        <div style="font-size:11px;color:var(--tx2);margin-top:4px">${t.date||''}${t.proj?' · '+t.proj:''}${t.notes?' · '+t.notes:''}</div>
+        ${t._source==='manual'?`<div style="text-align:right;margin-top:4px"><button class="btn btns" style="padding:2px 6px;color:var(--er-tx)" onclick="removeSupplierTransaction(${s.id},${i})"><i class="ti ti-trash" style="font-size:10px"></i></button></div>`:''}
+      </div>`).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:16px">No transactions on file yet.</div>'}
+  `;
+}
+function renderSupPricesTab(s){
+  const list=s.priceList||[];
+  const catF=document.getElementById('sup-price-search')?.value||'';
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap">
+      <input class="inp" id="sup-price-search" placeholder="Search product/service..." style="max-width:240px" value="${catF}" oninput="filterSupPriceList(${s.id})">
+      <div style="display:flex;gap:8px">
+        <button class="btn btns" onclick="openSupplierForm(${s.id})"><i class="ti ti-plus"></i> Add / Import Items</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto">
+      <table class="tbl" style="min-width:760px">
+        <thead><tr><th>Product / Service</th><th>Unit</th><th>MOQ</th><th>Unit Cost</th><th>Lead Time</th><th>Stock</th><th style="width:110px">Qty (ref)</th><th>Total Cost</th></tr></thead>
+        <tbody id="sup-price-tbody">${supPriceRows(list)}</tbody>
+      </table>
+    </div></div>
+  `;
+}
+function supPriceRows(list){
+  if(!list.length)return '<tr><td colspan="8" style="text-align:center;color:var(--tx2);padding:16px">No price list items yet. Click "Add / Import Items" to populate this supplier\'s catalog.</td></tr>';
+  return list.map(p=>`
+    <tr>
+      <td><strong>${p.name}</strong>${p.desc?`<div style="font-size:10px;color:var(--tx2)">${p.desc}</div>`:''}</td>
+      <td>${p.unit||'—'}</td>
+      <td>${p.moq||0}</td>
+      <td>${fmt(p.cost||0)}</td>
+      <td>${p.leadtime||'—'}</td>
+      <td>${p.stock!==undefined&&p.stock!==''?p.stock:'—'}</td>
+      <td><input class="inp" type="number" min="0" placeholder="0" style="width:90px;font-size:11px" oninput="updateSupQtyTotal(this,${p.cost||0})"></td>
+      <td class="sup-qty-total" style="font-weight:700">—</td>
+    </tr>`).join('');
+}
+function updateSupQtyTotal(input,unitCost){
+  const qty=parseFloat(input.value)||0;
+  const totalCell=input.closest('tr').querySelector('.sup-qty-total');
+  totalCell.textContent=qty>0?fmt(qty*unitCost):'—';
+}
+function filterSupPriceList(supId){
+  const s=suppliers.find(x=>parseInt(x.id)===parseInt(supId));if(!s)return;
+  const q=(document.getElementById('sup-price-search')?.value||'').toLowerCase();
+  const list=(s.priceList||[]).filter(p=>!q||(p.name+' '+(p.desc||'')).toLowerCase().includes(q));
+  document.getElementById('sup-price-tbody').innerHTML=supPriceRows(list);
+}
+
+// ── Transactions: manual log ──────────────────────────────────
+function openSupplierTxnForm(supId){
+  document.getElementById('fst-sup-id').value=supId;
+  document.getElementById('fst-type').value='PO';
+  document.getElementById('fst-ref').value='';
+  document.getElementById('fst-date').value=TODAY;
+  document.getElementById('fst-amount').value='';
+  document.getElementById('fst-notes').value='';
+  const projSel=document.getElementById('fst-proj');
+  const mp=myProjects();
+  projSel.innerHTML='<option value="">— None —</option>'+mp.map(p=>`<option>${p.name}</option>`).join('');
+  document.getElementById('fm-sup-txn').classList.add('op');
+}
+async function addSupplierTransaction(){
+  const supId=parseInt(document.getElementById('fst-sup-id').value);
+  const s=suppliers.find(x=>parseInt(x.id)===parseInt(supId));if(!s)return;
+  const txn={
+    type:document.getElementById('fst-type').value,
+    ref:document.getElementById('fst-ref').value.trim(),
+    date:document.getElementById('fst-date').value||TODAY,
+    amount:parseFloat(document.getElementById('fst-amount').value)||0,
+    proj:document.getElementById('fst-proj').value,
+    notes:document.getElementById('fst-notes').value.trim(),
+    by:CU.name,loggedAt:nowStr()
+  };
+  if(!s.transactions)s.transactions=[];
+  s.transactions.push(txn);
+  await sbSaveSupplier(s);
+  sbLog(`Transaction logged for "${s.name}": ${txn.type} ${txn.ref||''}`,'#185FA5','Suppliers',txn.proj||'');
+  closeFm('fm-sup-txn');
+  renderSupplierDetail(supId);
+}
+async function removeSupplierTransaction(supId,idx){
+  const s=suppliers.find(x=>parseInt(x.id)===parseInt(supId));if(!s)return;
+  if(!confirm('Remove this transaction entry?'))return;
+  (s.transactions||[]).splice(idx,1);
+  await sbSaveSupplier(s);
+  renderSupplierDetail(supId);
+}
 async function sbSaveTask(t){
   // Build description with all metadata so it always saves even if extra columns don't exist
   const meta=[];
@@ -1765,6 +2228,7 @@ let documents={};
 let deliveries=[],visitors=[],meetings=[];
 let sops=[];
 let directory=[];
+let suppliers=[];
 let pipeline=[];
 let templates=[];
 let actLog=[];
@@ -1926,7 +2390,7 @@ function doLogin(){if(!selectedAuthUser){alert('Select a user first.');return}co
 function doLogout(){CU=null;selectedAuthUser=null;activeProjectId=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').classList.remove('on');document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));const _rb2=document.getElementById('btn-refresh');if(_rb2)_rb2.style.display='none';initAuth()}
 function goHome(){closeDetail();closeMpDetail();setTab('overview')}
 function setupApp(){const p=PERMS[CU.role];const c=avC(CU.name);document.getElementById('top-av').textContent=initials(CU.name);Object.assign(document.getElementById('top-av').style,{background:c.bg,color:c.c});document.getElementById('top-name').textContent=CU.name;document.getElementById('top-role').textContent=RLBL[CU.role];document.getElementById('top-date').textContent=new Date().toLocaleDateString('en-PH',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
-if(CU.role==='worker'){['overview','projects','tasks','manpower','inventory','sop','users','activity','expenses'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.add('hidden')});['delivery','visitors','meetings','directory'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.remove('hidden')});setTab('delivery')}
+if(CU.role==='worker'){['overview','projects','tasks','manpower','inventory','sop','users','activity','expenses','suppliers'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.add('hidden')});['delivery','visitors','meetings','directory'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.remove('hidden')});setTab('delivery')}
 else{document.querySelectorAll('.ntab').forEach(e=>e.classList.remove('hidden'));document.getElementById('t-users').classList.toggle('hidden',!p.users);document.getElementById('t-inventory').classList.toggle('hidden',!p.inventory);document.getElementById('t-expenses').classList.toggle('hidden',!p.expenses);setTab('overview')}
 if(document.getElementById('btn-new-proj'))document.getElementById('btn-new-proj').style.display=p.newProject?'':'none';
 if(document.getElementById('btn-new-task'))document.getElementById('btn-new-task').style.display=p.newTask?'':'none';
@@ -1935,7 +2399,7 @@ const _rb=document.getElementById('btn-refresh');if(_rb)_rb.style.display='';
 }
 
 // TABS
-function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='reports')renderGlobalReports();if(t==='quotation'){renderQuotations();}if(t==='bom'){renderBOM();}}
+function setTab(t){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));const pg=document.getElementById('pg-'+t);const tb=document.getElementById('t-'+t);if(pg)pg.classList.add('on');if(tb)tb.classList.add('on');if(t==='tasks'){buildTaskFilterBar();renderTasksGlobal()}if(t==='inventory')renderGlobalInventory();if(t==='pipeline')renderPipeline();if(t==='attendance'){const gac=document.getElementById('global-att-content');if(gac)renderGlobalAtt();}if(t==='delivery')renderDeliveries();if(t==='visitors'){renderVisitorList()}if(t==='meetings')renderMeetings();if(t==='sop')renderSOPs();if(t==='directory')renderDirectory();if(t==='suppliers')renderSuppliers();if(t==='manpower')renderManpower();if(t==='expenses'){renderGlobalExpenses();renderBudgetOverview();}if(t==='templates')renderTemplates();if(t==='activity')renderActivity();if(t==='reports')renderGlobalReports();if(t==='quotation'){renderQuotations();}if(t==='bom'){renderBOM();}}
 function setDTab(t){
   document.querySelectorAll('.dpg').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('on'));
