@@ -2978,7 +2978,7 @@ var rowsHTML=na.map(function(a){
   var bl=dLeft(a.start);
   var bw=dW(a.start,a.end);
   var dw=Math.round(bw*(a.done||0)/100);
-  var editBtn=isAPM?'<button class="btn btns" onclick="openGanttEditModal('+a.id+','+p.id+')" style="font-size:9px;padding:1px 5px;position:absolute;top:2px;right:4px;z-index:5;background:var(--bg)" title="Edit"><i class="ti ti-edit"></i></button>':'';
+  var editBtn=isAPM?'<button class="btn btns" onclick="openGanttEditModal('+a.id+','+p.id+')" style="font-size:9px;padding:1px 5px;flex-shrink:0" title="Edit"><i class="ti ti-edit"></i></button>':'';
   // Planned bar: rows 6→26 (20px tall)
   // Actual bar:  rows 30→44 (14px tall) — clearly separate row
   var PLAN_TOP=6; var PLAN_H=20;
@@ -3057,6 +3057,7 @@ var rowsHTML=na.map(function(a){
     '<div style="padding:5px 8px;border-right:1px solid var(--bd);background:var(--bg);position:sticky;left:0;z-index:6;display:flex;flex-direction:column;justify-content:center">'+
     '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">'+
     '<span style="font-size:11px;font-weight:700;color:var(--tx)">'+a.name+'</span>'+
+    editBtn+
     '<span style="font-size:7.5px;font-weight:700;padding:1px 5px;border-radius:8px;background:'+RB[rl]+';color:'+RC[rl]+'">'+rl+'</span></div>'+
     '<div style="font-size:8.5px;color:var(--tx2);margin-top:2px">'+a.phase+' · '+(a.weight||10)+'% · '+sdone+'/'+stot+' done · '+dur+'d'+(a.assign?' · '+a.assign:'')+
     '</div><div style="font-size:8px;color:var(--in-tx);font-weight:500">'+fmtD(a.start)+' → '+fmtD(a.end)+'</div>'+
@@ -3072,7 +3073,7 @@ var rowsHTML=na.map(function(a){
     '<div style="position:absolute;top:8px;left:'+(bl+5)+'px;font-size:8.5px;font-weight:700;color:'+col+';z-index:5;pointer-events:none;white-space:nowrap">'+(a.done||0)+'%</div>'+
     // "Planned" mini-label on right of bar
     (bw>40?'<div style="position:absolute;top:8px;left:'+(bl+bw-36)+'px;font-size:7px;color:'+col+';opacity:.7;z-index:5;pointer-events:none;white-space:nowrap">Planned</div>':'')+
-    actualBar+todayLine+editBtn+
+    actualBar+todayLine+
     '</div></div>'+subRows;
 }).join('');
 
@@ -3889,6 +3890,17 @@ function renderDetailDelivery(id){id=parseInt(id);
   <div id="ddel-list-${id}"></div>`;
   refreshDetailDelivery(id);
 }
+async function deleteDelivery(id,event){
+  if(event)event.stopPropagation();
+  if(!CU||(CU.role!=='admin'&&CU.role!=='pm')){alert('Only Admin or Project Manager can delete delivery records.');return;}
+  const d=deliveries.find(x=>x.id===id);if(!d)return;
+  if(!confirm(`Delete delivery record "${d.items||''}" (${d.date||''})?\n\nThis cannot be undone.`))return;
+  if(d.id&&d.id<2000000000)await sb.from('deliveries').delete().eq('id',d.id);
+  deliveries=deliveries.filter(x=>x.id!==d.id);
+  sbLog(`Delivery deleted: "${d.items||''}" (${d.proj||''})`,'#993C1D','Delivery',d.proj||'');
+  renderDeliveries();
+  if(activeProjectId)refreshDetailDelivery(activeProjectId);
+}
 function refreshDetailDelivery(id){id=parseInt(id);
   const p=findProject(id);
   const sf=(document.getElementById('ddel-status-'+id)?.value||'');
@@ -3902,7 +3914,7 @@ function refreshDetailDelivery(id){id=parseInt(id);
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
       <div><div style="font-size:13px;font-weight:600">${d.date}</div>
       <div style="font-size:11px;color:var(--tx2)">${d.supplier||''} ${d.driver?'· Driver: '+d.driver:''} ${d.receiver?'· Rcvd: '+d.receiver:''}</div></div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge ${sBadge[d.status]||'bg_'}">${d.status}</span>${d.amount>0&&canSeeCosts()?`<span class="badge bg_">${fmt(d.amount)}</span>`:''}<span style="font-size:10px;color:var(--in-tx)"><i class="ti ti-pencil"></i> Update</span></div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span class="badge ${sBadge[d.status]||'bg_'}">${d.status}</span>${d.amount>0&&canSeeCosts()?`<span class="badge bg_">${fmt(d.amount)}</span>`:''}<span style="font-size:10px;color:var(--in-tx)"><i class="ti ti-pencil"></i> Update</span>${(CU.role==='admin'||CU.role==='pm')?`<button class="btn btns" style="font-size:10px;padding:2px 6px;color:var(--er-tx)" onclick="deleteDelivery(${d.id},event)" title="Delete"><i class="ti ti-trash"></i></button>`:''}</div>
     </div>
     <div style="font-size:12px;margin-bottom:5px">${d.items}</div>
     <div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap">
@@ -4148,15 +4160,23 @@ function submitTaskReport(){
     if(foundAct){
       const st=(foundAct.subTasks||[]).find(s=>s.id===stId);
       if(st){
+        const reportDate=document.getElementById('ftd-date').value||TODAY;
         st.done=true;
+        if(!st.actualStart)st.actualStart=reportDate; // first report date = actual start
+        st.actualEnd=reportDate; // latest submitted report date = actual end
         if(foundAct.subTasks.length)foundAct.done=Math.round(foundAct.subTasks.filter(s=>s.done).length/foundAct.subTasks.length*100);
+        // Roll up the activity's own actual start/end from its sub-tasks
+        const stStarts=foundAct.subTasks.map(s=>s.actualStart).filter(Boolean).sort();
+        const stEnds=foundAct.subTasks.map(s=>s.actualEnd).filter(Boolean).sort();
+        if(stStarts.length&&(!foundAct.actualStart||stStarts[0]<foundAct.actualStart))foundAct.actualStart=stStarts[0];
+        if(stEnds.length)foundAct.actualEnd=stEnds[stEnds.length-1];
         const stForSave=foundAct.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||foundAct.start||'',end:s.end||foundAct.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));
-        sb.from('gantt_activities').update({sub_tasks:stForSave,completion:foundAct.done}).eq('id',actId).then(({error})=>{if(error)console.error('Sub-task auto-complete save error:',error);});
+        sb.from('gantt_activities').update({sub_tasks:stForSave,completion:foundAct.done,actual_start:foundAct.actualStart||null,actual_end:foundAct.actualEnd||null}).eq('id',actId).then(({error})=>{if(error)console.error('Sub-task auto-complete save error:',error);});
         const linkedTask=tasks.find(t=>t.ganttId===actId&&t.subTaskId===stId);
         if(linkedTask){
           linkedTask.done=true;linkedTask.status='done';
           if(!linkedTask.reports)linkedTask.reports=[];
-          linkedTask.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:100,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+          linkedTask.reports.push({date:reportDate,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:100,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
           sbSaveTask(linkedTask);
         }
       }
@@ -4170,10 +4190,36 @@ function submitTaskReport(){
     alert('Report submitted! Sub-task marked complete.');
     return;
   }
-  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const fileCount2=getFileCount('ftd-prev');t.reports.push({date:document.getElementById('ftd-date').value||TODAY,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount2,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
+  const taskId=parseInt(taskIdEl.value);const t=tasks.find(x=>x.id===taskId);if(!t)return;const work=document.getElementById('ftd-work').value.trim();if(!work){alert('Work description required');return}if(!t.reports)t.reports=[];const fileCount2=getFileCount('ftd-prev');const reportDate2=document.getElementById('ftd-date').value||TODAY;t.reports.push({date:reportDate2,weather:document.getElementById('ftd-weather').value,work,workers:document.getElementById('ftd-workers').value||'0',hours:document.getElementById('ftd-hours').value||'8',pct:parseInt(document.getElementById('ftd-pct').value)||0,equip:document.getElementById('ftd-equip').value,materials:document.getElementById('ftd-materials').value,issues:document.getElementById('ftd-issues').value,mediaCount:fileCount2,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
   // Auto-complete: submitting a report marks the task as done
   t.done=true;t.status='done';
-  if(t.subTaskId){Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{const st=(a.subTasks||[]).find(s=>s.id===t.subTaskId);if(st){st.done=true;if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);const stForSave=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));sb.from('gantt_activities').update({sub_tasks:stForSave,completion:a.done}).eq('id',a.id).then(({error})=>{if(error)console.error('Linked sub-task save error:',error);});}}))}
+  if(t.subTaskId){
+    Object.values(ganttActivities).forEach(acts=>acts.forEach(a=>{
+      const st=(a.subTasks||[]).find(s=>s.id===t.subTaskId);
+      if(st){
+        st.done=true;
+        if(!st.actualStart)st.actualStart=reportDate2; // first report date = actual start
+        st.actualEnd=reportDate2; // latest submitted report date = actual end
+        if(a.subTasks.length)a.done=Math.round(a.subTasks.filter(s=>s.done).length/a.subTasks.length*100);
+        const stStarts=a.subTasks.map(s=>s.actualStart).filter(Boolean).sort();
+        const stEnds=a.subTasks.map(s=>s.actualEnd).filter(Boolean).sort();
+        if(stStarts.length&&(!a.actualStart||stStarts[0]<a.actualStart))a.actualStart=stStarts[0];
+        if(stEnds.length)a.actualEnd=stEnds[stEnds.length-1];
+        const stForSave=a.subTasks.map(s=>({id:s.id,name:s.name,done:s.done,start:s.start||a.start||'',end:s.end||a.end||'',actualStart:s.actualStart||'',actualEnd:s.actualEnd||''}));
+        sb.from('gantt_activities').update({sub_tasks:stForSave,completion:a.done,actual_start:a.actualStart||null,actual_end:a.actualEnd||null}).eq('id',a.id).then(({error})=>{if(error)console.error('Linked sub-task save error:',error);});
+      }
+    }));
+  }else if((t.autoType||'')==='gantt'&&!t.subTaskId){
+    // Main Gantt activity (not a sub-task) — honor task update date as actual start, report date as actual end
+    const allActsR=Object.values(ganttActivities).flat();
+    let act=t.ganttId?allActsR.find(a=>a.id===parseInt(t.ganttId)):null;
+    if(!act)act=allActsR.find(a=>t.name&&t.name===a.name); // fallback if ganttId didn't survive a reload
+    if(act){
+      if(!act.actualStart)act.actualStart=reportDate2;
+      act.actualEnd=reportDate2;
+      if(act.id&&act.id<2000000000)sb.from('gantt_activities').update({actual_start:act.actualStart||null,actual_end:act.actualEnd||null}).eq('id',act.id).then(({error})=>{if(error)console.error('Gantt actual date sync error:',error);});
+    }
+  }
   sbSaveTask(t);
   actLog.unshift({time:nowStr(),text:`Daily report submitted: "${t.name}" by ${CU.name} — task marked complete`,color:'#534AB7'});closeFm('fm-task-detail');renderTasksGlobal();renderMetrics();renderSidebar();if(activeProjectId){renderDetailTasks(activeProjectId);renderGanttDetail(activeProjectId);renderDetailLogs(activeProjectId);renderDetailReports(activeProjectId);}renderGlobalReports();alert('Report submitted! Task marked as complete.')}
 
@@ -4392,7 +4438,7 @@ function renderDeliveries(){const mp=myProjects();const pf=document.getElementBy
     if(to)list=list.filter(d=>d.date<=to);
   }
   list=[...list].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const sBadge={Scheduled:'bw',Delivered:'bk',Partial:'bi',Cancelled:'be'};document.getElementById('delivery-list').innerHTML=list.length?list.map(d=>{const isOverdue=d.date&&d.date<TODAY&&d.status!=='Delivered'&&d.status!=='Cancelled';return `<div class="delivery-card" style="cursor:pointer" onclick="openDeliveryUpdate(${d.id})"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><div><div style="font-size:13px;font-weight:600">${d.proj} - ${d.date}${isOverdue?' <span class="badge be" style="margin-left:4px">OVERDUE</span>':''}</div><div style="font-size:11px;color:var(--tx2)">${d.supplier||''} ${d.driver?'- Driver: '+d.driver:''} ${d.receiver?'- Rcvd: '+d.receiver:''}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="badge ${sBadge[d.status]||'bg_'}">${d.status}</span>${d.amount>0?`<span class="badge bg_">${fmt(d.amount)}</span>`:''}<span style="font-size:10px;color:var(--in-tx)"><i class="ti ti-pencil"></i> Update</span></div></div><div style="font-size:12px;margin-bottom:5px">${d.items}</div><div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap">${d.invoice?`<span>INV: ${d.invoice}</span>`:''} ${d.dr?`<span>DR: ${d.dr}</span>`:''} ${d.mediaCount>0?`<span style="color:var(--in-tx)"><i class="ti ti-photo"></i> ${d.mediaCount} proof file(s)</span>`:''} ${d.notes?`<span style="color:var(--wn-tx)"><i class="ti ti-alert-circle"></i> ${d.notes}</span>`:''}</div></div>`;}).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:20px">No deliveries match this filter.</div>'}
+  const sBadge={Scheduled:'bw',Delivered:'bk',Partial:'bi',Cancelled:'be'};document.getElementById('delivery-list').innerHTML=list.length?list.map(d=>{const isOverdue=d.date&&d.date<TODAY&&d.status!=='Delivered'&&d.status!=='Cancelled';return `<div class="delivery-card" style="cursor:pointer" onclick="openDeliveryUpdate(${d.id})"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"><div><div style="font-size:13px;font-weight:600">${d.proj} - ${d.date}${isOverdue?' <span class="badge be" style="margin-left:4px">OVERDUE</span>':''}</div><div style="font-size:11px;color:var(--tx2)">${d.supplier||''} ${d.driver?'- Driver: '+d.driver:''} ${d.receiver?'- Rcvd: '+d.receiver:''}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span class="badge ${sBadge[d.status]||'bg_'}">${d.status}</span>${d.amount>0?`<span class="badge bg_">${fmt(d.amount)}</span>`:''}<span style="font-size:10px;color:var(--in-tx)"><i class="ti ti-pencil"></i> Update</span>${(CU.role==='admin'||CU.role==='pm')?`<button class="btn btns" style="font-size:10px;padding:2px 6px;color:var(--er-tx)" onclick="deleteDelivery(${d.id},event)" title="Delete"><i class="ti ti-trash"></i></button>`:''}</div></div><div style="font-size:12px;margin-bottom:5px">${d.items}</div><div style="display:flex;gap:10px;font-size:11px;color:var(--tx2);flex-wrap:wrap">${d.invoice?`<span>INV: ${d.invoice}</span>`:''} ${d.dr?`<span>DR: ${d.dr}</span>`:''} ${d.mediaCount>0?`<span style="color:var(--in-tx)"><i class="ti ti-photo"></i> ${d.mediaCount} proof file(s)</span>`:''} ${d.notes?`<span style="color:var(--wn-tx)"><i class="ti ti-alert-circle"></i> ${d.notes}</span>`:''}</div></div>`;}).join(''):'<div class="card" style="text-align:center;color:var(--tx2);padding:20px">No deliveries match this filter.</div>'}
 
 // VISITORS
 async function addVisitor(){
