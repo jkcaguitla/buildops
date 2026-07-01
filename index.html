@@ -657,18 +657,46 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
 </div></div>
 
 <!-- Delivery Update -->
-<div class="fm" id="fm-delivery-update"><div class="fb">
-  <div class="ft"><i class="ti ti-truck"></i> Update Delivery</div>
-  <div id="fdu-info" style="background:var(--bg2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:12px"></div>
-  <div class="fg"><label class="fl">Status</label>
-    <select class="inp" id="fdu-status">
-      <option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option>
-    </select>
+<div class="fm" id="fm-delivery-update"><div class="fb fb-lg">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px">
+    <div class="ft" id="fdu-title" style="margin-bottom:0">Update Delivery</div>
+    <span style="background:var(--ok-bg);color:var(--ok-tx);padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;margin-top:3px">DELIVERY</span>
   </div>
-  <div class="fg"><label class="fl">Notes / Issues</label><textarea class="inp" id="fdu-notes" placeholder="Discrepancies, issues, quantities..."></textarea></div>
-  <div class="fg"><label class="fl">Remarks (Cancellation / Reschedule reason)</label><input class="inp" id="fdu-remarks" placeholder="e.g. Rescheduled to next week due to weather"></div>
+  <div id="fdu-info" style="background:var(--bg2);border-radius:var(--r);padding:12px;margin-bottom:14px;font-size:12px"></div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">Status</label>
+      <select class="inp" id="fdu-status" onchange="onFduStatusChange()">
+        <option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option><option>Rescheduled</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Received By *</label><input class="inp" id="fdu-receiver" placeholder="Required for Delivered"></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">PO No.</label><input class="inp" id="fdu-po" placeholder="PO-XXXXX"></div>
+    <div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="fdu-invoice" placeholder="INV-XXXXX"></div>
+  </div>
+  <div class="fr2">
+    <div class="fg"><label class="fl">DR No.</label><input class="inp" id="fdu-dr" placeholder="DR-XXXXX"></div>
+    <div class="fg" id="fdu-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="fdu-new-date" type="date"></div>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><textarea class="inp" id="fdu-notes" rows="3" placeholder="Issues, discrepancies..."></textarea></div>
+  <div class="fg"><label class="fl">Attach Files</label>
+    <div class="upload-zone" onclick="document.getElementById('fdu-files').click()">
+      <input type="file" id="fdu-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,'fdu-prev')">
+      <i class="ti ti-upload" style="font-size:20px;color:var(--tx2);display:block;margin-bottom:4px"></i>
+      <div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div>
+    </div>
+    <div class="media-prev" id="fdu-prev"></div>
+  </div>
   <input type="hidden" id="fdu-id">
-  <div class="fa"><button class="btn" onclick="closeFm('fm-delivery-update')">Cancel</button><button class="btn btnp" onclick="saveDeliveryUpdate()"><i class="ti ti-check"></i> Save Update</button></div>
+  <div class="fa" style="justify-content:space-between">
+    <button class="btn btnd" onclick="deleteDeliveryFromModal()"><i class="ti ti-trash"></i> Delete</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeFm('fm-delivery-update')">Close</button>
+      <button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="saveDeliveryUpdate()"><i class="ti ti-refresh"></i> Update</button>
+      <button class="btn btnp" id="fdu-mark-delivered-btn" onclick="markDeliveredFromModal()"><i class="ti ti-check"></i> Mark Delivered</button>
+    </div>
+  </div>
 </div></div>
 
 <!-- PIPELINE -->
@@ -1095,8 +1123,8 @@ select.inp{cursor:pointer}textarea.inp{resize:vertical;min-height:60px}
   <div class="fr2"><div class="fg"><label class="fl">Project *</label><select class="inp" id="fdel-proj"></select></div><div class="fg"><label class="fl">Delivery Date *</label><input class="inp" id="fdel-date" type="date"></div></div>
   <div class="fg"><label class="fl">Materials / Items *</label><textarea class="inp" id="fdel-items" placeholder="e.g. 500 bags Portland Cement, 200 pcs Rebar 12mm"></textarea></div>
   <div class="fr2"><div class="fg"><label class="fl">Supplier / Vendor</label><input class="inp" id="fdel-supplier"></div><div class="fg"><label class="fl">Delivery Man</label><input class="inp" id="fdel-driver"></div></div>
-  <div class="fr3"><div class="fg"><label class="fl">Received By</label><input class="inp" id="fdel-receiver"></div><div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="fdel-invoice" placeholder="INV-XXXXX"></div><div class="fg"><label class="fl">DR No.</label><input class="inp" id="fdel-dr" placeholder="DR-XXXXX"></div></div>
-  <div class="fr2"><div class="fg"><label class="fl">Amount (₱)</label><input class="inp" id="fdel-amount" type="number" min="0"></div><div class="fg"><label class="fl">Status</label><select class="inp" id="fdel-status"><option>Scheduled</option><option>Delivered</option><option>Partial</option><option>Cancelled</option></select></div></div>
+  <div class="fr3"><div class="fg"><label class="fl">Received By</label><input class="inp" id="fdel-receiver"></div><div class="fg"><label class="fl">PO No.</label><input class="inp" id="fdel-po" placeholder="PO-XXXXX"></div><div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="fdel-invoice" placeholder="INV-XXXXX"></div></div>
+  <div class="fr2"><div class="fg"><label class="fl">DR No.</label><input class="inp" id="fdel-dr" placeholder="DR-XXXXX"></div><div class="fg"><label class="fl">Amount (₱)</label><input class="inp" id="fdel-amount" type="number" min="0"></div></div>
   <div class="fg"><label class="fl">Remarks</label><input class="inp" id="fdel-notes" placeholder="Issues, discrepancies, partial quantities..."></div>
   <div class="fg">
     <label class="fl">Proof Photos / Documents</label>
@@ -2213,7 +2241,7 @@ const PERMS={
   warehouse: {newProject:false,editProject:false,newTask:true, inventory:true, users:false,docs:false,expenses:false,viewCosts:false,viewAll:false},
   worker:    {newProject:false,editProject:false,newTask:false,inventory:false,users:false,docs:false,expenses:false,viewCosts:false,viewAll:false},
 };
-const TODAY=new Date().toISOString().slice(0,10);
+const TODAY=(()=>{const d=new Date();const ph=new Date(d.toLocaleString('en-US',{timeZone:'Asia/Manila'}));return ph.getFullYear()+'-'+String(ph.getMonth()+1).padStart(2,'0')+'-'+String(ph.getDate()).padStart(2,'0');})();
 
 let users=[];
 let projects=[];
@@ -2237,7 +2265,7 @@ let taskProjFilter='All',taskStatusFilter='All';
 
 // HELPERS
 function fmt(n){return'P'+Math.round(n).toLocaleString('en-PH')}
-function nowStr(){const d=new Date();return d.toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}
+function nowStr(){const d=new Date();return d.toLocaleDateString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit'})}
 function initials(n){return(n||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 function avC(n){return AVC[(n||'X').charCodeAt(0)%AVC.length]}
 function avEl(n,sz=26){const c=avC(n);return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.38)}px;background:${c.bg};color:${c.c}">${initials(n)}</div>`}
@@ -2389,7 +2417,7 @@ function selUser(id){selectedAuthUser=users.find(u=>u.id===id);document.querySel
 function doLogin(){if(!selectedAuthUser){alert('Select a user first.');return}const pin=document.getElementById('auth-pin').value;if(pin!==selectedAuthUser.pin){document.getElementById('auth-err').style.display='block';document.getElementById('auth-pin').value='';return}document.getElementById('auth-err').style.display='none';CU=selectedAuthUser;document.getElementById('auth-screen').style.display='none';document.getElementById('app').classList.add('on');document.getElementById('auth-pin').value='';setupApp();render()}
 function doLogout(){CU=null;selectedAuthUser=null;activeProjectId=null;document.getElementById('auth-screen').style.display='flex';document.getElementById('app').classList.remove('on');document.querySelectorAll('.au').forEach(e=>e.classList.remove('sel'));const _rb2=document.getElementById('btn-refresh');if(_rb2)_rb2.style.display='none';initAuth()}
 function goHome(){closeDetail();closeMpDetail();setTab('overview')}
-function setupApp(){const p=PERMS[CU.role];const c=avC(CU.name);document.getElementById('top-av').textContent=initials(CU.name);Object.assign(document.getElementById('top-av').style,{background:c.bg,color:c.c});document.getElementById('top-name').textContent=CU.name;document.getElementById('top-role').textContent=RLBL[CU.role];document.getElementById('top-date').textContent=new Date().toLocaleDateString('en-PH',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
+function setupApp(){const p=PERMS[CU.role];const c=avC(CU.name);document.getElementById('top-av').textContent=initials(CU.name);Object.assign(document.getElementById('top-av').style,{background:c.bg,color:c.c});document.getElementById('top-name').textContent=CU.name;document.getElementById('top-role').textContent=RLBL[CU.role];document.getElementById('top-date').textContent=new Date().toLocaleDateString('en-PH',{timeZone:'Asia/Manila',weekday:'short',month:'long',day:'numeric',year:'numeric'});
 if(CU.role==='worker'){['overview','projects','tasks','manpower','inventory','sop','users','activity','expenses','suppliers'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.add('hidden')});['delivery','visitors','meetings','directory'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.classList.remove('hidden')});setTab('delivery')}
 else{document.querySelectorAll('.ntab').forEach(e=>e.classList.remove('hidden'));document.getElementById('t-users').classList.toggle('hidden',!p.users);document.getElementById('t-inventory').classList.toggle('hidden',!p.inventory);document.getElementById('t-expenses').classList.toggle('hidden',!p.expenses);setTab('overview')}
 if(document.getElementById('btn-new-proj'))document.getElementById('btn-new-proj').style.display=p.newProject?'':'none';
@@ -2438,8 +2466,8 @@ if(id==='fm-task'){
   document.getElementById('fta-weight').value=10;
   updateGanttSel()}
 if(id==='fm-delivery'){document.getElementById('fdel-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fdel-date').value=TODAY;clearFileStore('fdel-prev')}
-if(id==='fm-visitor'){document.getElementById('fv-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fv-timein').value=new Date().toISOString().slice(0,16)}
-if(id==='fm-meeting'){document.getElementById('fm2-proj').innerHTML=['General',...mp.map(p=>p.name)].map(n=>`<option>${n}</option>`).join('');document.getElementById('fm2-datetime').value=new Date().toISOString().slice(0,16)}
+if(id==='fm-visitor'){document.getElementById('fv-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fv-timein').value=(()=>{const d=new Date();const ph=new Date(d.toLocaleString('en-US',{timeZone:'Asia/Manila'}));return ph.getFullYear()+'-'+String(ph.getMonth()+1).padStart(2,'0')+'-'+String(ph.getDate()).padStart(2,'0')+'T'+String(ph.getHours()).padStart(2,'0')+':'+String(ph.getMinutes()).padStart(2,'0');})()}
+if(id==='fm-meeting'){document.getElementById('fm2-proj').innerHTML=['General',...mp.map(p=>p.name)].map(n=>`<option>${n}</option>`).join('');document.getElementById('fm2-datetime').value=(()=>{const d=new Date();const ph=new Date(d.toLocaleString('en-US',{timeZone:'Asia/Manila'}));return ph.getFullYear()+'-'+String(ph.getMonth()+1).padStart(2,'0')+'-'+String(ph.getDate()).padStart(2,'0')+'T'+String(ph.getHours()).padStart(2,'0')+':'+String(ph.getMinutes()).padStart(2,'0');})()}
 if(id==='fm-inv-add'){document.getElementById('fi-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('')}
 if(id==='fm-manpower'){document.getElementById('fmp-proj').innerHTML=mp.map(p=>`<option>${p.name}</option>`).join('');document.getElementById('fmp-started').value=TODAY}
 if(id==='fm-user'){buildFuProj()}
@@ -2676,7 +2704,10 @@ document.getElementById('d-ov-content').innerHTML=`
 </div>`}
 
 // GANTT CHART
-function renderGanttDetail(id){id=parseInt(id);const acts=ganttActivities[id]||[];const p=findProject(id);
+function renderGanttDetail(id){id=parseInt(id);
+  // Dedup activities for this project to prevent duplicate rows
+  if(ganttActivities[id]){const seen=new Set();ganttActivities[id]=ganttActivities[id].filter(a=>{if(!a.id||seen.has(a.id))return false;seen.add(a.id);return true;});}
+  const acts=ganttActivities[id]||[];const p=findProject(id);
 const PCOLS={Civil:'#185FA5',Structural:'#C05621',Architectural:'#534AB7',MEP:'#0F6E56',Electrical:'#854F0B',Plumbing:'#0F5F6E',Closeout:'#993C1D',Other:'#666'};
 document.getElementById('d-gantt-content').innerHTML=`<div class="ch"><div class="ct"><i class="ti ti-timeline"></i> Gantt Chart & Equipment Schedule</div><div style="display:flex;gap:6px;flex-wrap:wrap">${canDo('editProject')?`<button class="btn btns btnp" onclick="openGanttFm(${id})"><i class="ti ti-plus"></i> Add Activity</button>`:''}<button class="btn btns" onclick="downloadGanttTemplate()" title="Download CSV Template"><i class="ti ti-download"></i> Template</button><label class="btn btns" style="cursor:pointer" title="Import CSV"><i class="ti ti-upload"></i> Import CSV<input type="file" accept=".csv" style="display:none" onchange="importGanttCSV(event,${id})"></label><button class="btn btns" onclick="exportGanttPDF(${id})" title="Download PDF"><i class="ti ti-file-type-pdf"></i> PDF</button></div></div><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font-size:10px;color:var(--tx2)"><span style="font-weight:600;color:var(--tx)">Legend:</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:18px;height:10px;border-radius:2px;border:2px dashed var(--or);background:rgba(192,86,33,.1)"></span> Planned</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:18px;height:10px;border-radius:2px;background:var(--or);opacity:.55"></span> Progress</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:18px;height:9px;border-radius:2px;background:var(--or);opacity:.75"></span> Actual</span><span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:2px;height:14px;background:rgba(192,86,33,.7)"></span> Today</span><span style="color:var(--tx3)">Weight auto-calculated from timeline. Click <i class="ti ti-edit" style="font-size:10px"></i> to edit.</span></div>${acts.length?buildGanttHTML(acts,p,PCOLS):'<div style="color:var(--tx2);font-size:12px;padding:16px 0">No activities yet. Add activities to auto-calculate project progress.</div>'}`;
 }
@@ -3705,7 +3736,7 @@ function renderDetailMeetings(id){id=parseInt(id);
 function openMeetingForProj(projId){
   const p=projects.find(x=>x.id===parseInt(projId));
   document.getElementById('fm2-proj').innerHTML=['General',...myProjects().map(x=>x.name)].map(n=>`<option${p&&n===p.name?' selected':''}>${n}</option>`).join('');
-  document.getElementById('fm2-datetime').value=new Date().toISOString().slice(0,16);
+  document.getElementById('fm2-datetime').value=(()=>{const d=new Date();const ph=new Date(d.toLocaleString('en-US',{timeZone:'Asia/Manila'}));return ph.getFullYear()+'-'+String(ph.getMonth()+1).padStart(2,'0')+'-'+String(ph.getDate()).padStart(2,'0')+'T'+String(ph.getHours()).padStart(2,'0')+':'+String(ph.getMinutes()).padStart(2,'0');})();
   document.getElementById('fm-meeting').classList.add('op');
 }
 
@@ -3767,20 +3798,24 @@ function openBillingModal(projId){document.getElementById('fbill-proj-id').value
 function addBilling(){const projId=parseInt(document.getElementById('fbill-proj-id').value);const p=findProject(projId);if(!p)return;const desc=document.getElementById('fbill-desc').value.trim();const amount=parseFloat(document.getElementById('fbill-amount').value);if(!desc){alert('Description required');return;}if(!amount||amount<=0){alert('Enter valid amount');return;}if(!p.billing)p.billing=[];p.billing.push({desc,amount,date:document.getElementById('fbill-date').value||TODAY,invoiceNo:document.getElementById('fbill-invoice').value,remarks:document.getElementById('fbill-remarks').value,status:document.getElementById('fbill-status').value,by:CU.name});sbLog(`Billing added: "${desc}" ${fmt(amount)} for ${p.name}`,'#185FA5','Billing',p.name);closeFm('fm-billing');renderDetailBilling(projId);}
 async function toggleBillingStatus(projId,idx){const p=findProject(projId);if(!p||!p.billing||!p.billing[idx])return;const b=p.billing[idx];const statuses=['Pending','Billed','Partial','Collected','Cancelled'];const cur=statuses.indexOf(b.status);const next=statuses[(cur+1)%statuses.length];if(!confirm(`Change billing status from "${b.status}" to "${next}"?`))return;b.status=next;sbLog(`Billing status: "${b.desc}" → ${next}`,'#185FA5','Billing',p.name);renderDetailBilling(projId);}
 function visitorCard(v,projId){
-  const statusBadge=v.status==='cancelled'?'<span class="badge be">Cancelled</span>':v.status==='rescheduled'?'<span class="badge bw">Rescheduled</span>':'<span class="badge bk">Logged</span>';
-  return`<div style="padding:7px 0;border-bottom:0.5px solid var(--bd);cursor:pointer" onclick="openVisitorDetail(${v.id},${projId||0})">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-      <div style="font-size:12px;font-weight:600">${v.name}${v.company?' · '+v.company:''}</div>
-      ${statusBadge}
+  const statusBadge=v.status==='cancelled'?'<span class="badge be">Cancelled</span>':v.status==='checked-out'?'<span class="badge bk">Checked Out</span>':v.status==='checked-in'?'<span class="badge bi">Checked In</span>':v.status==='rescheduled'?'<span class="badge bw">Rescheduled</span>':'<span class="badge bg_">Logged</span>';
+  const isAPM=CU&&(CU.role==='admin'||CU.role==='pm');
+  return`<div style="padding:7px 0;border-bottom:0.5px solid var(--bd)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;gap:6px">
+      <div style="display:flex;align-items:center;gap:6px;flex:1;cursor:pointer" onclick="openVisitorDetail(${v.id},${projId||0})">
+        <div style="font-size:12px;font-weight:600">${v.name}${v.company?' · '+v.company:''}</div>
+        ${statusBadge}
+      </div>
+      ${isAPM?`<button class="btn btns" style="padding:2px 6px;color:var(--er-tx);flex-shrink:0" onclick="deleteVisitor(${v.id},event)" title="Delete"><i class="ti ti-trash" style="font-size:10px"></i></button>`:''}
     </div>
-    <div style="font-size:11px;color:var(--tx2)">${v.purpose||''} ${v.host?'· Host: '+v.host:''}</div>
+    <div style="font-size:11px;color:var(--tx2);cursor:pointer" onclick="openVisitorDetail(${v.id},${projId||0})">${v.purpose||''} ${v.host?'· Host: '+v.host:''}</div>
     <div style="font-size:10px;color:var(--tx3)">${(v.timein||'').replace('T',' ')}</div>
   </div>`;
 }
 function openVisitorForProj(projId){
   const p=findProject(projId);
   document.getElementById('fv-proj').innerHTML=myProjects().map(x=>`<option${x.id===projId?' selected':''}>${x.name}</option>`).join('');
-  document.getElementById('fv-timein').value=new Date().toISOString().slice(0,16);
+  document.getElementById('fv-timein').value=(()=>{const d=new Date();const ph=new Date(d.toLocaleString('en-US',{timeZone:'Asia/Manila'}));return ph.getFullYear()+'-'+String(ph.getMonth()+1).padStart(2,'0')+'-'+String(ph.getDate()).padStart(2,'0')+'T'+String(ph.getHours()).padStart(2,'0')+':'+String(ph.getMinutes()).padStart(2,'0');})();
   document.getElementById('fm-visitor').classList.add('op');
 }
 function showDayVisitors(dateStr,projId){
@@ -4063,6 +4098,8 @@ function taskSourceBadge(t){
   return '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:'+bg+';color:'+col+';white-space:nowrap">'+lbl+'</span>';
 }
 function renderTasksGlobal(){
+  // Dedup tasks by id
+  const seenT=new Set();tasks=tasks.filter(t=>{if(!t.id||seenT.has(t.id))return false;seenT.add(t.id);return true;});
   const mp=myProjects();
   const taskSrch=(document.getElementById('task-search')?.value||'').toLowerCase();
   const dateFrom=document.getElementById('task-date-from')?.value||'';
@@ -4406,11 +4443,12 @@ async function addDelivery(){
   const delDate=document.getElementById('fdel-date').value||TODAY;
   const status=document.getElementById('fdel-status').value;
   const supplier=document.getElementById('fdel-supplier').value;
-  const d={_isNew:true,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:fileNamesD.length,mediaFiles:fileNamesD,by:CU.name,time:nowStr()};
+  const d={_isNew:true,proj:projName,date:delDate,items,supplier,driver:document.getElementById('fdel-driver').value,receiver:document.getElementById('fdel-receiver').value,po:document.getElementById('fdel-po').value,invoice:document.getElementById('fdel-invoice').value,dr:document.getElementById('fdel-dr').value,amount:parseFloat(document.getElementById('fdel-amount').value)||0,status,notes:document.getElementById('fdel-notes').value,mediaCount:fileNamesD.length,mediaFiles:fileNamesD,by:CU.name,time:nowStr()};
   deliveries.unshift(d);
-  sbSaveDelivery(d).then(()=>sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName));
+  await sbSaveDelivery(d);
+  sbLog('Delivery recorded: '+items.slice(0,40)+' for '+projName+' ['+status+']','#0F5F6E','Delivery',projName);
   if(status==='Scheduled'){
-    const delTask={_isNew:true,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items+'. Supplier: '+(supplier||'N/A'),riskLevel:'LOW',reports:[],autoType:'delivery'};
+    const delTask={_isNew:true,name:'Receive delivery: '+items.slice(0,50)+(supplier?' from '+supplier:''),project:projName,assignee:CU.name,due:delDate,priority:'high',done:false,status:'pending',schedule:'once',scheduleDays:[],details:'Scheduled delivery on '+delDate+'. Items: '+items+'. Supplier: '+(supplier||'N/A'),riskLevel:'LOW',reports:[],autoType:'delivery',refId:d.id};
     tasks.push(delTask);
     await sbSaveTask(delTask);
     renderTasksGlobal();renderSidebar();
@@ -4577,14 +4615,27 @@ function setVisDateFilter(mode){
   ['today','all'].forEach(x=>{const el=document.getElementById('vis-f-'+x);if(el)el.style.fontWeight=x===mode?'700':'400';});
   renderVisitorList();
 }
+async function deleteVisitor(id,event){
+  if(event)event.stopPropagation();
+  if(!CU||(CU.role!=='admin'&&CU.role!=='pm')){alert('Only Admin or PM can delete visitor logs.');return;}
+  const v=visitors.find(x=>parseInt(x.id)===parseInt(id));if(!v)return;
+  if(!confirm(`Delete visitor log for "${v.name}" (${(v.timein||'').replace('T',' ')})?\n\nThis cannot be undone.`))return;
+  if(v.id&&v.id<2000000000)await sb.from('visitors').delete().eq('id',v.id);
+  visitors=visitors.filter(x=>x.id!==v.id);
+  sbLog(`Visitor log deleted: "${v.name}" (${v.proj||''})`,'#993C1D','Visitors',v.proj||'');
+  renderVisitorList();if(activeProjectId)renderDetailVisitors(activeProjectId);
+}
 function visitorRow(v){
   const sb=visitorStatusBadge(v);
-  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:0.5px solid var(--bd);cursor:pointer;border-radius:6px" class="log-row" onclick="openVisitorActionModal('+v.id+')">'
-    +'<div style="flex:1;min-width:0">'
+  const isAPM=CU&&(CU.role==='admin'||CU.role==='pm');
+  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:0.5px solid var(--bd);cursor:pointer;border-radius:6px" class="log-row">'
+    +'<div style="flex:1;min-width:0" onclick="openVisitorActionModal('+v.id+')">'
     +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:12px;font-weight:600">'+v.name+(v.company?' — '+v.company:'')+'</span>'+sb+'</div>'
     +'<div style="font-size:11px;color:var(--tx2);margin-top:1px">'+(v.purpose||'')+(v.host?' · Host: '+v.host:'')+'</div>'
     +'<div style="font-size:10px;color:var(--tx3)">'+v.proj+' · '+(v.timein||'').replace('T',' ')+(v.remarks?' · '+v.remarks:'')+'</div>'
-    +'</div><i class="ti ti-chevron-right" style="font-size:11px;color:var(--tx3);flex-shrink:0"></i></div>';
+    +'</div>'
+    +(isAPM?'<button class="btn btns" style="padding:2px 6px;color:var(--er-tx);flex-shrink:0" onclick="deleteVisitor('+v.id+',event)" title="Delete"><i class="ti ti-trash" style="font-size:10px"></i></button>':'')
+    +'<i class="ti ti-chevron-right" style="font-size:11px;color:var(--tx3);flex-shrink:0" onclick="openVisitorActionModal('+v.id+')"></i></div>';
 }
 function renderVisitorList(){
   const el=document.getElementById('visitor-list');if(!el)return;
@@ -5076,24 +5127,83 @@ async function deleteDocument(pid,docId){
 async function openDeliveryUpdate(id){
   const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
   document.getElementById('fdu-id').value=id;
-  document.getElementById('fdu-info').innerHTML=`<strong>${d.items}</strong><div style="font-size:11px;color:var(--tx2);margin-top:2px">${d.proj} · ${d.date} · ${d.supplier||''}</div>`;
+  document.getElementById('fdu-title').textContent=d.items||'Update Delivery';
+  document.getElementById('fdu-info').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div><span style="color:var(--tx2)">Project: </span><strong>${d.proj||'—'}</strong></div>
+      <div><span style="color:var(--tx2)">Assignee: </span><strong>${d.driver||d.receiver||'—'}</strong></div>
+      <div><span style="color:var(--tx2)">Due: </span><strong>${d.date||'—'}</strong></div>
+      <div><span style="color:var(--tx2)">Status: </span><strong>${d.status||'Scheduled'}</strong></div>
+    </div>
+    ${d.supplier?`<div style="font-size:11px;color:var(--tx2);margin-top:4px">Supplier: ${d.supplier}</div>`:''}`;
   document.getElementById('fdu-status').value=d.status||'Scheduled';
+  document.getElementById('fdu-receiver').value=d.receiver||'';
+  document.getElementById('fdu-po').value=d.po||'';
+  document.getElementById('fdu-invoice').value=d.invoice||'';
+  document.getElementById('fdu-dr').value=d.dr||'';
   document.getElementById('fdu-notes').value=d.notes||'';
-  document.getElementById('fdu-remarks').value='';
+  document.getElementById('fdu-new-date').value='';
+  clearFileStore('fdu-prev');
+  const rescRow=document.getElementById('fdu-reschedule-row');
+  const isResch=d.status==='Rescheduled';
+  if(rescRow)rescRow.style.display=isResch?'':'none';
+  const markBtn=document.getElementById('fdu-mark-delivered-btn');
+  if(markBtn)markBtn.style.display=d.status==='Delivered'?'none':'';
   document.getElementById('fm-delivery-update').classList.add('op');
+}
+function onFduStatusChange(){
+  const v=document.getElementById('fdu-status').value;
+  const rescRow=document.getElementById('fdu-reschedule-row');
+  if(rescRow)rescRow.style.display=v==='Rescheduled'?'':'none';
 }
 async function saveDeliveryUpdate(){
   const id=parseInt(document.getElementById('fdu-id').value);
   const d=deliveries.find(x=>parseInt(x.id)===parseInt(id));if(!d)return;
   const newStatus=document.getElementById('fdu-status').value;
-  const notes=document.getElementById('fdu-notes').value;
-  const remarks=document.getElementById('fdu-remarks').value.trim();
-  d.status=newStatus;d.notes=notes;
-  if(remarks)d.notes=(d.notes?d.notes+' | ':'')+remarks+' ('+CU.name+' '+nowStr()+')';
-  if(d.id&&d.id<2000000000){await sb.from('deliveries').update({status:newStatus,notes:d.notes||''}).eq('id',d.id);}
-  sbLog(`Delivery updated: "${d.items.slice(0,40)}" → ${newStatus}${remarks?' - '+remarks:''}`,'#0F5F6E','Delivery',d.proj);
+  const receiver=document.getElementById('fdu-receiver').value.trim();
+  const po=document.getElementById('fdu-po').value.trim();
+  const invoice=document.getElementById('fdu-invoice').value.trim();
+  const dr=document.getElementById('fdu-dr').value.trim();
+  const notes=document.getElementById('fdu-notes').value.trim();
+  const newDate=document.getElementById('fdu-new-date').value;
+  if(newStatus==='Rescheduled'&&!newDate){alert('Please enter the rescheduled date.');return;}
+  if(newStatus==='Delivered'&&!receiver){alert('Received By is required to mark as Delivered.');return;}
+  d.status=newStatus;
+  if(receiver)d.receiver=receiver;
+  if(po)d.po=po;
+  if(invoice)d.invoice=invoice;
+  if(dr)d.dr=dr;
+  if(notes)d.notes=notes;
+  if(newStatus==='Rescheduled'&&newDate)d.date=newDate;
+  const upRow={status:d.status,notes:d.notes||'',receiver:d.receiver||''};
+  if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;if(dr)upRow.dr_no=dr;
+  if(newStatus==='Rescheduled'&&newDate)upRow.scheduled_date=newDate;
+  if(d.id&&d.id<2000000000){await sb.from('deliveries').update(upRow).eq('id',d.id);}
+  // Sync linked delivery task if exists
+  const linkedTask=tasks.find(t=>t.autoType==='delivery'&&parseInt(t.refId)===parseInt(d.id));
+  if(linkedTask){
+    if(newStatus==='Delivered'||newStatus==='Cancelled'){linkedTask.done=true;linkedTask.status='done';}
+    else if(newStatus==='Rescheduled'&&newDate){linkedTask.due=newDate;linkedTask.status='pending';}
+    else linkedTask.status='in-progress';
+    if(!linkedTask.reports)linkedTask.reports=[];
+    linkedTask.reports.push({date:TODAY,work:'Delivery updated: '+newStatus+(newDate?' → '+newDate:'')+(notes?' | '+notes:''),pct:newStatus==='Delivered'||newStatus==='Cancelled'?100:30,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
+    sbSaveTask(linkedTask);
+  }
+  sbLog(`Delivery updated: "${d.items.slice(0,40)}" → ${newStatus}`,'#0F5F6E','Delivery',d.proj);
   closeFm('fm-delivery-update');
-  renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
+  renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);renderTasksGlobal();
+}
+async function markDeliveredFromModal(){
+  const id=parseInt(document.getElementById('fdu-id').value);
+  const receiver=document.getElementById('fdu-receiver').value.trim();
+  if(!receiver){alert('Received By is required to mark as Delivered.');return;}
+  document.getElementById('fdu-status').value='Delivered';
+  await saveDeliveryUpdate();
+}
+async function deleteDeliveryFromModal(){
+  const id=parseInt(document.getElementById('fdu-id').value);
+  closeFm('fm-delivery-update');
+  await deleteDelivery(id,null);
 }
 function renderSOPs(){
   const cf=document.getElementById('sop-cat-filter')?.value||'';
@@ -5400,6 +5510,8 @@ async function deletePipelineLead(id){
   renderPipeline();
 }
 function renderPipeline(){
+  // Dedup pipeline by id to prevent stale data from showing same lead twice
+  const seen=new Set();pipeline=pipeline.filter(l=>{if(!l.id||seen.has(l.id))return false;seen.add(l.id);return true;});
   const srch=(document.getElementById('pipeline-search')?.value||'').toLowerCase();
   const sf=document.getElementById('pipeline-filter')?.value||'';
   const STAGES=['Lead Gen','Proposal','Negotiation','Closing','Awarded','Lost'];
@@ -5867,63 +5979,49 @@ window.saveVisitorAction=async function(){
 };
 
 // ── Task→Delivery sync functions ─────────────────────────────
-async function tdDeliveryUpdate(taskId){
+async function tdDeliverySave(taskId){
   const t=tasks.find(x=>x.id===taskId);if(!t)return;
   const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
   const d=deliveries.find(x=>parseInt(x.id)===delId);
   const status=document.getElementById('td-del-status')?.value||'Scheduled';
   const newDate=document.getElementById('td-del-new-date')?.value||'';
   if(status==='Rescheduled'&&!newDate){alert('Please enter the rescheduled date.');return;}
+  const receiver=(document.getElementById('td-del-receiver')?.value||'').trim();
+  if(status==='Delivered'&&!receiver){alert('Received By is required to mark as Delivered.');return;}
   const notes=(document.getElementById('td-del-notes')?.value||'').trim();
   const po=(document.getElementById('td-del-po')?.value||'').trim();
   const invoice=(document.getElementById('td-del-invoice')?.value||'').trim();
-  const fileCount=typeof getFileCount==='function'?getFileCount('td-del-files'):0;
-  // ── Sync to Delivery tab ─────────────────────────────────
+  const dr=(document.getElementById('td-del-dr')?.value||'').trim();
+  const fileCount=typeof getFileCount==='function'?getFileCount('td-del-prev'):0;
+  // ── Sync to Delivery ─────────────────────────────────────────
   if(d){
     d.status=status;
-    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes+' ('+CU.name+' '+nowStr()+')';
-    if(po)d.po=po;if(invoice)d.invoice=invoice;
+    if(receiver)d.receiver=receiver;
+    if(po)d.po=po;if(invoice)d.invoice=invoice;if(dr)d.dr=dr;
+    if(notes&&notes!==d.notes)d.notes=notes;
     if(status==='Rescheduled'&&newDate)d.date=newDate;
+    if(status==='Delivered')d.actualDate=TODAY;
     if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
-    const upRow={status:d.status,notes:d.notes||'',scheduled_date:d.date||null};
-    if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
+    const upRow={status:d.status,receiver:d.receiver||'',notes:d.notes||'',scheduled_date:d.date||null};
+    if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;if(dr)upRow.dr_no=dr;
+    if(status==='Delivered')upRow.actual_date=TODAY;
     if(d.id&&d.id<2000000000){const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);if(error)console.error('Delivery sync error:',error);}
     renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
   }
-  // ── Sync task status ──────────────────────────────────────
-  if(status==='Rescheduled'&&newDate){t.due=newDate;t.status='pending';}
-  else if(status==='Cancelled'){t.done=true;t.status='done';}
-  else{t.status='in-progress';}
-  if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Delivery update: '+status+(status==='Rescheduled'?' → '+newDate:'')+(notes?' | '+notes:''),pct:status==='Cancelled'?100:30,submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
-  sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
-}
-
-async function tdDeliveryComplete(taskId){
-  const t=tasks.find(x=>x.id===taskId);if(!t)return;
-  const receiver=(document.getElementById('td-del-receiver')?.value||'').trim();
-  if(!receiver){alert('Received By is required to mark as Delivered.');return;}
-  const delId=parseInt(document.getElementById('td-del-ref')?.value||0);
-  const d=deliveries.find(x=>parseInt(x.id)===delId);
-  const notes=(document.getElementById('td-del-notes')?.value||'').trim();
-  const po=(document.getElementById('td-del-po')?.value||'').trim();
-  const invoice=(document.getElementById('td-del-invoice')?.value||'').trim();
-  const fileCount=typeof getFileCount==='function'?getFileCount('td-del-files'):0;
-  // ── Sync to Delivery tab ─────────────────────────────────
-  if(d){
-    d.status='Delivered';d.receiver=receiver;d.actualDate=TODAY;
-    if(notes)d.notes=(d.notes?d.notes+' | ':'')+notes;if(po)d.po=po;if(invoice)d.invoice=invoice;
-    if(fileCount>0)d.mediaCount=(d.mediaCount||0)+fileCount;
-    const upRow={status:'Delivered',receiver,actual_date:TODAY,notes:d.notes||''};
-    if(po)upRow.po_no=po;if(invoice)upRow.invoice_no=invoice;
-    if(d.id&&d.id<2000000000){const{error}=await sb.from('deliveries').update(upRow).eq('id',d.id);if(error)console.error('Delivery complete error:',error);}
-    renderDeliveries();if(activeProjectId)refreshDetailDelivery(activeProjectId);
+  // ── Sync task ─────────────────────────────────────────────────
+  const isDone=status==='Delivered'||status==='Cancelled';
+  t.done=isDone;t.status=isDone?'done':(status==='Rescheduled'?'pending':'in-progress');
+  if(status==='Rescheduled'&&newDate)t.due=newDate;
+  // Add report only if status actually changed (prevent duplicates)
+  const lastReport=(t.reports||[]).slice(-1)[0];
+  const workNote='Delivery '+status+(status==='Rescheduled'?' → '+newDate:'')+(status==='Delivered'?'. Received by: '+receiver:'')+(notes&&notes!==d?.notes?' | '+notes:'');
+  if(!lastReport||lastReport.work!==workNote){
+    if(!t.reports)t.reports=[];
+    t.reports.push({date:TODAY,work:workNote,pct:isDone?100:(status==='Rescheduled'?0:30),submittedBy:CU.name,time:nowStr(),timestamp:Date.now(),type:'update'});
   }
-  // ── Complete task ─────────────────────────────────────────
-  t.done=true;t.status='done';
-  if(!t.reports)t.reports=[];
-  t.reports.push({date:TODAY,work:'Delivery completed. Received by: '+receiver+(notes?' | '+notes:''),pct:100,submittedBy:CU.name,time:nowStr(),timestamp:Date.now()});
-  sbSaveTask(t);closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  await sbSaveTask(t);
+  closeFm('fm-task-detail');renderTasksGlobal();renderSidebar();
+  sbLog(`Delivery ${status}: "${t.name.slice(0,40)}"`,'#0F5F6E','Delivery',t.project||'');
 }
 
 // ── Task→Visitor sync ─────────────────────────────────────────
@@ -6142,17 +6240,17 @@ function buildTaskContextForm(t,autoType){
     formEl.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--ok-tx)"><i class="ti ti-truck"></i> Delivery Update</div>'+
       (d?'<div style="background:var(--bg2);border-radius:var(--r);padding:8px;margin-bottom:10px;font-size:12px"><strong>'+d.items+'</strong><div style="color:var(--tx2);font-size:11px;margin-top:2px">'+d.proj+' · Sched: '+d.date+' · Status: <strong>'+d.status+'</strong></div></div>':'')+
       '<div class="fr2"><div class="fg"><label class="fl">Status</label><select class="inp" id="td-del-status" onchange="onTdDelStatusChange()"><option>Scheduled</option><option value="Delivered">Delivered</option><option>Cancelled</option><option>Rescheduled</option></select></div>'+
-      '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered"></div></div>'+
-      '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX"></div>'+
-      '<div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="td-del-invoice" placeholder="INV-XXXXX"></div></div>'+
-      '<div class="fg" id="td-del-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="td-del-new-date" type="date"></div>'+
-      '<div class="fg"><label class="fl">Notes</label><textarea class="inp" id="td-del-notes" rows="2" placeholder="Issues, discrepancies..."></textarea></div>'+
+      '<div class="fg"><label class="fl">Received By *</label><input class="inp" id="td-del-receiver" placeholder="Required for Delivered" value="'+(d&&d.receiver?d.receiver:'')+'"></div></div>'+
+      '<div class="fr2"><div class="fg"><label class="fl">PO No.</label><input class="inp" id="td-del-po" placeholder="PO-XXXXX" value="'+(d&&d.po?d.po:'')+'"></div>'+
+      '<div class="fg"><label class="fl">Invoice No.</label><input class="inp" id="td-del-invoice" placeholder="INV-XXXXX" value="'+(d&&d.invoice?d.invoice:'')+'"></div></div>'+
+      '<div class="fr2"><div class="fg"><label class="fl">DR No.</label><input class="inp" id="td-del-dr" placeholder="DR-XXXXX" value="'+(d&&d.dr?d.dr:'')+'"></div>'+
+      '<div class="fg" id="td-del-reschedule-row" style="display:none"><label class="fl">Rescheduled Date *</label><input class="inp" id="td-del-new-date" type="date"></div></div>'+
+      '<div class="fg"><label class="fl">Notes</label><textarea class="inp" id="td-del-notes" rows="2" placeholder="Issues, discrepancies...">'+(d&&d.notes?d.notes:'')+'</textarea></div>'+
       '<div class="fg"><label class="fl">Attach Files</label><div class="upload-zone" onclick="document.getElementById(\'td-del-files\').click()"><input type="file" id="td-del-files" multiple accept="image/*,.pdf" onchange="prevMedia(this,\'td-del-prev\')"><i class="ti ti-upload" style="font-size:18px;color:var(--tx2);display:block;margin-bottom:4px"></i><div style="font-size:12px;color:var(--tx2)">Upload DR, invoice, proof photos</div></div><div class="media-prev" id="td-del-prev"></div></div>'+
       '<input type="hidden" id="td-del-ref" value="'+(d?d.id:'')+'">';
     btnsEl.innerHTML='<button class="btn" onclick="closeFm(\'fm-task-detail\')">Close</button>'+
-      '<button class="btn" style="background:var(--in-bg);color:var(--in-tx);border-color:var(--in-tx)" onclick="tdDeliveryUpdate('+t.id+')"><i class="ti ti-refresh"></i> Update</button>'+
-      '<button class="btn btnp" onclick="tdDeliveryComplete('+t.id+')"><i class="ti ti-check"></i> Mark Delivered</button>';
-    if(d)setTimeout(()=>{var el=document.getElementById('td-del-status');if(el)el.value=d.status||'Scheduled';},20);
+      '<button class="btn btnp" onclick="tdDeliverySave('+t.id+')"><i class="ti ti-device-floppy"></i> Save</button>';
+    if(d)setTimeout(()=>{const el=document.getElementById('td-del-status');if(el){el.value=d.status||'Scheduled';onTdDelStatusChange();}},20);
     return;
   }
   if(autoType==='pipeline_awarded'){
